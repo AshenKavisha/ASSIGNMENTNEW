@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Pending Assignments - Admin</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="display-5 fw-bold text-warning">
+                    <i class="bi bi-clock-history me-3"></i>Pending Assignments
+                </h1>
+                <p class="lead text-muted" th:text="'You have ' + ${pendingCount} + ' assignments waiting for review'"></p>
+            </div>
+            <a th:href="@{/admin/dashboard}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <!-- Success/Error Messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${assignments != null and !assignments.empty}">
+            <div class="row">
+                <div th:each="assignment : ${assignments}" class="col-lg-6 mb-4">
+                    <div class="card border-warning h-100">
+                        <div class="card-header bg-warning text-dark">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0" th:text="${assignment.title}"></h5>
+                                <span class="badge bg-dark">
+                                    <i class="bi bi-clock"></i> PENDING
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <small class="text-muted">Student</small>
+                                    <p class="fw-bold mb-0" th:text="${assignment.user.fullName}"></p>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Email</small>
+                                    <p class="fw-bold mb-0" th:text="${assignment.user.email}"></p>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <small class="text-muted">Type</small>
+                                    <p class="mb-0">
+                                        <span th:if="${assignment.type.name() == 'IT'}" class="badge bg-primary">IT</span>
+                                        <span th:if="${assignment.type.name() == 'QUANTITY_SURVEYING'}" class="badge bg-success">QS</span>
+                                    </p>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Subject</small>
+                                    <p class="fw-bold mb-0" th:text="${assignment.subject}"></p>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <small class="text-muted">Deadline</small>
+                                    <p class="fw-bold mb-0" th:text="${assignment.deadline}"></p>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Submitted</small>
+                                    <p class="fw-bold mb-0" th:text="${#temporals.format(assignment.createdAt, 'MMM dd, yyyy')}"></p>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <small class="text-muted">Description</small>
+                                <p class="mb-0" th:text="${assignment.description}"></p>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <!-- Approve Form -->
+                                <form th:action="@{/admin/assignments/{id}/approve(id=${assignment.id})}" method="post" class="d-inline">
+                                    <div class="input-group mb-2">
+                                        <input type="number" name="price" class="form-control" placeholder="Set price ($)" step="0.01" min="0" required>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="bi bi-check-circle"></i> Approve
+                                        </button>
+                                    </div>
+                                </form>
+
+                                <!-- Reject Button -->
+                                <form th:action="@{/admin/assignments/{id}/reject(id=${assignment.id})}" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Are you sure you want to reject this assignment?')">
+                                        <i class="bi bi-x-circle"></i> Reject
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${assignments == null or assignments.empty}" class="text-center py-5">
+            <i class="bi bi-check-circle display-1 text-success mb-3"></i>
+            <h2>No Pending Assignments</h2>
+            <p class="text-muted lead">All assignments have been reviewed. Great job!</p>
+            <a th:href="@{/admin/dashboard}" class="btn btn-primary btn-lg">
+                <i class="bi bi-speedometer2"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>My Assignments - Assignment Service</title>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+        }
+
+        .assignment-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 16px;
+            overflow: hidden;
+            border: none;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            background: white;
+            position: relative;
+        }
+
+        .assignment-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .assignment-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .assignment-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 50px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .type-badge {
+            font-size: 0.7rem;
+            padding: 0.35rem 0.7rem;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            background: var(--primary-gradient);
+            border-radius: 24px;
+            padding: 4rem 2rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .empty-state::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            animation: float 20s linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(-20px, -20px) rotate(360deg); }
+        }
+
+        .assignment-header {
+            background: var(--dark-gradient);
+            color: white;
+            border-radius: 16px 16px 0 0;
+            padding: 1.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .assignment-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 10px 10px;
+            opacity: 0.5;
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.75rem;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            border: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+
+        .progress-ring {
+            width: 80px;
+            height: 80px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+        }
+
+        .progress-ring-circle {
+            transition: all 0.5s ease;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        .action-btn {
+            border-radius: 12px;
+            padding: 0.6rem 1.2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .action-btn:hover::before {
+            left: 100%;
+        }
+
+        .filter-btn {
+            border-radius: 12px;
+            padding: 0.6rem 1.2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background: white;
+            border: 2px solid #e9ecef;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .filter-btn.active {
+            background: var(--primary-gradient);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .assignment-preview {
+            border-left: 6px solid;
+            border-image: var(--primary-gradient) 1;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 0 12px 12px 0;
+        }
+
+        .gradient-bg {
+            background: var(--primary-gradient);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gradient-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--primary-gradient);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: -30px;
+            top: 5px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .timeline-content {
+            padding: 15px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .timeline-content:hover {
+            transform: translateX(5px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        /* Enhanced Floating Action Button with CREATE text */
+        .enhanced-fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            display: flex;
+            align-items: center;
+            padding: 15px 25px 15px 20px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            text-decoration: none;
+            overflow: hidden;
+        }
+
+        .enhanced-fab::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .enhanced-fab:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+            color: white;
+            text-decoration: none;
+        }
+
+        .enhanced-fab:hover::before {
+            opacity: 1;
+        }
+
+        .enhanced-fab-content {
+            display: flex;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .enhanced-fab i {
+            font-size: 1.4rem;
+            margin-right: 10px;
+        }
+
+        /* Enhanced Search Bar */
+        .enhanced-search {
+            position: relative;
+            width: 100%;
+        }
+
+        .enhanced-search-input {
+            width: 100%;
+            padding: 15px 20px 15px 50px;
+            border: 2px solid transparent;
+            border-radius: 50px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .enhanced-search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 5px 25px rgba(102, 126, 234, 0.2);
+            background: white;
+        }
+
+        .enhanced-search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #667eea;
+            font-size: 1.2rem;
+            z-index: 3;
+        }
+
+        /* Enhanced New Assignment Button */
+        .enhanced-new-btn {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 16px 32px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            box-shadow: 0 10px 30px rgba(67, 233, 123, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .enhanced-new-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.7s;
+        }
+
+        .enhanced-new-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(67, 233, 123, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+
+        .enhanced-new-btn:hover::before {
+            left: 100%;
+        }
+
+        .enhanced-new-btn i {
+            margin-right: 10px;
+            font-size: 1.3rem;
+        }
+
+        /* Enhanced Quick Stats Button */
+        .enhanced-quick-stats-btn {
+            width: 180px;
+            height: 60px;
+            border-radius: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+        }
+
+        .enhanced-quick-stats-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .enhanced-quick-stats-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.6);
+            color: white;
+            text-decoration: none;
+        }
+
+        .enhanced-quick-stats-btn:hover::before {
+            opacity: 1;
+        }
+
+        .enhanced-quick-stats-btn-content {
+            display: flex;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .enhanced-quick-stats-btn i {
+            margin-right: 10px;
+            font-size: 1.3rem;
+        }
+
+        /* Back to Dashboard Button */
+        .back-dashboard-btn {
+            position: fixed;
+            top: 760px;
+            left: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 25px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .back-dashboard-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.6);
+            color: white;
+        }
+
+        .back-dashboard-btn i {
+            margin-right: 8px;
+        }
+
+        /* Floating Buttons Container */
+        .floating-buttons {
+            position: fixed;
+            top: 100px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .floating-stats-right {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%) translateX(300px);
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+            z-index: 999;
+            width: 240px;
+            overflow: hidden;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            opacity: 0;
+        }
+
+        .floating-stats-right.show {
+            transform: translateY(-50%) translateX(0);
+            opacity: 1;
+        }
+
+        .floating-stats-right.hidden {
+            transform: translateY(-50%) translateX(300px);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .stats-close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-close-btn:hover {
+            background: #ff4757;
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        .stats-close-btn i {
+            font-size: 0.8rem;
+        }
+
+        .stats-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .stats-header h6 {
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+        }
+
+        .stats-body {
+            padding: 1rem;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border-radius: 12px;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .stat-item:hover {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            transform: translateX(-5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .stat-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .stat-info {
+            flex: 1;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1;
+            color: #2c3e50;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #6c757d;
+            font-weight: 500;
+            margin-top: 0.25rem;
+        }
+
+        .stats-footer {
+            padding: 0.75rem 1.5rem;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            text-align: center;
+        }
+
+        .stats-footer small {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+        }
+
+        /* Assignment Filter Classes */
+        .assignment-item {
+            display: block !important;
+        }
+
+        .assignment-item.hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 1399px) {
+            .floating-stats-right {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Back to Dashboard Button -->
+    <a th:href="@{/dashboard}" class="back-dashboard-btn">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+
+    <!-- Enhanced Floating Stats Panel - Right Side -->
+    <div class="floating-stats-right hidden" id="quickStatsPanel" th:if="${assignments != null and !assignments.empty}">
+        <button class="stats-close-btn" id="closeStatsBtn">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <div class="stats-header">
+            <i class="bi bi-graph-up-arrow me-2"></i>
+            <h6 class="fw-bold mb-0">Quick Stats</h6>
+        </div>
+
+        <div class="stats-body">
+            <div class="stat-item">
+                <div class="stat-icon bg-primary">
+                    <i class="bi bi-journal-text"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value" id="totalAssignmentsCount" th:text="${#lists.size(assignments)}">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+            </div>
+
+            <div class="stat-item">
+                <div class="stat-icon bg-success">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value" id="completedCount">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+            </div>
+
+            <div class="stat-item">
+                <div class="stat-icon bg-warning">
+                    <i class="bi bi-clock-fill"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value" id="pendingCount">0</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+            </div>
+
+            <div class="stat-item">
+                <div class="stat-icon bg-info">
+                    <i class="bi bi-gear-fill"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value" id="inProgressCount">0</div>
+                    <div class="stat-label">In Progress</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-footer">
+            <small class="text-muted">
+                <i class="bi bi-clock-history me-1"></i>
+                Updated just now
+            </small>
+        </div>
+    </div>
+
+    <!-- Floating Action Buttons -->
+    <div class="floating-buttons">
+        <!-- Enhanced Quick Stats Button -->
+        <button class="enhanced-quick-stats-btn" id="quickStatsToggle" title="Quick Progress">
+            <div class="enhanced-quick-stats-btn-content">
+                <i class="bi bi-bar-chart-fill"></i>
+                <span>QUICK PROGRESS</span>
+            </div>
+        </button>
+
+        <!-- Enhanced New Assignment Button -->
+        <a th:href="@{/assignments/create}" class="enhanced-fab" title="Create New Assignment">
+            <div class="enhanced-fab-content">
+                <i class="bi bi-plus-lg"></i>
+                <span>CREATE</span>
+            </div>
+        </a>
+    </div>
+
+    <div class="container mt-4">
+        <!-- Enhanced Header Section -->
+        <div class="gradient-bg text-white rounded-4 p-5 mb-5 shadow-lg position-relative">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-5 fw-bold mb-3"><i class="bi bi-journal-text me-3"></i>My Assignments</h1>
+                    <p class="lead mb-0 opacity-90">Track, manage, and excel in all your academic submissions</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <a th:href="@{/assignments/create}" class="enhanced-new-btn">
+                        <i class="bi bi-plus-circle"></i> New Assignment
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Search and Filter Bar -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="enhanced-search">
+                    <i class="bi bi-search enhanced-search-icon"></i>
+                    <input type="text" id="searchInput" class="enhanced-search-input" placeholder="Search assignments by title, subject, or description...">
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="btn-group" role="group" id="filterButtons">
+                    <button type="button" class="filter-btn active" data-filter="all">All</button>
+                    <button type="button" class="filter-btn" data-filter="PENDING">Pending</button>
+                    <button type="button" class="filter-btn" data-filter="IN_PROGRESS">In Progress</button>
+                    <button type="button" class="filter-btn" data-filter="COMPLETED">Completed</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Stats Overview -->
+        <div th:if="${assignments != null and !assignments.empty}" class="row mb-5">
+            <div class="col-md-3 mb-4">
+                <div class="stats-card h-100">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="bi bi-journal-text display-6 text-primary"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0 fw-bold" id="totalStatsCount" th:text="${#lists.size(assignments)}">0</h3>
+                            <p class="text-muted mb-0">Total Assignments</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stats-card h-100">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="bi bi-check-circle display-6 text-success"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0 fw-bold" id="completedStatsCount" th:text="${completedCount}">0</h3>
+                            <p class="text-muted mb-0">Completed</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stats-card h-100">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="bi bi-clock display-6 text-warning"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0 fw-bold" id="pendingStatsCount" th:text="${pendingCount}">0</h3>
+                            <p class="text-muted mb-0">Pending</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stats-card h-100">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="bi bi-gear display-6 text-info"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0 fw-bold" id="inProgressStatsCount" th:text="${inProgressCount}">0</h3>
+                            <p class="text-muted mb-0">In Progress</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Empty State -->
+        <div th:if="${assignments == null or assignments.empty}">
+            <div class="empty-state text-center position-relative">
+                <div class="mb-4 position-relative" style="z-index: 1;">
+                    <i class="bi bi-journal-text display-1 mb-3"></i>
+                    <h2 class="fw-bold mb-3">No Assignments Yet</h2>
+                    <p class="mb-4 fs-5 opacity-90">Start your academic journey by creating your first assignment!</p>
+                    <a th:href="@{/assignments/create}" class="enhanced-new-btn">
+                        <i class="bi bi-plus-circle me-2"></i> Submit Your First Assignment
+                    </a>
+                </div>
+                <div class="row mt-5 position-relative" style="z-index: 1;">
+                    <div class="col-md-4 mb-4">
+                        <div class="p-3">
+                            <i class="bi bi-lightning-charge display-6 mb-3"></i>
+                            <h5>Quick Submission</h5>
+                            <p class="opacity-90">Submit your assignment in just a few clicks</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="p-3">
+                            <i class="bi bi-graph-up display-6 mb-3"></i>
+                            <h5>Track Progress</h5>
+                            <p class="opacity-90">Monitor the status of your assignments in real-time</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="p-3">
+                            <i class="bi bi-chat-dots display-6 mb-3"></i>
+                            <h5>Get Support</h5>
+                            <p class="opacity-90">Our experts are ready to help with your assignments</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Assignment List -->
+        <div th:if="${assignments != null and !assignments.empty}">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold">Assignment Portfolio</h2>
+                    <p class="text-muted">Your academic journey at a glance</p>
+                </div>
+            </div>
+
+            <!-- Enhanced Assignment Cards -->
+            <div class="row" id="assignmentsContainer">
+                <div th:each="assignment : ${assignments}" class="col-lg-6 mb-4 assignment-item"
+                     th:attr="data-status=${assignment.status}, data-title=${assignment.title}, data-subject=${assignment.subject}, data-description=${assignment.description}">
+                    <div class="assignment-card card h-100 position-relative">
+                        <div class="assignment-header">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h5 class="card-title mb-1 fw-bold" th:text="${assignment.title}">Assignment Title</h5>
+                                    <p class="card-text mb-0 opacity-90" th:text="${assignment.subject}">Subject</p>
+                                </div>
+                                <span th:switch="${assignment.type}" class="type-badge bg-light text-dark">
+                                    <span th:case="IT">
+                                        <i class="bi bi-laptop me-1"></i> IT
+                                    </span>
+                                    <span th:case="QUANTITY_SURVEYING">
+                                        <i class="bi bi-calculator me-1"></i> QS
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <small class="text-muted">Deadline</small>
+                                    <p class="mb-0 fw-semibold" th:text="${assignment.deadline}">Date</p>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Submitted</small>
+                                    <p class="mb-0 fw-semibold" th:text="${#temporals.format(assignment.createdAt, 'MMM dd, yyyy')}">Date</p>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span th:switch="${assignment.status}" class="status-badge">
+                                    <span th:case="PENDING" class="bg-warning text-dark">
+                                        <i class="bi bi-clock me-1"></i> Pending
+                                    </span>
+                                    <span th:case="APPROVED" class="bg-success text-white">
+                                        <i class="bi bi-check-circle me-1"></i> Approved
+                                    </span>
+                                    <span th:case="REJECTED" class="bg-danger text-white">
+                                        <i class="bi bi-x-circle me-1"></i> Rejected
+                                    </span>
+                                    <span th:case="IN_PROGRESS" class="bg-info text-white">
+                                        <i class="bi bi-gear me-1"></i> In Progress
+                                    </span>
+                                    <span th:case="COMPLETED" class="bg-primary text-white">
+                                        <i class="bi bi-check-all me-1"></i> Completed
+                                    </span>
+                                    <span th:case="PAID" class="bg-success text-white">
+                                        <i class="bi bi-credit-card me-1"></i> Paid
+                                    </span>
+                                </span>
+
+                                <div class="progress-ring">
+                                    <svg width="80" height="80" viewBox="0 0 80 80">
+                                        <circle class="progress-ring-circle"
+                                                stroke="#e6e6e6"
+                                                stroke-width="6"
+                                                fill="transparent"
+                                                r="35"
+                                                cx="40"
+                                                cy="40"/>
+                                        <circle class="progress-ring-circle"
+                                                th:attr="stroke-dasharray=${assignment.status == 'COMPLETED' ? '220, 220' : (assignment.status == 'IN_PROGRESS' ? '110, 220' : '55, 220')},stroke=${assignment.status == 'COMPLETED' ? '#4b6cb7' : (assignment.status == 'IN_PROGRESS' ? '#17a2b8' : '#ffc107')}"
+                                                stroke-width="6"
+                                                stroke-linecap="round"
+                                                fill="transparent"
+                                                r="35"
+                                                cx="40"
+                                                cy="40"/>
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary action-btn flex-fill"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#assignmentModal"
+                                        th:attr="data-bs-assignment-id=${assignment.id}">
+                                    <i class="bi bi-eye me-1"></i> View Details
+                                </button>
+                                <button class="btn btn-outline-secondary action-btn">
+                                    <i class="bi bi-chat-dots"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Store initial assignment data
+            const assignments = document.querySelectorAll('.assignment-item');
+            let currentFilter = 'all';
+            let currentSearch = '';
+
+            // Function to update statistics
+            function updateStatistics() {
+                const visibleAssignments = document.querySelectorAll('.assignment-item:not(.hidden)');
+                const totalCount = assignments.length;
+                const visibleCount = visibleAssignments.length;
+
+                // Count by status
+                let completed = 0;
+                let pending = 0;
+                let inProgress = 0;
+
+                visibleAssignments.forEach(item => {
+                    const status = item.getAttribute('data-status');
+                    switch(status) {
+                        case 'COMPLETED':
+                            completed++;
+                            break;
+                        case 'PENDING':
+                            pending++;
+                            break;
+                        case 'IN_PROGRESS':
+                            inProgress++;
+                            break;
+                    }
+                });
+
+                // Update stats cards
+                document.getElementById('totalStatsCount').textContent = visibleCount;
+                document.getElementById('completedStatsCount').textContent = completed;
+                document.getElementById('pendingStatsCount').textContent = pending;
+                document.getElementById('inProgressStatsCount').textContent = inProgress;
+
+                // Update quick stats panel
+                document.getElementById('totalAssignmentsCount').textContent = visibleCount;
+                document.getElementById('completedCount').textContent = completed;
+                document.getElementById('pendingCount').textContent = pending;
+                document.getElementById('inProgressCount').textContent = inProgress;
+            }
+
+            // Filter assignments by status
+            function filterAssignments(status) {
+                currentFilter = status;
+                assignments.forEach(item => {
+                    const itemStatus = item.getAttribute('data-status');
+
+                    if (currentFilter === 'all') {
+                        item.classList.remove('hidden');
+                    } else if (itemStatus === currentFilter) {
+                        item.classList.remove('hidden');
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                });
+
+                updateStatistics();
+            }
+
+            // Search assignments
+            function searchAssignments(query) {
+                currentSearch = query.toLowerCase();
+                assignments.forEach(item => {
+                    const title = item.getAttribute('data-title')?.toLowerCase() || '';
+                    const subject = item.getAttribute('data-subject')?.toLowerCase() || '';
+                    const description = item.getAttribute('data-description')?.toLowerCase() || '';
+
+                    // Check if item matches search query
+                    const matchesSearch = title.includes(currentSearch) ||
+                        subject.includes(currentSearch) ||
+                        description.includes(currentSearch);
+
+                    // Check if item matches current filter
+                    const itemStatus = item.getAttribute('data-status');
+                    const matchesFilter = currentFilter === 'all' || itemStatus === currentFilter;
+
+                    // Show/hide based on both search and filter
+                    if (matchesSearch && matchesFilter) {
+                        item.classList.remove('hidden');
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                });
+
+                updateStatistics();
+            }
+
+            // Enhanced filter buttons functionality
+            const filterButtons = document.querySelectorAll('#filterButtons .filter-btn');
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Add button animation
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1)';
+                    }, 150);
+
+                    // Apply filter
+                    const filter = this.getAttribute('data-filter');
+                    filterAssignments(filter);
+                });
+            });
+
+            // Enhanced search functionality
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    searchAssignments(this.value);
+                });
+            }
+
+            // Quick Stats Toggle Functionality
+            const quickStatsToggle = document.getElementById('quickStatsToggle');
+            const quickStatsPanel = document.getElementById('quickStatsPanel');
+            const closeStatsBtn = document.getElementById('closeStatsBtn');
+
+            if (quickStatsToggle && quickStatsPanel) {
+                quickStatsToggle.addEventListener('click', function() {
+                    quickStatsPanel.classList.toggle('show');
+                    quickStatsPanel.classList.toggle('hidden');
+                    this.classList.toggle('active');
+
+                    // Add rotation animation
+                    this.style.transform = quickStatsPanel.classList.contains('show')
+                        ? 'rotate(180deg)'
+                        : 'rotate(0deg)';
+                });
+
+                if (closeStatsBtn) {
+                    closeStatsBtn.addEventListener('click', function() {
+                        quickStatsPanel.classList.add('hidden');
+                        quickStatsPanel.classList.remove('show');
+                        quickStatsToggle.classList.remove('active');
+                        quickStatsToggle.style.transform = 'rotate(0deg)';
+                    });
+                }
+
+                // Close on outside click
+                document.addEventListener('click', function(event) {
+                    if (!quickStatsPanel.contains(event.target) &&
+                        !quickStatsToggle.contains(event.target) &&
+                        quickStatsPanel.classList.contains('show')) {
+                        quickStatsPanel.classList.add('hidden');
+                        quickStatsPanel.classList.remove('show');
+                        quickStatsToggle.classList.remove('active');
+                        quickStatsToggle.style.transform = 'rotate(0deg)';
+                    }
+                });
+            }
+
+            // Enhanced modal functionality
+            const modal = document.getElementById('assignmentModal');
+            if (modal) {
+                modal.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    const assignmentId = button.getAttribute('data-bs-assignment-id');
+
+                    // Enhanced loading state
+                    document.getElementById('assignmentDetails').innerHTML = `
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <h5 class="fw-bold">Loading Assignment Details</h5>
+                            <p class="text-muted">Please wait while we fetch your assignment information...</p>
+                        </div>
+                    `;
+
+                    // Simulate loading (replace with actual AJAX call)
+                    setTimeout(() => {
+                        document.getElementById('assignmentDetails').innerHTML = `
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h4 class="fw-bold mb-3">Advanced Database Systems Project</h4>
+                                    <p class="text-muted mb-4">Design and implement a database system for a university library</p>
+
+                                    <div class="mb-4">
+                                        <h6 class="fw-semibold mb-3">Description</h6>
+                                        <p class="mb-0">Create a comprehensive database system to manage books, members, loans, and returns for a university library. The system should support complex queries, reporting, and have proper normalization.</p>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <h6 class="fw-semibold mb-3">Requirements</h6>
+                                        <ul class="list-group list-group-flush">
+                                            <li class="list-group-item px-0">Entity-Relationship Diagram</li>
+                                            <li class="list-group-item px-0">Normalized database schema (3NF)</li>
+                                            <li class="list-group-item px-0">SQL scripts for table creation</li>
+                                            <li class="list-group-item px-0">Sample queries for common operations</li>
+                                            <li class="list-group-item px-0">Documentation of design decisions</li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="card border-0 shadow-sm">
+                                        <div class="card-body">
+                                            <h6 class="card-title fw-semibold mb-3">Assignment Info</h6>
+
+                                            <div class="mb-3">
+                                                <small class="text-muted">Type</small>
+                                                <p class="mb-0">
+                                                    <span class="badge bg-primary">
+                                                        <i class="bi bi-laptop me-1"></i> IT
+                                                    </span>
+                                                </p>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <small class="text-muted">Subject</small>
+                                                <p class="mb-0 fw-semibold">Database Systems</p>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <small class="text-muted">Deadline</small>
+                                                <p class="mb-0 fw-semibold">Dec 15, 2023</p>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <small class="text-muted">Status</small>
+                                                <p class="mb-0">
+                                                    <span class="badge bg-info text-white">
+                                                        <i class="bi bi-gear me-1"></i> In Progress
+                                                    </span>
+                                                </p>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <small class="text-muted">Price Quote</small>
+                                                <p class="mb-0 fw-semibold text-success">$150.00</p>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <small class="text-muted">Assigned Expert</small>
+                                                <p class="mb-0 fw-semibold">Dr. Sarah Johnson</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-3">
+                                        <button class="btn btn-outline-primary w-100 mb-2 action-btn">
+                                            <i class="bi bi-chat-dots me-1"></i> Message Expert
+                                        </button>
+                                        <button class="btn btn-outline-secondary w-100 action-btn">
+                                            <i class="bi bi-clock me-1"></i> Request Extension
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <h6 class="fw-semibold mb-3">Progress Updates</h6>
+                                <div class="timeline">
+                                    <div class="timeline-item">
+                                        <div class="timeline-marker bg-success"></div>
+                                        <div class="timeline-content">
+                                            <h6 class="mb-1">Assignment Approved</h6>
+                                            <p class="text-muted mb-0">Nov 10, 2023 - Your assignment has been approved and assigned to an expert.</p>
+                                        </div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-marker bg-info"></div>
+                                        <div class="timeline-content">
+                                            <h6 class="mb-1">Work In Progress</h6>
+                                            <p class="text-muted mb-0">Nov 15, 2023 - Expert has started working on your assignment.</p>
+                                        </div>
+                                    </div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-marker"></div>
+                                        <div class="timeline-content">
+                                            <h6 class="mb-1">Estimated Completion</h6>
+                                            <p class="text-muted mb-0">Dec 10, 2023 - Assignment is expected to be completed by this date.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }, 1500);
+                });
+            }
+
+            // Initialize statistics
+            updateStatistics();
+        });
+    </script>
+</div>
+</body>
+</html>

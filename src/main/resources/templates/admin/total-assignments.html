@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Total Assignments - Admin</title>
+    <style>
+        .filter-btn.active {
+            background-color: #0d6efd;
+            color: white;
+        }
+        .assignment-card {
+            transition: transform 0.2s;
+            border-left: 4px solid;
+        }
+        .assignment-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .it-card {
+            border-left-color: #0d6efd;
+        }
+        .qs-card {
+            border-left-color: #198754;
+        }
+        .feedback-modal .modal-dialog {
+            max-width: 700px;
+        }
+        .rating-stars {
+            color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container mt-4">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="display-5 fw-bold">
+                    <i class="bi bi-journal-text me-3"></i>Total Assignments
+                </h1>
+                <p class="lead text-muted">View all completed assignments</p>
+            </div>
+            <a th:href="@{/admin/dashboard}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-subtitle mb-2">IT Assignments</h6>
+                                <h2 th:text="${itCompletedCount != null ? itCompletedCount : 0}" class="card-title">0</h2>
+                            </div>
+                            <i class="bi bi-laptop display-6 opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-subtitle mb-2">QS Assignments</h6>
+                                <h2 th:text="${qsCompletedCount != null ? qsCompletedCount : 0}" class="card-title">0</h2>
+                            </div>
+                            <i class="bi bi-calculator display-6 opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-subtitle mb-2">Total Completed</h6>
+                                <h2 th:text="${totalCompletedCount != null ? totalCompletedCount : 0}" class="card-title">0</h2>
+                            </div>
+                            <i class="bi bi-check-circle display-6 opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h5 class="mb-3">Filter Assignments</h5>
+                        <div class="btn-group" role="group">
+                            <a th:href="@{/admin/assignments/completed}"
+                               class="btn btn-outline-primary filter-btn active">All Types</a>
+                            <a th:href="@{/admin/assignments/completed(type='IT')}"
+                               class="btn btn-outline-primary filter-btn">IT Only</a>
+                            <a th:href="@{/admin/assignments/completed(type='QUANTITY_SURVEYING')}"
+                               class="btn btn-outline-primary filter-btn">QS Only</a>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" id="searchInput" class="form-control" placeholder="Search by student name, subject, or title...">
+                            <button class="btn btn-primary" id="searchBtn">Search</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assignments List -->
+        <div th:if="${completedAssignments != null and !completedAssignments.empty}">
+            <div class="row" id="assignmentsContainer">
+                <div th:each="assignment : ${completedAssignments}"
+                     class="col-12 mb-3 assignment-item"
+                     th:data-type="${assignment.type.name()}">
+                    <div class="card assignment-card" th:classappend="${assignment.type.name()} == 'IT' ? 'it-card' : 'qs-card'">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <h5 th:text="${assignment.title}" class="card-title"></h5>
+                                    <div class="mb-2">
+                                        <span th:if="${assignment.type.name()} == 'IT'"
+                                              class="badge bg-primary">IT Assignment</span>
+                                        <span th:if="${assignment.type.name()} == 'QUANTITY_SURVEYING'"
+                                              class="badge bg-success">QS Assignment</span>
+                                    </div>
+                                    <small class="text-muted">Subject: </small>
+                                    <span th:text="${assignment.subject}" class="fw-bold"></span>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <small class="text-muted">Student</small>
+                                    <p class="mb-1 fw-bold" th:text="${assignment.user.fullName}"></p>
+                                    <small class="text-muted" th:text="${assignment.user.email}"></small>
+                                </div>
+
+                                <div class="col-md-2">
+                                    <small class="text-muted">Completed On</small>
+                                    <p class="mb-1 fw-bold" th:text="${#temporals.format(assignment.updatedAt, 'MMM dd, yyyy')}"></p>
+                                    <small class="text-muted">Price: $</small>
+                                    <span th:text="${assignment.price != null ? assignment.price : 'N/A'}" class="fw-bold"></span>
+                                </div>
+
+                                <div class="col-md-2">
+                                    <small class="text-muted">Status</small>
+                                    <div>
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle"></i> COMPLETED
+                                        </span>
+                                    </div>
+                                    <small th:if="${assignment.feedbacks != null and !assignment.feedbacks.empty}">
+                                        Has Feedback
+                                    </small>
+                                </div>
+
+                                <div class="col-md-2 text-end">
+                                    <div class="btn-group" role="group">
+                                        <a th:href="@{/admin/assignments/{id}(id=${assignment.id})}"
+                                           class="btn btn-outline-info">
+                                            <i class="bi bi-eye"></i> View Details
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <nav th:if="${totalPages > 1}" aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled' : ''">
+                        <a class="page-link" th:href="@{/admin/assignments/completed(page=${currentPage-1})}">Previous</a>
+                    </li>
+                    <li th:each="page : ${#numbers.sequence(1, totalPages)}"
+                        class="page-item" th:classappend="${page == currentPage} ? 'active' : ''">
+                        <a class="page-link" th:href="@{/admin/assignments/completed(page=${page})}" th:text="${page}"></a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled' : ''">
+                        <a class="page-link" th:href="@{/admin/assignments/completed(page=${currentPage+1})}">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+        <div th:if="${completedAssignments == null or completedAssignments.empty}" class="text-center py-5">
+            <i class="bi bi-journal-x display-1 text-muted mb-3"></i>
+            <h2>No Completed Assignments</h2>
+            <p class="text-muted lead">There are no completed assignments to display.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Search functionality
+            const searchInput = document.getElementById('searchInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const assignmentItems = document.querySelectorAll('.assignment-item');
+
+            function performSearch() {
+                const searchTerm = searchInput.value.toLowerCase();
+
+                assignmentItems.forEach(item => {
+                    const cardText = item.textContent.toLowerCase();
+                    if (cardText.includes(searchTerm)) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            }
+
+            searchBtn.addEventListener('click', performSearch);
+            searchInput.addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') {
+                    performSearch();
+                }
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

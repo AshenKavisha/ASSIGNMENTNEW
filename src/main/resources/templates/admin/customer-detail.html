@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Detail - Admin</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #3498db;
+      --secondary-color: #2c3e50;
+      --success-color: #27ae60;
+      --info-color: #17a2b8;
+      --warning-color: #f39c12;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f8f9fa;
+    }
+
+    .profile-header {
+      background: linear-gradient(135deg, var(--primary-color), #2980b9);
+      border-radius: 15px;
+      padding: 2rem;
+      color: white;
+      margin-bottom: 2rem;
+    }
+
+    .customer-avatar-large {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      font-weight: bold;
+      background: rgba(255, 255, 255, 0.2);
+      border: 4px solid white;
+    }
+
+    .stat-card {
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+      transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    .assignment-card {
+      border: none;
+      border-radius: 10px;
+      margin-bottom: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .assignment-card:hover {
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .status-badge {
+      padding: 0.5em 1em;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    .timeline-item {
+      border-left: 3px solid var(--primary-color);
+      padding-left: 1.5rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+
+    .timeline-item::before {
+      content: '';
+      width: 12px;
+      height: 12px;
+      background: var(--primary-color);
+      border-radius: 50%;
+      position: absolute;
+      left: -7.5px;
+      top: 5px;
+    }
+
+    .info-row {
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .info-row:last-child {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" href="#">
+      <i class="bi bi-journal-check"></i> Assignment Service - Admin
+    </a>
+    <div class="navbar-nav ms-auto">
+            <span class="navbar-text me-3">
+                <i class="bi bi-person-circle"></i> <span th:text="${currentAdmin?.fullName ?: 'Admin'}">Admin</span>
+            </span>
+      <a class="btn btn-outline-light btn-sm" th:href="@{/logout}">
+        <i class="bi bi-box-arrow-right"></i> Logout
+      </a>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-4">
+  <!-- Back Button -->
+  <div class="mb-3">
+    <a th:href="@{/admin/customers}" class="btn btn-secondary">
+      <i class="bi bi-arrow-left"></i> Back to Customers
+    </a>
+  </div>
+
+  <!-- Profile Header -->
+  <div class="profile-header">
+    <div class="row align-items-center">
+      <div class="col-md-2 text-center mb-3 mb-md-0">
+        <div class="customer-avatar-large mx-auto" th:text="${customer?.fullName?.substring(0,1)?.toUpperCase()}">
+          C
+        </div>
+      </div>
+      <div class="col-md-10">
+        <h1 class="mb-2" th:text="${customer?.fullName}">Customer Name</h1>
+        <p class="mb-2">
+          <i class="bi bi-envelope"></i> <span th:text="${customer?.email}">email@example.com</span>
+        </p>
+        <p class="mb-0">
+          <i class="bi bi-calendar"></i> Member since:
+          <span th:text="${#temporals.format(customer?.createdAt ?: T(java.time.LocalDateTime).now(), 'MMM dd, yyyy')}">Jan 01, 2025</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="row mb-4">
+    <div class="col-md-3 mb-3">
+      <div class="stat-card card text-center">
+        <div class="card-body">
+          <i class="bi bi-journal-text display-4 text-primary mb-2"></i>
+          <h3 class="mb-0" th:text="${totalAssignments ?: 0}">0</h3>
+          <p class="text-muted mb-0">Total Assignments</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <div class="stat-card card text-center">
+        <div class="card-body">
+          <i class="bi bi-check-circle display-4 text-success mb-2"></i>
+          <h3 class="mb-0" th:text="${completedAssignments ?: 0}">0</h3>
+          <p class="text-muted mb-0">Completed</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <div class="stat-card card text-center">
+        <div class="card-body">
+          <i class="bi bi-clock-history display-4 text-warning mb-2"></i>
+          <h3 class="mb-0" th:text="${pendingAssignments ?: 0}">0</h3>
+          <p class="text-muted mb-0">Pending</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <div class="stat-card card text-center">
+        <div class="card-body">
+          <i class="bi bi-currency-dollar display-4 text-info mb-2"></i>
+          <h3 class="mb-0">$<span th:text="${#numbers.formatDecimal(totalSpent ?: 0, 1, 2)}">0.00</span></h3>
+          <p class="text-muted mb-0">Total Spent</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Customer Information -->
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-header bg-white">
+          <h5 class="mb-0"><i class="bi bi-info-circle text-primary"></i> Customer Information</h5>
+        </div>
+        <div class="card-body">
+          <div class="info-row">
+            <small class="text-muted d-block">Full Name</small>
+            <strong th:text="${customer?.fullName}">Customer Name</strong>
+          </div>
+          <div class="info-row">
+            <small class="text-muted d-block">Email Address</small>
+            <strong th:text="${customer?.email}">email@example.com</strong>
+          </div>
+          <div class="info-row">
+            <small class="text-muted d-block">Member Since</small>
+            <strong th:text="${#temporals.format(customer?.createdAt ?: T(java.time.LocalDateTime).now(), 'MMM dd, yyyy')}">Jan 01, 2025</strong>
+          </div>
+          <div class="info-row" th:if="${customer?.lastLogin != null}">
+            <small class="text-muted d-block">Last Login</small>
+            <strong th:text="${#temporals.format(customer?.lastLogin, 'MMM dd, yyyy HH:mm')}">Jan 01, 2025 10:30</strong>
+          </div>
+          <div class="info-row">
+            <small class="text-muted d-block">Customer ID</small>
+            <strong th:text="${customer?.id}">123</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-8">
+      <!-- Assignments List -->
+      <div class="card">
+        <div class="card-header bg-white">
+          <h5 class="mb-0"><i class="bi bi-list-task text-primary"></i> Assignment History</h5>
+        </div>
+        <div class="card-body">
+          <div th:if="${assignments?.empty}" class="text-center py-4">
+            <i class="bi bi-inbox display-4 text-muted"></i>
+            <p class="text-muted mt-2">No assignments found</p>
+          </div>
+
+          <div th:each="assignment : ${assignments}" class="timeline-item">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <h6 class="mb-1" th:text="${assignment?.title}">Assignment Title</h6>
+                <small class="text-muted">
+                  <i class="bi bi-calendar"></i>
+                  <span th:text="${#temporals.format(assignment?.createdAt ?: T(java.time.LocalDateTime).now(), 'MMM dd, yyyy')}">Date</span>
+                </small>
+              </div>
+              <span class="badge status-badge"
+                    th:classappend="${assignment?.status?.name() == 'COMPLETED'} ? 'bg-success' :
+                                                 (${assignment?.status?.name() == 'PENDING'} ? 'bg-warning' :
+                                                 (${assignment?.status?.name() == 'APPROVED'} ? 'bg-info' :
+                                                 (${assignment?.status?.name() == 'IN_PROGRESS'} ? 'bg-primary' : 'bg-secondary')))"
+                    th:text="${assignment?.status?.name()}">
+                                Status
+                            </span>
+            </div>
+
+            <div class="row mt-2">
+              <div class="col-sm-4">
+                <small class="text-muted">Type:</small>
+                <span class="badge ms-1"
+                      th:classappend="${assignment?.type?.name() == 'IT'} ? 'bg-info' : 'bg-success'"
+                      th:text="${assignment?.type?.name() == 'IT'} ? 'IT' : 'QS'">
+                                    Type
+                                </span>
+              </div>
+              <div class="col-sm-4" th:if="${assignment?.price != null}">
+                <small class="text-muted">Price:</small>
+                <strong class="ms-1">$<span th:text="${#numbers.formatDecimal(assignment?.price ?: 0, 1, 2)}">0.00</span></strong>
+              </div>
+              <div class="col-sm-4">
+                <a th:href="@{/admin/assignments/{id}(id=${assignment?.id})}"
+                   class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-eye"></i> View Details
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white mt-5 py-4">
+  <div class="container text-center">
+    <p class="mb-0">&copy; 2025 Assignment Service. All rights reserved.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

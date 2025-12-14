@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Management - Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .management-section {
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+        .tab-content {
+            padding: 1.5rem;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+        }
+        .permission-badge {
+            font-size: 0.75rem;
+            margin: 2px;
+        }
+        .admin-card {
+            transition: all 0.3s ease;
+        }
+        .admin-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <i class="bi bi-journal-check"></i> Assignment Service - Admin
+        </a>
+        <div class="navbar-nav ms-auto">
+            <span class="navbar-text me-3">
+                <i class="bi bi-person-circle"></i>
+                <span th:text="${currentUser?.fullName ?: 'Admin'}">Admin</span>
+            </span>
+            <a class="btn btn-outline-light btn-sm" th:href="@{/logout}">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-5 fw-bold">
+                <i class="bi bi-gear me-3"></i>System Management
+            </h1>
+            <p class="lead text-muted">Manage administrators and system settings</p>
+        </div>
+        <a th:href="@{/dashboard}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle"></i> <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle"></i> <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-tabs" id="managementTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="add-admin-tab" data-bs-toggle="tab"
+                    data-bs-target="#add-admin" type="button" role="tab">
+                <i class="bi bi-person-plus"></i> Add New Admin
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="manage-admin-tab" data-bs-toggle="tab"
+                    data-bs-target="#manage-admin" type="button" role="tab">
+                <i class="bi bi-people"></i> Manage Administrators
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="roles-tab" data-bs-toggle="tab"
+                    data-bs-target="#roles" type="button" role="tab">
+                <i class="bi bi-shield-check"></i> Role Permissions
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="managementTabsContent">
+
+        <!-- Tab 1: Add New Admin -->
+        <div class="tab-pane fade show active" id="add-admin" role="tabpanel">
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <h4 class="mb-0"><i class="bi bi-person-plus"></i> Register New Administrator</h4>
+                        </div>
+                        <div class="card-body">
+                            <form th:action="@{/admin/management/add-admin}" method="post" id="addAdminForm" th:object="${adminRegistrationDto}">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="firstName" class="form-label">First Name *</label>
+                                        <input type="text" class="form-control" id="firstName" name="firstName"
+                                               th:field="*{firstName}" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="lastName" class="form-label">Last Name *</label>
+                                        <input type="text" class="form-control" id="lastName" name="lastName"
+                                               th:field="*{lastName}" required>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address *</label>
+                                    <input type="email" class="form-control" id="email" name="email"
+                                           th:field="*{email}" required>
+                                    <div class="form-text">This will be used for login and notifications</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="specialization" class="form-label">Specialization *</label>
+                                    <select class="form-select" id="specialization" name="specialization"
+                                            th:field="*{specialization}" required>
+                                        <option value="">Select specialization...</option>
+                                        <option value="IT">Information Technology (IT)</option>
+                                        <option value="QUANTITY_SURVEYING">Quantity Surveying (QS)</option>
+                                        <option value="BOTH">Both IT and QS</option>
+                                    </select>
+                                    <div class="form-text">Determines which assignments the admin can manage</div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="password" class="form-label">Password *</label>
+                                        <input type="password" class="form-control" id="password" name="password"
+                                               th:field="*{password}" minlength="8" required>
+                                        <div class="form-text">Minimum 8 characters</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="confirmPassword" class="form-label">Confirm Password *</label>
+                                        <input type="password" class="form-control" id="confirmPassword"
+                                               name="confirmPassword" th:field="*{confirmPassword}" required>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle"></i>
+                                    <strong>Note:</strong> An email invitation will be sent to the new administrator
+                                    with login credentials and instructions.
+                                </div>
+
+                                <div class="text-end">
+                                    <button type="reset" class="btn btn-secondary">Clear Form</button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-person-plus"></i> Create Admin Account
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Manage Administrators -->
+        <div class="tab-pane fade" id="manage-admin" role="tabpanel">
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4>Current Administrators</h4>
+                        <div class="text-muted" th:text="'Total: ' + ${adminCount ?: 0}"></div>
+                    </div>
+
+                    <div th:if="${admins != null and !admins.empty}">
+                        <div class="row">
+                            <div th:each="admin : ${admins}" class="col-md-6 mb-3">
+                                <div class="card admin-card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <h5 class="card-title" th:text="${admin?.fullName}"></h5>
+                                                <p class="card-text text-muted mb-1" th:text="${admin?.email}"></p>
+                                                <p class="card-text">
+                                                    <span th:if="${admin?.specialization?.name() == 'IT'}"
+                                                          class="badge bg-primary">IT Specialist</span>
+                                                    <span th:if="${admin?.specialization?.name() == 'QUANTITY_SURVEYING'}"
+                                                          class="badge bg-success">QS Specialist</span>
+                                                    <span th:if="${admin?.specialization?.name() == 'BOTH'}"
+                                                          class="badge bg-info">Both IT & QS</span>
+                                                    <span th:if="${admin?.specialization == null or admin?.specialization?.name() == 'NONE'}"
+                                                          class="badge bg-secondary">No Specialization</span>
+                                                </p>
+                                            </div>
+                                            <div class="dropdown" th:if="${admin?.id != currentUser?.id}">
+                                                <button class="btn btn-sm btn-outline-secondary" type="button"
+                                                        data-bs-toggle="dropdown">
+                                                    <i class="bi bi-three-dots"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <form th:action="@{/admin/management/{id}/deactivate(id=${admin?.id})}"
+                                                              method="post" class="d-inline">
+                                                            <button type="submit" class="dropdown-item text-danger"
+                                                                    onclick="return confirm('Are you sure you want to deactivate this admin?')">
+                                                                <i class="bi bi-person-dash"></i> Deactivate Account
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-2">
+                                            <small class="text-muted">Account Created:</small>
+                                            <span th:text="${#temporals.format(admin?.createdAt ?: T(java.time.LocalDateTime).now(), 'MMM dd, yyyy')}"
+                                                  class="fw-bold ms-1"></span>
+                                        </div>
+
+                                        <div>
+                                            <small class="text-muted">Assignments Handled:</small>
+                                            <div class="mt-1">
+                                                <span class="badge bg-primary permission-badge">
+                                                    IT: <span th:text="${admin?.assignments != null ? admin.assignments.?[type?.name() eq 'IT'].size() : 0}">0</span>
+                                                </span>
+                                                <span class="badge bg-success permission-badge">
+                                                    QS: <span th:text="${admin?.assignments != null ? admin.assignments.?[type?.name() eq 'QUANTITY_SURVEYING'].size() : 0}">0</span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${admins == null or admins.empty}" class="text-center py-5">
+                        <i class="bi bi-people display-1 text-muted mb-3"></i>
+                        <h3>No Administrators Found</h3>
+                        <p class="text-muted">Use the "Add New Admin" tab to register administrators.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Role Permissions -->
+        <div class="tab-pane fade" id="roles" role="tabpanel">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="mb-0"><i class="bi bi-shield-check"></i> Role Configuration</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead class="table-light">
+                                    <tr>
+                                        <th>Permission</th>
+                                        <th>IT Admin</th>
+                                        <th>QS Admin</th>
+                                        <th>Super Admin</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr>
+                                        <td>View IT Assignments</td>
+                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
+                                        <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i></td>
+                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
+                                    </tr>
+                                    <tr>
+                                        <td>View QS Assignments</td>
+                                        <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i></td>
+                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
+                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Approve Assignments</td>
+                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
+                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
+                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Reject Assignments</td>
+                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
+                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
+                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Manage Users</td>
+                                        <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i></td>
+                                        <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i></td>
+                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Add Administrators</td>
+                                        <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i></td>
+                                        <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i></td>
+                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
+                                    </tr>
+                                    <tr>
+                                        <td>View Reports</td>
+                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
+                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
+                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="alert alert-warning mt-3">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                <strong>Note:</strong> Only Super Administrators can modify role permissions and add new administrators.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white mt-5 py-4">
+    <div class="container text-center">
+        <p class="mb-0">&copy; 2025 Assignment Service. All rights reserved.</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Password confirmation validation
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirmPassword');
+        const form = document.getElementById('addAdminForm');
+
+        function validatePassword() {
+            if (password.value !== confirmPassword.value) {
+                confirmPassword.setCustomValidity("Passwords do not match");
+                return false;
+            } else {
+                confirmPassword.setCustomValidity('');
+                return true;
+            }
+        }
+
+        if (password && confirmPassword) {
+            password.onchange = validatePassword;
+            confirmPassword.onkeyup = validatePassword;
+        }
+
+        if (form) {
+            form.onsubmit = function() {
+                return validatePassword();
+            };
+        }
+    });
+</script>
+</body>
+</html>

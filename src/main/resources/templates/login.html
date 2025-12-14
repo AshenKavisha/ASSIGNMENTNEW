@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Assignment Service</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #3498db;
+      --secondary-color: #2c3e50;
+      --success-color: #27ae60;
+      --danger-color: #e74c3c;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 400px;
+      width: 100%;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+      overflow: hidden;
+      border: none;
+    }
+
+    .card-body {
+      padding: 2rem;
+    }
+
+    .card-title {
+      color: var(--secondary-color);
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 1.75rem;
+    }
+
+    .alert {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 15px;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .alert-danger {
+      background: linear-gradient(45deg, #e74c3c, #c0392b);
+      color: white;
+    }
+
+    .alert-success {
+      background: linear-gradient(45deg, #27ae60, #219652);
+      color: white;
+    }
+
+    .alert-info {
+      background: linear-gradient(45deg, #3498db, #2980b9);
+      color: white;
+    }
+
+    .form-label {
+      font-weight: 600;
+      color: var(--secondary-color);
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e9ecef;
+      border-radius: 10px;
+      font-size: 16px;
+      margin-bottom: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary-color);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(45deg, var(--primary-color), #2980b9);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(45deg, #2980b9, var(--primary-color));
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    .mt-3 {
+      margin-top: 1rem;
+    }
+
+    a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .bi {
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <div class="card-body">
+      <h2 class="card-title">
+        <i class="bi bi-person-circle"></i> Login
+      </h2>
+
+      <!-- Error Message -->
+      <div th:if="${error}" class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle"></i> <span th:text="${error}"></span>
+      </div>
+
+      <!-- Success Message -->
+      <div th:if="${message}" class="alert alert-success">
+        <i class="bi bi-check-circle"></i> <span th:text="${message}"></span>
+      </div>
+
+      <!-- Login Form -->
+      <form th:action="@{/login}" method="post">
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" class="form-control" id="email" name="email"
+                 placeholder="Enter your email" required>
+        </div>
+
+        <div class="mb-3">
+          <label for="password" class="form-label">Password</label>
+          <input type="password" class="form-control" id="password" name="password"
+                 placeholder="Enter your password" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-box-arrow-in-right"></i> Login
+        </button>
+      </form>
+
+      <div class="text-center mt-3">
+        <p>Don't have an account? <a th:href="@{/register}">Register here</a></p>
+      </div>
+
+      <!-- Demo Credentials -->
+      <div class="alert alert-info mt-3">
+        <h6><i class="bi bi-info-circle"></i> Demo Credentials:</h6>
+        <div><strong>Email:</strong> baba@gmail.com</div>
+        <div><strong>Password:</strong> baba</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

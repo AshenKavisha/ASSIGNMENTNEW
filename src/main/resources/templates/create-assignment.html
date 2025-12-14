@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Assignment - Assignment Service</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #3498db;
+      --secondary-color: #2c3e50;
+      --success-color: #27ae60;
+      --info-color: #17a2b8;
+      --warning-color: #f39c12;
+      --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --gradient-success: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      --gradient-warning: linear-gradient(135deg, #f46b45 0%, #eea849 100%);
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      padding-top: 0;
+    }
+
+    .navbar {
+      background: var(--gradient-primary) !important;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .main-card {
+      border: none;
+      border-radius: 20px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+      background: white;
+      overflow: hidden;
+      margin-top: 20px;
+    }
+
+    .card-header {
+      background: var(--gradient-primary);
+      border: none;
+      padding: 2rem;
+    }
+
+    .card-header h3 {
+      margin: 0;
+      font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .assignment-type-card {
+      cursor: pointer;
+      transition: all 0.4s ease;
+      border: 3px solid transparent;
+      border-radius: 15px;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .assignment-type-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .assignment-type-card:hover::before {
+      left: 100%;
+    }
+
+    .assignment-type-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+      border-color: var(--primary-color);
+    }
+
+    .assignment-type-card.IT:hover {
+      border-color: var(--primary-color);
+    }
+
+    .assignment-type-card.QS:hover {
+      border-color: var(--success-color);
+    }
+
+    .form-check-input:checked + .card-body {
+      background: linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%);
+      border-radius: 12px;
+      border: 2px solid var(--primary-color);
+    }
+
+    .form-control {
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      padding: 15px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      background: #f8f9fa;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+      background: white;
+      transform: translateY(-2px);
+    }
+
+    .form-label {
+      font-weight: 600;
+      color: var(--secondary-color);
+      margin-bottom: 8px;
+      font-size: 1.1rem;
+    }
+
+    .btn {
+      border-radius: 12px;
+      font-weight: 600;
+      padding: 12px 30px;
+      transition: all 0.3s ease;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--gradient-primary);
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+      box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(108, 117, 125, 0.4);
+    }
+
+    .display-6 {
+      font-size: 3.5rem;
+    }
+
+    .tips-card {
+      background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    .tips-card h5 {
+      color: #856404;
+    }
+
+    .progress-indicator {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      position: relative;
+    }
+
+    .progress-indicator::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 10%;
+      right: 10%;
+      height: 4px;
+      background: #e9ecef;
+      z-index: 1;
+    }
+
+    .progress-step {
+      text-align: center;
+      position: relative;
+      z-index: 2;
+      flex: 1;
+    }
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #e9ecef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 10px;
+      font-weight: bold;
+      color: #6c757d;
+      transition: all 0.3s ease;
+    }
+
+    .progress-step.active .step-number {
+      background: var(--primary-color);
+      color: white;
+      transform: scale(1.1);
+    }
+
+    .step-label {
+      font-size: 0.9rem;
+      color: #6c757d;
+      font-weight: 500;
+    }
+
+    .progress-step.active .step-label {
+      color: var(--primary-color);
+      font-weight: 600;
+    }
+
+    .floating-label {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    .floating-label .form-control {
+      padding-top: 25px;
+    }
+
+    .floating-label label {
+      position: absolute;
+      top: 8px;
+      left: 15px;
+      font-size: 0.8rem;
+      color: #6c757d;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      z-index: 2;
+    }
+
+    .character-count {
+      position: absolute;
+      right: 15px;
+      bottom: 8px;
+      font-size: 0.8rem;
+      color: #6c757d;
+    }
+
+    .feature-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 15px;
+      font-size: 1.5rem;
+    }
+
+    .feature-icon.primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .feature-icon.success {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+    }
+
+    /* File Upload Styles */
+    .file-upload-area {
+      background: linear-gradient(135deg, #f8f9ff 0%, #f1f4ff 100%);
+      border: 2px dashed #667eea;
+      transition: all 0.3s ease;
+    }
+
+    .file-upload-area:hover {
+      background: linear-gradient(135deg, #f0f3ff 0%, #e6ebff 100%);
+      border-color: #4a5fcf;
+    }
+
+    .file-preview-item {
+      background: white;
+      border: 1px solid #e9ecef;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .file-preview-item:hover {
+      background: #f8f9fa;
+      border-color: #667eea;
+    }
+
+    .file-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      color: white;
+    }
+
+    .file-icon.pdf { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%); }
+    .file-icon.word { background: linear-gradient(135deg, #2b579a 0%, #1e4a8a 100%); }
+    .file-icon.excel { background: linear-gradient(135deg, #217346 0%, #1a5c38 100%); }
+    .file-icon.image { background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%); }
+    .file-icon.powerpoint { background: linear-gradient(135deg, #d24726 0%, #b83a1f 100%); }
+    .file-icon.other { background: linear-gradient(135deg, #6c757d 0%, #495057 100%); }
+
+    .file-info {
+      flex: 1;
+    }
+
+    .file-name {
+      font-weight: 500;
+      color: #495057;
+      font-size: 0.9rem;
+    }
+
+    .file-size {
+      font-size: 0.8rem;
+      color: #6c757d;
+    }
+
+    .remove-file {
+      background: #ff6b6b;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .remove-file:hover {
+      background: #ee5a52;
+      transform: scale(1.1);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      .display-6 {
+        font-size: 2.5rem;
+      }
+
+      .card-body {
+        padding: 1.5rem;
+      }
+
+      .progress-indicator {
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .progress-indicator::before {
+        display: none;
+      }
+    }
+
+    /* Animation for form sections */
+    .form-section {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 0.6s ease forwards;
+    }
+
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Stagger animation delays */
+    .form-section:nth-child(1) { animation-delay: 0.1s; }
+    .form-section:nth-child(2) { animation-delay: 0.2s; }
+    .form-section:nth-child(3) { animation-delay: 0.3s; }
+    .form-section:nth-child(4) { animation-delay: 0.4s; }
+    .form-section:nth-child(5) { animation-delay: 0.5s; }
+  </style>
+</head>
+<body>
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+  <div class="container">
+    <a class="navbar-brand fw-bold" th:href="@{/dashboard}">
+      <i class="bi bi-journal-check me-2"></i>Assignment Service
+    </a>
+    <div class="navbar-nav ms-auto">
+        <span class="navbar-text me-3">
+          <i class="bi bi-person-circle me-1"></i>Welcome, <span th:text="${user.fullName}">User</span>
+        </span>
+      <a class="btn btn-outline-light btn-sm" th:href="@{/logout}">
+        <i class="bi bi-box-arrow-right me-1"></i>Logout
+      </a>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-4">
+  <!-- Progress Indicator -->
+  <div class="progress-indicator">
+    <div class="progress-step active">
+      <div class="step-number">1</div>
+      <div class="step-label">Assignment Type</div>
+    </div>
+    <div class="progress-step">
+      <div class="step-number">2</div>
+      <div class="step-label">Basic Info</div>
+    </div>
+    <div class="progress-step">
+      <div class="step-number">3</div>
+      <div class="step-label">Description</div>
+    </div>
+    <div class="progress-step">
+      <div class="step-number">4</div>
+      <div class="step-label">Review & Submit</div>
+    </div>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="main-card">
+        <div class="card-header text-white text-center">
+          <h3><i class="bi bi-journal-plus me-2"></i>Submit New Assignment</h3>
+          <p class="mb-0 opacity-75">Fill out the form below to get professional help with your assignment</p>
+        </div>
+
+        <div class="card-body p-5">
+          <!-- Success Message -->
+          <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i><span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+
+          <!-- Error Message -->
+          <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+
+          <form th:action="@{/assignments/create}" method="post" th:object="${assignment}" enctype="multipart/form-data">
+            <!-- Assignment Type Section -->
+            <div class="form-section mb-5">
+              <label class="form-label fw-bold fs-5 mb-4">📝 Assignment Type <span class="text-danger">*</span></label>
+              <div class="row">
+                <div class="col-md-6 mb-4">
+                  <div class="form-check card assignment-type-card IT">
+                    <input class="form-check-input" type="radio"
+                           th:field="*{type}" id="typeIT"
+                           th:value="IT" required>
+                    <label class="form-check-label card-body text-center p-4" for="typeIT">
+                      <div class="feature-icon primary">
+                        <i class="bi bi-laptop"></i>
+                      </div>
+                      <h5 class="text-primary">IT Assignment</h5>
+                      <p class="text-muted mb-0">
+                        Programming, Web Development, Databases,
+                        Software Engineering, Mobile Apps, Networking & Security
+                      </p>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                  <div class="form-check card assignment-type-card QS">
+                    <input class="form-check-input" type="radio"
+                           th:field="*{type}" id="typeQS"
+                           th:value="QUANTITY_SURVEYING" required>
+                    <label class="form-check-label card-body text-center p-4" for="typeQS">
+                      <div class="feature-icon success">
+                        <i class="bi bi-calculator"></i>
+                      </div>
+                      <h5 class="text-success">QS Assignment</h5>
+                      <p class="text-muted mb-0">
+                        Quantity Surveying, Cost Estimation,
+                        Construction Management, Project Planning,
+                        Contract Administration
+                      </p>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div th:if="${#fields.hasErrors('type')}" class="text-danger mt-2">
+                <i class="bi bi-exclamation-circle me-1"></i><small th:errors="*{type}"></small>
+              </div>
+            </div>
+
+            <!-- Basic Information Section -->
+            <div class="form-section mb-4">
+              <label class="form-label fw-bold fs-5 mb-4">📋 Basic Information</label>
+              <div class="row">
+                <div class="col-md-6 mb-4">
+                  <div class="floating-label">
+                    <input type="text" class="form-control" id="title"
+                           th:field="*{title}" placeholder=" " required maxlength="100">
+                    <label for="title">Assignment Title *</label>
+                    <div class="character-count">0/100</div>
+                  </div>
+                  <div th:if="${#fields.hasErrors('title')}" class="text-danger mt-1">
+                    <i class="bi bi-exclamation-circle me-1"></i><small th:errors="*{title}"></small>
+                  </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                  <div class="floating-label">
+                    <input type="text" class="form-control" id="subject"
+                           th:field="*{subject}" placeholder=" " required maxlength="100">
+                    <label for="subject">Subject/Course *</label>
+                    <div class="character-count">0/100</div>
+                  </div>
+                  <div th:if="${#fields.hasErrors('subject')}" class="text-danger mt-1">
+                    <i class="bi bi-exclamation-circle me-1"></i><small th:errors="*{subject}"></small>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <div class="floating-label">
+                  <input type="text" class="form-control" id="deadline"
+                         th:field="*{deadline}" placeholder=" " required maxlength="50">
+                  <label for="deadline">Deadline *</label>
+                  <div class="character-count">0/50</div>
+                </div>
+                <div class="form-text text-muted">
+                  <i class="bi bi-info-circle me-1"></i>Please specify your deadline clearly (e.g., "2 weeks", "December 15, 2024")
+                </div>
+                <div th:if="${#fields.hasErrors('deadline')}" class="text-danger mt-1">
+                  <i class="bi bi-exclamation-circle me-1"></i><small th:errors="*{deadline}"></small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Description Section -->
+            <div class="form-section mb-4">
+              <div class="floating-label">
+                  <textarea class="form-control" id="description"
+                            th:field="*{description}" rows="6" placeholder=" " required maxlength="1000"></textarea>
+                <label for="description">Assignment Description *</label>
+                <div class="character-count">0/1000</div>
+              </div>
+              <div class="mb-3 mt-3">
+                <label class="form-label fw-bold">
+                  <i class="bi bi-paperclip me-1"></i>Upload Supporting Files for Description
+                </label>
+                <div class="file-upload-area p-4 text-center border rounded-3">
+                  <input type="file" class="form-control" id="descriptionFiles"
+                         name="descriptionFileList" multiple
+                         accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.xlsx,.xls,.pptx,.ppt">
+                  <div class="mt-2">
+                    <small class="text-muted">
+                      <i class="bi bi-info-circle me-1"></i>
+                      Upload PDF, Word, Excel, PowerPoint, or Image files (Max 10MB each)
+                    </small>
+                  </div>
+                  <div id="descriptionFilesPreview" class="mt-3"></div>
+                </div>
+              </div>
+
+              <div class="form-text text-muted">
+                <i class="bi bi-lightbulb me-1"></i>Please provide detailed description of your assignment requirements, objectives, and any specific instructions...
+              </div>
+              <div th:if="${#fields.hasErrors('description')}" class="text-danger mt-1">
+                <i class="bi bi-exclamation-circle me-1"></i><small th:errors="*{description}"></small>
+              </div>
+            </div>
+
+            <!-- Additional Requirements Section -->
+            <div class="form-section mb-5">
+              <div class="floating-label">
+                  <textarea class="form-control" id="additionalRequirements"
+                            th:field="*{additionalRequirements}" rows="4" placeholder=" " maxlength="500"></textarea>
+                <label for="additionalRequirements">Additional Requirements</label>
+                <div class="character-count">0/500</div>
+              </div>
+              <div class="mb-3 mt-3">
+                <label class="form-label fw-bold">
+                  <i class="bi bi-paperclip me-1"></i>Upload Supporting Files for Requirements
+                </label>
+                <div class="file-upload-area p-4 text-center border rounded-3">
+                  <input type="file" class="form-control" id="requirementsFiles"
+                         name="requirementsFileList" multiple
+                         accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.xlsx,.xls,.pptx,.ppt">
+                  <div class="mt-2">
+                    <small class="text-muted">
+                      <i class="bi bi-info-circle me-1"></i>
+                      Upload PDF, Word, Excel, PowerPoint, or Image files (Max 10MB each)
+                    </small>
+                  </div>
+                  <div id="requirementsFilesPreview" class="mt-3"></div>
+                </div>
+              </div>
+
+              <div class="form-text text-muted">
+                <i class="bi bi-gear me-1"></i>Optional: Include any specific formatting requirements, reference styles, file formats, or other special instructions...
+              </div>
+            </div>
+
+            <!-- REMOVED CSRF TOKEN since it's disabled in SecurityConfig -->
+
+            <!-- Submission -->
+            <div class="form-section text-center border-top pt-4">
+              <div class="d-grid gap-2 d-md-flex justify-content-center">
+                <a th:href="@{/dashboard}" class="btn btn-secondary btn-lg me-md-3">
+                  <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                </a>
+                <button type="submit" class="btn btn-primary btn-lg px-5">
+                  <i class="bi bi-send me-2"></i>Submit Assignment
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Help Section -->
+      <div class="card tips-card mt-4">
+        <div class="card-body p-4">
+          <h5 class="mb-3"><i class="bi bi-stars me-2"></i>Tips for Better Service</h5>
+          <div class="row">
+            <div class="col-md-6">
+              <ul class="list-unstyled">
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Provide clear and detailed assignment requirements</li>
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Include all necessary files and references</li>
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Specify your academic level</li>
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <ul class="list-unstyled">
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Mention any specific software or tools required</li>
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Include examples if available</li>
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Be specific about formatting requirements</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white mt-5 py-4">
+  <div class="container text-center">
+    <p class="mb-0">&copy; 2024 Assignment Service. All rights reserved.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // File upload functionality
+  function setupFileUpload(inputId, previewId) {
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+
+    if (!input || !preview) return;
+
+    input.addEventListener('change', function(e) {
+      preview.innerHTML = '';
+      const files = Array.from(e.target.files);
+
+      if (files.length === 0) {
+        preview.innerHTML = '<div class="text-muted"><i class="bi bi-cloud-arrow-up"></i> No files selected</div>';
+        return;
+      }
+
+      files.forEach((file, index) => {
+        // Validate file size (10MB max)
+        if (file.size > 10 * 1024 * 1024) {
+          alert(`File "${file.name}" is too large. Maximum size is 10MB.`);
+          return;
+        }
+
+        const fileItem = document.createElement('div');
+        fileItem.className = 'file-preview-item';
+
+        // Get file extension
+        const extension = file.name.split('.').pop().toLowerCase();
+        let iconClass = 'other';
+        let icon = 'bi-file-earmark';
+
+        if (['pdf'].includes(extension)) {
+          iconClass = 'pdf';
+          icon = 'bi-file-pdf';
+        } else if (['doc', 'docx'].includes(extension)) {
+          iconClass = 'word';
+          icon = 'bi-file-word';
+        } else if (['xls', 'xlsx'].includes(extension)) {
+          iconClass = 'excel';
+          icon = 'bi-file-excel';
+        } else if (['ppt', 'pptx'].includes(extension)) {
+          iconClass = 'powerpoint';
+          icon = 'bi-file-ppt';
+        } else if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
+          iconClass = 'image';
+          icon = 'bi-file-image';
+        }
+
+        // Format file size
+        const fileSize = formatFileSize(file.size);
+
+        fileItem.innerHTML = `
+          <div class="file-icon ${iconClass}">
+            <i class="bi ${icon}"></i>
+          </div>
+          <div class="file-info">
+            <div class="file-name">${file.name}</div>
+            <div class="file-size">${fileSize}</div>
+          </div>
+          <button type="button" class="remove-file" data-index="${index}">
+            <i class="bi bi-x"></i>
+          </button>
+        `;
+
+        preview.appendChild(fileItem);
+      });
+
+      // Add remove functionality
+      preview.querySelectorAll('.remove-file').forEach(button => {
+        button.addEventListener('click', function() {
+          const index = parseInt(this.getAttribute('data-index'));
+          removeFileFromInput(input, index);
+          this.closest('.file-preview-item').remove();
+
+          if (preview.children.length === 0) {
+            preview.innerHTML = '<div class="text-muted"><i class="bi bi-cloud-arrow-up"></i> No files selected</div>';
+          }
+        });
+      });
+    });
+
+    // Initial empty state
+    preview.innerHTML = '<div class="text-muted"><i class="bi bi-cloud-arrow-up"></i> No files selected</div>';
+  }
+
+  function removeFileFromInput(input, index) {
+    const dt = new DataTransfer();
+    const files = Array.from(input.files);
+
+    files.forEach((file, i) => {
+      if (i !== index) {
+        dt.items.add(file);
+      }
+    });
+
+    input.files = dt.files;
+  }
+
+  function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  // Character count functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize file uploads
+    setupFileUpload('descriptionFiles', 'descriptionFilesPreview');
+    setupFileUpload('requirementsFiles', 'requirementsFilesPreview');
+
+    // Update character counts
+    const textAreas = document.querySelectorAll('textarea, input[type="text"]');
+    textAreas.forEach(element => {
+      const counter = element.parentElement.querySelector('.character-count');
+      if (counter) {
+        // Initial count
+        const maxLength = element.getAttribute('maxlength');
+        counter.textContent = element.value.length + (maxLength ? '/' + maxLength : '/∞');
+
+        // Update on input
+        element.addEventListener('input', function() {
+          const maxLength = this.getAttribute('maxlength');
+          counter.textContent = this.value.length + (maxLength ? '/' + maxLength : '/∞');
+
+          // Change color if approaching limit
+          if (maxLength && this.value.length > maxLength * 0.8) {
+            counter.style.color = '#dc3545';
+          } else {
+            counter.style.color = '#6c757d';
+          }
+        });
+      }
+    });
+
+    // Progress indicator update
+    const formSections = document.querySelectorAll('.form-section');
+    const progressSteps = document.querySelectorAll('.progress-step');
+
+    function updateProgress() {
+      const firstEmptySection = Array.from(formSections).findIndex(section => {
+        const inputs = section.querySelectorAll('input, textarea');
+        return Array.from(inputs).some(input => input.value.trim() === '');
+      });
+
+      progressSteps.forEach((step, index) => {
+        step.classList.toggle('active', index <= firstEmptySection);
+      });
+    }
+
+    // Update progress on input
+    document.querySelectorAll('input, textarea').forEach(input => {
+      input.addEventListener('input', updateProgress);
+    });
+
+    // Initial progress update
+    updateProgress();
+  });
+</script>
+</body>
+</html>

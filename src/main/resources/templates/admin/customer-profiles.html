@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Profiles - Admin</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #3498db;
+      --secondary-color: #2c3e50;
+      --success-color: #27ae60;
+      --info-color: #17a2b8;
+      --warning-color: #f39c12;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f8f9fa;
+    }
+
+    .customer-card {
+      transition: all 0.3s ease;
+      border: none;
+      border-radius: 15px;
+      margin-bottom: 1.5rem;
+    }
+
+    .customer-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    .stat-card {
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+
+    .customer-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: bold;
+      color: white;
+    }
+
+    .filter-btn.active {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .badge-specialization {
+      font-size: 0.75rem;
+      padding: 0.35em 0.65em;
+    }
+  </style>
+</head>
+<body>
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" href="#">
+      <i class="bi bi-journal-check"></i> Assignment Service - Admin
+    </a>
+    <div class="navbar-nav ms-auto">
+            <span class="navbar-text me-3">
+                <i class="bi bi-person-circle"></i> <span th:text="${currentAdmin?.fullName ?: 'Admin'}">Admin</span>
+                <span class="badge bg-info ms-2" th:text="${currentAdmin?.specialization?.name() ?: 'NONE'}">Specialization</span>
+            </span>
+      <a class="btn btn-outline-light btn-sm" th:href="@{/logout}">
+        <i class="bi bi-box-arrow-right"></i> Logout
+      </a>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-4">
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="display-5 fw-bold">
+        <i class="bi bi-people me-3"></i>Customer Profiles
+      </h1>
+      <p class="lead text-muted">View and manage your customers based on assignment types</p>
+    </div>
+    <a th:href="@{/dashboard}" class="btn btn-secondary">
+      <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+  </div>
+
+  <!-- Success/Error Messages -->
+  <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle"></i> <span th:text="${param.success}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle"></i> <span th:text="${param.error}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="row mb-4">
+    <div class="col-md-4 mb-3">
+      <div class="stat-card card bg-primary text-white">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="card-subtitle mb-2 opacity-75">Total Customers</h6>
+              <h2 class="card-title mb-0" th:text="${totalCustomers ?: 0}">0</h2>
+            </div>
+            <i class="bi bi-people display-4 opacity-50"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="stat-card card bg-info text-white">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="card-subtitle mb-2 opacity-75">IT Customers</h6>
+              <h2 class="card-title mb-0" th:text="${itCustomerCount ?: 0}">0</h2>
+            </div>
+            <i class="bi bi-laptop display-4 opacity-50"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="stat-card card bg-success text-white">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="card-subtitle mb-2 opacity-75">QS Customers</h6>
+              <h2 class="card-title mb-0" th:text="${qsCustomerCount ?: 0}">0</h2>
+            </div>
+            <i class="bi bi-calculator display-4 opacity-50"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Buttons (Only show if admin has BOTH specialization) -->
+  <div th:if="${currentAdmin?.specialization?.name() == 'BOTH'}" class="mb-4">
+    <div class="btn-group" role="group">
+      <a th:href="@{/admin/customers}"
+         class="btn filter-btn"
+         th:classappend="${filterType == null} ? 'btn-primary active' : 'btn-outline-primary'">
+        <i class="bi bi-funnel"></i> All Customers
+      </a>
+      <a th:href="@{/admin/customers(type='IT')}"
+         class="btn filter-btn"
+         th:classappend="${filterType == 'IT'} ? 'btn-info active' : 'btn-outline-info'">
+        <i class="bi bi-laptop"></i> IT Customers
+      </a>
+      <a th:href="@{/admin/customers(type='QUANTITY_SURVEYING')}"
+         class="btn filter-btn"
+         th:classappend="${filterType == 'QUANTITY_SURVEYING'} ? 'btn-success active' : 'btn-outline-success'">
+        <i class="bi bi-calculator"></i> QS Customers
+      </a>
+    </div>
+  </div>
+
+  <!-- Customer List -->
+  <div class="row">
+    <div th:if="${customers?.empty}" class="col-12">
+      <div class="card">
+        <div class="card-body text-center py-5">
+          <i class="bi bi-people display-1 text-muted mb-3"></i>
+          <h3>No Customers Found</h3>
+          <p class="text-muted">
+                        <span th:if="${currentAdmin?.specialization?.name() == 'IT'}">
+                            No customers with IT assignments found.
+                        </span>
+            <span th:if="${currentAdmin?.specialization?.name() == 'QUANTITY_SURVEYING'}">
+                            No customers with QS assignments found.
+                        </span>
+            <span th:if="${currentAdmin?.specialization?.name() == 'BOTH'}">
+                            No customers found in the system.
+                        </span>
+            <span th:if="${currentAdmin?.specialization?.name() == 'NONE' or currentAdmin?.specialization == null}">
+                            You don't have a specialization assigned. Contact a super admin.
+                        </span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div th:each="customer : ${customers}" class="col-lg-6 col-xl-4">
+      <div class="card customer-card">
+        <div class="card-body">
+          <div class="d-flex align-items-start mb-3">
+            <div class="customer-avatar bg-primary me-3" th:text="${customer?.fullName?.substring(0,1)?.toUpperCase()}">
+              A
+            </div>
+            <div class="flex-grow-1">
+              <h5 class="card-title mb-1" th:text="${customer?.fullName}">Customer Name</h5>
+              <p class="text-muted mb-2">
+                <i class="bi bi-envelope"></i> <span th:text="${customer?.email}">email@example.com</span>
+              </p>
+              <div>
+                                <span th:each="assignment : ${customer?.assignments}"
+                                      th:if="${assignment?.type?.name() == 'IT'}"
+                                      class="badge bg-info badge-specialization me-1">
+                                    <i class="bi bi-laptop"></i> IT
+                                </span>
+                <span th:each="assignment : ${customer?.assignments}"
+                      th:if="${assignment?.type?.name() == 'QUANTITY_SURVEYING'}"
+                      class="badge bg-success badge-specialization me-1">
+                                    <i class="bi bi-calculator"></i> QS
+                                </span>
+              </div>
+            </div>
+          </div>
+
+          <hr>
+
+          <div class="row text-center mb-3">
+            <div class="col-4">
+              <small class="text-muted d-block">Total</small>
+              <strong th:text="${customer?.assignments?.size() ?: 0}">0</strong>
+            </div>
+            <div class="col-4">
+              <small class="text-muted d-block">Completed</small>
+              <strong class="text-success"
+                      th:text="${customer?.assignments.?[status.name() == 'COMPLETED'].size() ?: 0}">0</strong>
+            </div>
+            <div class="col-4">
+              <small class="text-muted d-block">Pending</small>
+              <strong class="text-warning"
+                      th:text="${customer?.assignments.?[status.name() == 'PENDING'].size() ?: 0}">0</strong>
+            </div>
+          </div>
+
+          <div class="d-grid">
+            <a th:href="@{/admin/customers/{id}(id=${customer?.id})}" class="btn btn-outline-primary">
+              <i class="bi bi-eye"></i> View Profile
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white mt-5 py-4">
+  <div class="container text-center">
+    <p class="mb-0">&copy; 2025 Assignment Service. All rights reserved.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

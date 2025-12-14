@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Assignment Service</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #3498db;
+      --secondary-color: #2c3e50;
+      --success-color: #27ae60;
+      --info-color: #17a2b8;
+      --warning-color: #f39c12;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f8f9fa;
+    }
+
+    .welcome-card {
+      background: linear-gradient(135deg, var(--primary-color), #2980b9);
+      border: none;
+      border-radius: 15px;
+    }
+
+    .service-card {
+      transition: all 0.3s ease;
+      border: none;
+      border-radius: 15px;
+      height: 100%;
+    }
+
+    .service-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    .process-step {
+      transition: all 0.3s ease;
+    }
+
+    .process-step:hover {
+      transform: scale(1.05);
+    }
+
+    .card {
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+
+    .btn {
+      border-radius: 10px;
+      font-weight: 600;
+      padding: 10px 20px;
+    }
+
+    .display-4 {
+      font-size: 3rem;
+    }
+
+    @media (max-width: 768px) {
+      .display-4 {
+        font-size: 2.5rem;
+      }
+
+      .card-body {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" href="#">
+      <i class="bi bi-journal-check"></i> Assignment Service
+    </a>
+    <div class="navbar-nav ms-auto">
+        <span class="navbar-text me-3">
+          <i class="bi bi-person-circle"></i> Welcome, <span th:text="${user?.fullName} ?: 'User'">User</span>
+        </span>
+      <a class="btn btn-outline-light btn-sm" th:href="@{/logout}">
+        <i class="bi bi-box-arrow-right"></i> Logout
+      </a>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-4">
+  <!-- Welcome Section -->
+  <div class="row mb-4">
+    <div class="col">
+      <div class="card welcome-card text-white">
+        <div class="card-body">
+          <h1 class="card-title">
+            <i class="bi bi-speedometer2"></i> Dashboard
+          </h1>
+          <p class="card-text mb-0">Hello, <strong><span th:text="${user?.fullName} ?: 'User'">User</span></strong>! Manage your assignments and track their progress here.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="row mb-4">
+    <div class="col-md-4 mb-3">
+      <div class="card service-card text-center h-100">
+        <div class="card-body">
+          <i class="bi bi-plus-circle display-4 text-primary mb-3"></i>
+          <h5 class="card-title">New Assignment</h5>
+          <p class="card-text">Submit a new assignment request</p>
+          <a th:href="@{/assignments/create}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Get Started
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+      <div class="card service-card text-center h-100">
+        <div class="card-body">
+          <i class="bi bi-list-task display-4 text-success mb-3"></i>
+          <h5 class="card-title">My Assignments</h5>
+          <p class="card-text">View all your assignments</p>
+          <a th:href="@{/assignments/my-assignments}" class="btn btn-success">
+            <i class="bi bi-eye"></i> View All
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+      <div class="card service-card text-center h-100">
+        <div class="card-body">
+          <i class="bi bi-chat-left-text display-4 text-info mb-3"></i>
+          <h5 class="card-title">Feedback</h5>
+          <p class="card-text">Share your experience with us</p>
+          <a th:href="@{/feedback/submit}" class="btn btn-info text-white">
+            <i class="bi bi-chat-dots"></i> Give Feedback
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Dashboard Section (Only for Admin Users) -->
+  <div th:if="${user?.role == 'ADMIN'}" class="row mb-4">
+    <div class="col-12">
+      <div class="card border-warning">
+        <div class="card-header bg-warning text-dark">
+          <h4 class="mb-0"><i class="bi bi-shield-check"></i> Admin Dashboard</h4>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <!-- Pending Assignments Card -->
+            <div class="col-md-3 mb-3">
+              <div class="card bg-light h-100">
+                <div class="card-body text-center">
+                  <i class="bi bi-clock-history display-4 text-warning mb-3"></i>
+                  <h3 th:text="${pendingAssignmentsCount ?: 0}" class="text-warning">0</h3>
+                  <p class="card-text">Pending Assignments</p>
+                  <a th:href="@{/admin/assignments/pending}" class="btn btn-warning btn-sm">
+                    <i class="bi bi-eye"></i> Review
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Total Assignments Card -->
+            <div class="col-md-3 mb-3">
+              <div class="card bg-light h-100">
+                <div class="card-body text-center">
+                  <i class="bi bi-journal-text display-4 text-primary mb-3"></i>
+                  <h3 th:text="${totalAssignments ?: 0}" class="text-primary">0</h3>
+                  <p class="card-text">Total Assignments</p>
+                  <a th:href="@{/admin/assignments}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-list"></i> View All
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Customer Profiles Card - NEW -->
+            <div class="col-md-3 mb-3">
+              <div class="card bg-light h-100">
+                <div class="card-body text-center">
+                  <i class="bi bi-people display-4 text-success mb-3"></i>
+                  <h5>Customers</h5>
+                  <p class="card-text">View Customer Profiles</p>
+                  <a th:href="@{/admin/customers}" class="btn btn-success btn-sm">
+                    <i class="bi bi-people"></i> View Profiles
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="col-md-3 mb-3">
+              <div class="card bg-light h-100">
+                <div class="card-body text-center">
+                  <i class="bi bi-gear display-4 text-info mb-3"></i>
+                  <h5>Manage</h5>
+                  <p class="card-text">System Management</p>
+                  <a th:href="@{/admin/management}" class="btn btn-info btn-sm text-white">
+                    <i class="bi bi-speedometer2"></i> Admin Panel
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Second Row for Admin Dashboard -->
+          <div class="row mt-3">
+            <div class="col-md-3 mb-3">
+              <div class="card bg-light h-100">
+                <div class="card-body text-center">
+                  <i class="bi bi-graph-up display-4 text-secondary mb-3"></i>
+                  <h5>Analytics</h5>
+                  <p class="card-text">View Reports</p>
+                  <a th:href="@{/admin/reports}" class="btn btn-secondary btn-sm">
+                    <i class="bi bi-bar-chart"></i> Reports
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Message -->
+  <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle"></i> <span th:text="${success}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+
+  <!-- Assignment Types Info -->
+  <div class="row mb-4">
+    <div class="col">
+      <div class="card">
+        <div class="card-header bg-white">
+          <h4 class="mb-0"><i class="bi bi-info-circle text-primary"></i> Our Services</h4>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <h5><i class="bi bi-laptop text-primary"></i> IT Assignments</h5>
+              <ul class="list-unstyled">
+                <li><i class="bi bi-check-circle text-success"></i> Programming (Java, Python, C++, etc.)</li>
+                <li><i class="bi bi-check-circle text-success"></i> Web Development Projects</li>
+                <li><i class="bi bi-check-circle text-success"></i> Database Design & Implementation</li>
+                <li><i class="bi bi-check-circle text-success"></i> Mobile App Development</li>
+                <li><i class="bi bi-check-circle text-success"></i> Software Engineering</li>
+                <li><i class="bi bi-check-circle text-success"></i> Networking & Security</li>
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <h5><i class="bi bi-calculator text-success"></i> QS Assignments</h5>
+              <ul class="list-unstyled">
+                <li><i class="bi bi-check-circle text-success"></i> Cost Estimation & Analysis</li>
+                <li><i class="bi bi-check-circle text-success"></i> Construction Management</li>
+                <li><i class="bi bi-check-circle text-success"></i> Quantity Take-off</li>
+                <li><i class="bi bi-check-circle text-success"></i> Project Planning & Scheduling</li>
+                <li><i class="bi bi-check-circle text-success"></i> Contract Administration</li>
+                <li><i class="bi bi-check-circle text-success"></i> Building Measurement</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Process Guide -->
+  <div class="row">
+    <div class="col">
+      <div class="card">
+        <div class="card-header bg-white">
+          <h4 class="mb-0"><i class="bi bi-question-circle text-primary"></i> How It Works</h4>
+        </div>
+        <div class="card-body">
+          <div class="row text-center">
+            <div class="col-md-3">
+              <div class="process-step border rounded p-3 mb-3">
+                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-2"
+                     style="width: 50px; height: 50px;">
+                  <strong>1</strong>
+                </div>
+                <h6>Submit Assignment</h6>
+                <small class="text-muted">Fill out the assignment form with all details</small>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="process-step border rounded p-3 mb-3">
+                <div class="bg-warning text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-2"
+                     style="width: 50px; height: 50px;">
+                  <strong>2</strong>
+                </div>
+                <h6>Admin Review</h6>
+                <small class="text-muted">We review your assignment requirements</small>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="process-step border rounded p-3 mb-3">
+                <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-2"
+                     style="width: 50px; height: 50px;">
+                  <strong>3</strong>
+                </div>
+                <h6>Get Approval</h6>
+                <small class="text-muted">Receive approval and price quote</small>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="process-step border rounded p-3 mb-3">
+                <div class="bg-info text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-2"
+                     style="width: 50px; height: 50px;">
+                  <strong>4</strong>
+                </div>
+                <h6>Make Payment</h6>
+                <small class="text-muted">Complete payment to start work</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white mt-5 py-4">
+  <div class="container text-center">
+    <p class="mb-0">&copy; 2025 Assignment Service. All rights reserved.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

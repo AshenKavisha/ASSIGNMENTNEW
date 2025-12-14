@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Submit Feedback - Assignment Service</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <!-- Back to Dashboard Button -->
+                <div class="mb-4">
+                    <a th:href="@{/dashboard}" class="btn btn-outline-primary btn-back-to-dashboard">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+
+                <!-- Main Feedback Section -->
+                <div class="row g-4">
+                    <!-- Left Column: Feedback Form -->
+                    <div class="col-lg-7">
+                        <div class="card shadow-lg border-0 feedback-card">
+                            <div class="card-header bg-gradient-primary text-white py-4">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-chat-left-text display-6 me-3"></i>
+                                    <div>
+                                        <h3 class="mb-1">We Value Your Opinion</h3>
+                                        <p class="mb-0 opacity-75">How would you rate your overall experience?</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-body p-5">
+                                <!-- Success Message -->
+                                <div th:if="${success}" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                                    <i class="bi bi-check-circle-fill me-2"></i>
+                                    <span th:text="${success}"></span>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+
+                                <form th:action="@{/feedback/submit}" method="post" th:object="${feedback}" class="needs-validation" novalidate>
+                                    <!-- Rating Section -->
+                                    <div class="mb-5">
+                                        <label class="form-label fw-bold fs-5 text-dark mb-4">
+                                            <i class="bi bi-star-fill text-warning me-2"></i>Rate Your Experience *
+                                        </label>
+                                        <div class="rating-container text-center">
+                                            <div class="d-flex justify-content-center mb-3">
+                                                <div class="star-rating">
+                                                    <input type="radio" id="star5" name="rating" value="5" th:field="*{rating}">
+                                                    <label for="star5" title="Excellent">
+                                                        <i class="bi bi-star-fill"></i>
+                                                    </label>
+                                                    <input type="radio" id="star4" name="rating" value="4" th:field="*{rating}">
+                                                    <label for="star4" title="Very Good">
+                                                        <i class="bi bi-star-fill"></i>
+                                                    </label>
+                                                    <input type="radio" id="star3" name="rating" value="3" th:field="*{rating}">
+                                                    <label for="star3" title="Good">
+                                                        <i class="bi bi-star-fill"></i>
+                                                    </label>
+                                                    <input type="radio" id="star2" name="rating" value="2" th:field="*{rating}">
+                                                    <label for="star2" title="Fair">
+                                                        <i class="bi bi-star-fill"></i>
+                                                    </label>
+                                                    <input type="radio" id="star1" name="rating" value="1" th:field="*{rating}">
+                                                    <label for="star1" title="Poor">
+                                                        <i class="bi bi-star-fill"></i>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <p class="text-muted mb-0">Select your rating from 1 (Poor) to 5 (Excellent)</p>
+                                        </div>
+                                        <div th:if="${#fields.hasErrors('rating')}" class="text-danger mt-3 text-center">
+                                            <i class="bi bi-exclamation-triangle me-1"></i>
+                                            <small th:errors="*{rating}"></small>
+                                        </div>
+                                    </div>
+
+                                    <!-- Message Section -->
+                                    <div class="mb-4">
+                                        <label class="form-label fw-bold fs-5 text-dark mb-3">
+                                            <i class="bi bi-pencil-square text-info me-2"></i>Kindly take a moment to tell us what you think *
+                                        </label>
+                                        <div class="form-floating">
+                                            <textarea class="form-control feedback-textarea" id="message"
+                                                      th:field="*{message}" placeholder="Share your thoughts..."
+                                                      style="height: 150px" required maxlength="500"></textarea>
+                                            <label for="message">Share your feedback in detail...</label>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mt-2">
+                                            <div th:if="${#fields.hasErrors('message')}" class="text-danger">
+                                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                                <small th:errors="*{message}"></small>
+                                            </div>
+                                            <small class="text-muted text-counter">0/500 characters</small>
+                                        </div>
+                                    </div>
+
+                                    <!-- Submit Button -->
+                                    <div class="text-center mt-5">
+                                        <button type="submit" class="btn btn-primary btn-lg px-5 py-3 submit-feedback-btn">
+                                            <i class="bi bi-send-check me-2"></i>Share My Feedback
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Feedback Guidelines -->
+                        <div class="card mt-4 border-0 shadow-sm guidelines-card">
+                            <div class="card-header bg-light py-3">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-lightbulb text-warning me-2"></i>Feedback Guidelines
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="guideline-item">
+                                            <div class="guideline-icon">
+                                                <i class="bi bi-check-circle-fill text-success"></i>
+                                            </div>
+                                            <div class="guideline-content">
+                                                <h6 class="guideline-title">Be Specific</h6>
+                                                <p class="guideline-text">Mention specific features or services you liked or want improved</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="guideline-item">
+                                            <div class="guideline-icon">
+                                                <i class="bi bi-clock-fill text-info"></i>
+                                            </div>
+                                            <div class="guideline-content">
+                                                <h6 class="guideline-title">Recent Experience</h6>
+                                                <p class="guideline-text">Share feedback based on your most recent experience</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="guideline-item">
+                                            <div class="guideline-icon">
+                                                <i class="bi bi-heart-fill text-danger"></i>
+                                            </div>
+                                            <div class="guideline-content">
+                                                <h6 class="guideline-title">Constructive Feedback</h6>
+                                                <p class="guideline-text">Focus on how we can improve rather than just criticism</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="guideline-item">
+                                            <div class="guideline-icon">
+                                                <i class="bi bi-shield-check text-primary"></i>
+                                            </div>
+                                            <div class="guideline-content">
+                                                <h6 class="guideline-title">Honest & Respectful</h6>
+                                                <p class="guideline-text">Be honest but respectful in your feedback</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Past Feedbacks -->
+                    <div class="col-lg-5">
+                        <div class="card shadow-lg border-0 h-100 past-feedbacks-card">
+                            <div class="card-header bg-gradient-info text-white py-4">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <h4 class="mb-1">
+                                            <i class="bi bi-chat-square-quote me-2"></i>Recent Feedbacks
+                                        </h4>
+                                        <p class="mb-0 opacity-75">What others are saying about us</p>
+                                    </div>
+                                    <span class="badge bg-light text-dark fs-6">
+                                        <i class="bi bi-star-fill text-warning me-1"></i>
+                                        <span th:text="${averageRating != null ? averageRating : '0.0'}">0.0</span>/5.0
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <!-- No Feedbacks State -->
+                                <div th:if="${recentFeedbacks == null or recentFeedbacks.empty}" class="text-center py-5">
+                                    <i class="bi bi-chat-text display-1 text-muted mb-3"></i>
+                                    <h5 class="text-muted">No Feedbacks Yet</h5>
+                                    <p class="text-muted">Be the first to share your experience!</p>
+                                </div>
+
+                                <!-- Feedbacks List -->
+                                <div th:if="${recentFeedbacks != null and !recentFeedbacks.empty}" class="feedbacks-list">
+                                    <div th:each="feedback : ${recentFeedbacks}" class="feedback-item">
+                                        <div class="feedback-header">
+                                            <div class="user-info">
+                                                <div class="user-avatar">
+                                                    <i class="bi bi-person-circle"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1" th:text="${feedback.user.fullName}">User Name</h6>
+                                                    <small class="text-muted" th:text="${#temporals.format(feedback.createdAt, 'MMM dd, yyyy')}">Date</small>
+                                                </div>
+                                            </div>
+                                            <div class="rating-badge">
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="bi bi-star-fill me-1"></i>
+                                                    <span th:text="${feedback.rating}">5</span>/5
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="feedback-content mt-3">
+                                            <p class="mb-0" th:text="${feedback.message}">Feedback message content goes here...</p>
+                                        </div>
+                                        <div class="feedback-footer mt-3">
+                                            <small class="text-muted">
+                                                <i class="bi bi-clock me-1"></i>
+                                                <span th:text="${#temporals.format(feedback.createdAt, 'hh:mm a')}">Time</span>
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- View All Button -->
+                                <div class="text-center mt-4">
+                                    <a th:href="@{/feedback/all}" class="btn btn-outline-primary view-all-btn">
+                                        <i class="bi bi-eye me-2"></i>View All Feedbacks
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* General Styles */
+        .container {
+            max-width: 1400px;
+        }
+
+        /* Back to Dashboard Button */
+        .btn-back-to-dashboard {
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid #4e73df;
+        }
+
+        .btn-back-to-dashboard:hover {
+            background: #4e73df;
+            color: white;
+            transform: translateX(-5px);
+            box-shadow: 0 5px 15px rgba(78, 115, 223, 0.3);
+        }
+
+        /* Feedback Card */
+        .feedback-card {
+            border-radius: 20px;
+            overflow: hidden;
+            border: none;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%) !important;
+        }
+
+        .bg-gradient-info {
+            background: linear-gradient(135deg, #36b9cc 0%, #258391 100%) !important;
+        }
+
+        /* Star Rating */
+        .star-rating {
+            display: inline-block;
+            font-size: 0;
+        }
+
+        .star-rating input {
+            display: none;
+        }
+
+        .star-rating label {
+            font-size: 2.5rem;
+            color: #ddd;
+            padding: 0 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .star-rating label:hover,
+        .star-rating label:hover ~ label {
+            color: #ffc107 !important;
+            transform: scale(1.1);
+        }
+
+        .star-rating input:checked ~ label {
+            color: #ddd;
+        }
+
+        .star-rating label:has(~ input:checked) {
+            color: #ffc107 !important;
+        }
+
+        /* Feedback Textarea */
+        .feedback-textarea {
+            border-radius: 10px;
+            border: 2px solid #e3e6f0;
+            transition: all 0.3s ease;
+            resize: none;
+        }
+
+        .feedback-textarea:focus {
+            border-color: #4e73df;
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+        }
+
+        /* Submit Button */
+        .submit-feedback-btn {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            border: none;
+            border-radius: 15px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            min-width: 200px;
+        }
+
+        .submit-feedback-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(78, 115, 223, 0.4);
+        }
+
+        .submit-feedback-btn:active {
+            transform: translateY(-1px);
+        }
+
+        /* Guidelines Card */
+        .guidelines-card {
+            border-radius: 15px;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .guideline-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9fc;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+
+        .guideline-item:hover {
+            background: #e3e6f0;
+            transform: translateX(5px);
+        }
+
+        .guideline-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .guideline-content {
+            flex: 1;
+        }
+
+        .guideline-title {
+            font-weight: 700;
+            color: #5a5c69;
+            margin-bottom: 5px;
+            font-size: 1rem;
+        }
+
+        .guideline-text {
+            color: #858796;
+            margin: 0;
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+
+        /* Past Feedbacks Card */
+        .past-feedbacks-card {
+            border-radius: 20px;
+            overflow: hidden;
+            border: none;
+            animation: fadeInRight 0.8s ease-out;
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feedbacks-list {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .feedbacks-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .feedbacks-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .feedbacks-list::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+
+        .feedbacks-list::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* Feedback Item */
+        .feedback-item {
+            background: white;
+            border: 1px solid #e3e6f0;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .feedback-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-color: #4e73df;
+        }
+
+        .feedback-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .user-info h6 {
+            color: #5a5c69;
+            font-weight: 600;
+        }
+
+        .rating-badge .badge {
+            font-size: 0.875rem;
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+
+        .feedback-content {
+            color: #5a5c69;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .feedback-footer {
+            border-top: 1px solid #e3e6f0;
+            padding-top: 10px;
+        }
+
+        /* View All Button */
+        .view-all-btn {
+            border-radius: 10px;
+            padding: 10px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid #4e73df;
+        }
+
+        .view-all-btn:hover {
+            background: #4e73df;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(78, 115, 223, 0.3);
+        }
+
+        /* Character Counter */
+        .text-counter {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .col-lg-7, .col-lg-5 {
+                width: 100%;
+            }
+
+            .past-feedbacks-card {
+                margin-top: 30px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .card-body {
+                padding: 1.5rem !important;
+            }
+
+            .feedback-item {
+                padding: 15px;
+            }
+
+            .star-rating label {
+                font-size: 2rem;
+            }
+
+            .submit-feedback-btn {
+                width: 100%;
+            }
+
+            .guideline-item {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .guideline-icon {
+                margin-bottom: 10px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .feedback-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .rating-badge {
+                align-self: flex-start;
+            }
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Character counter
+            const textarea = document.getElementById('message');
+            const counter = document.querySelector('.text-counter');
+
+            if (textarea && counter) {
+                textarea.addEventListener('input', function() {
+                    const length = this.value.length;
+                    counter.textContent = length + '/500 characters';
+
+                    if (length > 450) {
+                        counter.classList.add('text-warning');
+                    } else {
+                        counter.classList.remove('text-warning');
+                    }
+
+                    if (length > 500) {
+                        counter.classList.add('text-danger');
+                    } else {
+                        counter.classList.remove('text-danger');
+                    }
+                });
+
+                // Trigger input to show initial count
+                textarea.dispatchEvent(new Event('input'));
+            }
+
+            // Star rating hover effect
+            const starLabels = document.querySelectorAll('.star-rating label');
+            starLabels.forEach(label => {
+                label.addEventListener('mouseenter', function() {
+                    const rating = this.getAttribute('for').replace('star', '');
+                    highlightStars(rating);
+                });
+            });
+
+            // Reset stars on mouse leave from container
+            document.querySelector('.star-rating').addEventListener('mouseleave', function() {
+                const checkedStar = document.querySelector('.star-rating input:checked');
+                if (checkedStar) {
+                    const rating = checkedStar.id.replace('star', '');
+                    highlightStars(rating);
+                } else {
+                    resetStars();
+                }
+            });
+
+            function highlightStars(rating) {
+                starLabels.forEach(label => {
+                    const starId = label.getAttribute('for').replace('star', '');
+                    if (starId <= rating) {
+                        label.style.color = '#ffc107';
+                    } else {
+                        label.style.color = '#ddd';
+                    }
+                });
+            }
+
+            function resetStars() {
+                starLabels.forEach(label => {
+                    label.style.color = '#ddd';
+                });
+            }
+
+            // Form submission loading state
+            const form = document.querySelector('form');
+            const submitBtn = document.querySelector('.submit-feedback-btn');
+
+            if (form && submitBtn) {
+                form.addEventListener('submit', function() {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Submitting...';
+                });
+            }
+
+            // Initialize star colors based on selected rating
+            const checkedStar = document.querySelector('.star-rating input:checked');
+            if (checkedStar) {
+                const rating = checkedStar.id.replace('star', '');
+                highlightStars(rating);
+            }
+
+            // Add click effect to stars
+            starLabels.forEach(label => {
+                label.addEventListener('click', function() {
+                    setTimeout(() => {
+                        const checkedStar = document.querySelector('.star-rating input:checked');
+                        if (checkedStar) {
+                            const rating = checkedStar.id.replace('star', '');
+                            highlightStars(rating);
+                        }
+                    }, 10);
+                });
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Admin Dashboard - Assignment Service</title>
+    <style>
+        .stats-card {
+            transition: all 0.3s ease;
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .admin-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container mt-4">
+        <!-- Admin Header -->
+        <div class="admin-header text-white p-4 mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-5 fw-bold"><i class="bi bi-shield-check me-3"></i>Admin Dashboard</h1>
+                    <p class="lead mb-0">Manage assignments and monitor system activity</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="bg-white text-dark rounded p-3">
+                        <small class="text-muted">Logged in as</small>
+                        <div class="fw-bold" th:text="${user.fullName}">Admin User</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success/Error Messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="row mb-5">
+            <div class="col-md-3 mb-4">
+                <div class="stats-card text-center p-4 bg-primary text-white">
+                    <i class="bi bi-journal-text display-4 mb-3"></i>
+                    <h2 th:text="${totalAssignments}">0</h2>
+                    <p class="mb-0">Total Assignments</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stats-card text-center p-4 bg-warning text-dark">
+                    <i class="bi bi-clock-history display-4 mb-3"></i>
+                    <h2 th:text="${pendingCount}">0</h2>
+                    <p class="mb-0">Pending Review</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stats-card text-center p-4 bg-info text-white">
+                    <i class="bi bi-gear display-4 mb-3"></i>
+                    <h2 th:text="${inProgressCount != null ? inProgressCount : 0}">0</h2>
+                    <p class="mb-0">In Progress</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stats-card text-center p-4 bg-success text-white">
+                    <i class="bi bi-check-circle display-4 mb-3"></i>
+                    <h2 th:text="${completedCount != null ? completedCount : 0}">0</h2>
+                    <p class="mb-0">Completed</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h4 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <a th:href="@{/admin/assignments/pending}" class="btn btn-warning btn-lg w-100 p-3">
+                                    <i class="bi bi-eye me-2"></i>Review Pending Assignments
+                                    <small class="d-block mt-1" th:text="'(' + ${pendingCount} + ' waiting)'"></small>
+                                </a>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <a th:href="@{/admin/assignments/completed}" class="btn btn-primary btn-lg w-100 p-3">
+                                    <i class="bi bi-list-ul me-2"></i>View All Assignments
+                                </a>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <a th:href="@{/dashboard}" class="btn btn-secondary btn-lg w-100 p-3">
+                                    <i class="bi bi-speedometer2 me-2"></i>User Dashboard
+                                </a>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <a th:href="@{/admin/reports}">
+                                    <i class="bi bi-bar-chart"></i> Reports
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Pending Assignments -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h4 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Pending Assignments</h4>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${pendingAssignments != null and !pendingAssignments.empty}">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Student</th>
+                                        <th>Type</th>
+                                        <th>Subject</th>
+                                        <th>Deadline</th>
+                                        <th>Submitted</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr th:each="assignment : ${pendingAssignments}">
+                                        <td th:text="${assignment.title}"></td>
+                                        <td th:text="${assignment.user.fullName}"></td>
+                                        <td>
+                                            <span th:if="${assignment.type.name() == 'IT'}" class="badge bg-primary">IT</span>
+                                            <span th:if="${assignment.type.name() == 'QUANTITY_SURVEYING'}" class="badge bg-success">QS</span>
+                                        </td>
+                                        <td th:text="${assignment.subject}"></td>
+                                        <td th:text="${assignment.deadline}"></td>
+                                        <td th:text="${#temporals.format(assignment.createdAt, 'MMM dd, yyyy')}"></td>
+                                        <td>
+                                            <a th:href="@{/admin/assignments/{id}(id=${assignment.id})}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i> View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-center mt-3">
+                                <a th:href="@{/admin/assignments/pending}" class="btn btn-warning">View All Pending Assignments</a>
+                            </div>
+                        </div>
+                        <div th:if="${pendingAssignments == null or pendingAssignments.empty}" class="text-center py-4">
+                            <i class="bi bi-check-circle display-1 text-success mb-3"></i>
+                            <h3>No Pending Assignments</h3>
+                            <p class="text-muted">All assignments have been reviewed. Great job!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
