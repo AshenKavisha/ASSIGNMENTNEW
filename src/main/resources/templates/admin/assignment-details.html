@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Assignment Details - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .detail-card {
+            border-left: 4px solid #0d6efd;
+            transition: transform 0.2s;
+        }
+        .detail-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .info-section {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container mt-4">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="display-5 fw-bold">
+                    <i class="bi bi-journal-text me-3"></i>Assignment Details
+                </h1>
+                <p class="lead text-muted">View complete assignment information</p>
+            </div>
+            <a th:href="@{/admin/assignments/completed}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Assignments
+            </a>
+        </div>
+
+        <!-- Assignment Details Card -->
+        <div class="card detail-card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-info-circle me-2"></i>Assignment Information</h4>
+            </div>
+            <div class="card-body">
+                <!-- Basic Info -->
+                <div class="info-section">
+                    <h5 class="text-primary mb-3"><i class="bi bi-file-text me-2"></i>Basic Details</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Title:</strong> <span th:text="${assignment.title}"></span></p>
+                            <p><strong>Subject:</strong> <span th:text="${assignment.subject}"></span></p>
+                            <p><strong>Type:</strong>
+                                <span th:if="${assignment.type.name() == 'IT'}" class="badge bg-primary">IT Assignment</span>
+                                <span th:if="${assignment.type.name() == 'QUANTITY_SURVEYING'}" class="badge bg-success">QS Assignment</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Status:</strong>
+                                <span th:if="${assignment.status.name() == 'COMPLETED'}" class="badge bg-success">
+                                    <i class="bi bi-check-circle"></i> COMPLETED
+                                </span>
+                                <span th:if="${assignment.status.name() == 'IN_PROGRESS'}" class="badge bg-warning">
+                                    <i class="bi bi-gear"></i> IN PROGRESS
+                                </span>
+                                <span th:if="${assignment.status.name() == 'DELIVERED'}" class="badge bg-info">
+                                    <i class="bi bi-send-check"></i> DELIVERED
+                                </span>
+                                <span th:if="${assignment.status.name() == 'APPROVED'}" class="badge bg-primary">
+                                    <i class="bi bi-check-circle"></i> APPROVED
+                                </span>
+                                <span th:if="${assignment.status.name() == 'PENDING'}" class="badge bg-secondary">
+                                    <i class="bi bi-clock"></i> PENDING
+                                </span>
+                            </p>
+                            <p><strong>Price:</strong> $<span th:text="${assignment.price != null ? assignment.price : 'N/A'}"></span></p>
+                            <p><strong>Deadline:</strong> <span th:text="${assignment.deadline}"></span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="info-section">
+                    <h5 class="text-primary mb-3"><i class="bi bi-card-text me-2"></i>Description</h5>
+                    <p th:text="${assignment.description}"></p>
+                </div>
+
+                <!-- Additional Requirements -->
+                <div class="info-section" th:if="${assignment.additionalRequirements != null and !assignment.additionalRequirements.isEmpty()}">
+                    <h5 class="text-primary mb-3"><i class="bi bi-clipboard-check me-2"></i>Additional Requirements</h5>
+                    <p th:text="${assignment.additionalRequirements}"></p>
+                </div>
+
+                <!-- Student Information -->
+                <div class="info-section">
+                    <h5 class="text-primary mb-3"><i class="bi bi-person me-2"></i>Student Information</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Name:</strong> <span th:text="${assignment.user.fullName}"></span></p>
+                            <p><strong>Email:</strong> <span th:text="${assignment.user.email}"></span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Submitted On:</strong>
+                                <span th:text="${#temporals.format(assignment.createdAt, 'MMM dd, yyyy HH:mm')}"></span>
+                            </p>
+                            <p><strong>Last Updated:</strong>
+                                <span th:text="${#temporals.format(assignment.updatedAt, 'MMM dd, yyyy HH:mm')}"></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Files Information -->
+                <div class="info-section" th:if="${assignment.descriptionFiles != null or assignment.requirementsFiles != null}">
+                    <h5 class="text-primary mb-3"><i class="bi bi-paperclip me-2"></i>Attached Files</h5>
+                    <div th:if="${assignment.descriptionFiles != null and !assignment.descriptionFiles.isEmpty()}">
+                        <p><strong>Description Files:</strong></p>
+                        <p class="text-muted" th:text="${assignment.descriptionFiles}"></p>
+                    </div>
+                    <div th:if="${assignment.requirementsFiles != null and !assignment.requirementsFiles.isEmpty()}">
+                        <p><strong>Requirements Files:</strong></p>
+                        <p class="text-muted" th:text="${assignment.requirementsFiles}"></p>
+                    </div>
+                </div>
+
+                <!-- Admin Notes -->
+                <div class="info-section" th:if="${assignment.adminNotes != null and !assignment.adminNotes.isEmpty()}">
+                    <h5 class="text-primary mb-3"><i class="bi bi-chat-text me-2"></i>Admin Notes</h5>
+                    <p th:text="${assignment.adminNotes}"></p>
+                </div>
+
+                <!-- Delivery Information -->
+                <div class="info-section" th:if="${assignment.deliveredAt != null}">
+                    <h5 class="text-success mb-3"><i class="bi bi-truck me-2"></i>Delivery Information</h5>
+                    <p><strong>Delivered At:</strong>
+                        <span th:text="${#temporals.format(assignment.deliveredAt, 'MMM dd, yyyy HH:mm')}"></span>
+                    </p>
+                    <div th:if="${assignment.solutionFiles != null and !assignment.solutionFiles.isEmpty()}">
+                        <p><strong>Solution Files:</strong></p>
+                        <p class="text-muted" th:text="${assignment.solutionFiles}"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="card shadow-lg mt-4">
+            <div class="card-header bg-dark text-white">
+                <h4 class="mb-0"><i class="bi bi-gear me-2"></i>Actions</h4>
+            </div>
+            <div class="card-body text-center py-5">
+                <div class="d-grid gap-3 d-md-flex justify-content-md-center">
+                    <a th:href="@{/admin/assignments/completed}" class="btn btn-outline-secondary btn-lg px-5">
+                        <i class="bi bi-arrow-left me-2"></i> Back to List
+                    </a>
+                    <a th:if="${assignment.status.name() != 'DELIVERED'}"
+                       th:href="@{'/admin/assignments/' + ${assignment.id} + '/deliver'}"
+                       class="btn btn-success btn-lg px-5">
+                        <i class="bi bi-send-check me-2"></i> Deliver Solution
+                    </a>
+                    <a th:if="${assignment.status.name() == 'DELIVERED'}"
+                       th:href="@{'/admin/assignments/' + ${assignment.id} + '/deliver'}"
+                       class="btn btn-info btn-lg px-5">
+                        <i class="bi bi-check-circle me-2"></i> View Delivery
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

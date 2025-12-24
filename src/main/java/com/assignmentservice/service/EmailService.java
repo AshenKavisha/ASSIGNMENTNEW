@@ -1,128 +1,206 @@
 package com.assignmentservice.service;
 
 import com.assignmentservice.model.Assignment;
+import com.assignmentservice.model.User;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Service
 public class EmailService {
 
     @Autowired
-    private JavaMailSender mailSender;
+    private JavaMailSender emailSender;
 
-    @Value("${app.admin.email}")
-    private String adminEmail;
-
-    @Value("${app.url}")
-    private String appUrl;
+    // Existing methods...
 
     public void sendAssignmentNotificationToAdmin(Assignment assignment) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(adminEmail);
-        message.setSubject("New Assignment Request - " + assignment.getTitle());
-        message.setText(createAssignmentEmailContent(assignment));
-
-        try {
-            mailSender.send(message);
-            System.out.println("Assignment notification email sent to admin");
-        } catch (Exception e) {
-            System.err.println("Failed to send email: " + e.getMessage());
-        }
+        // Your existing implementation
     }
 
     public void sendAssignmentApprovalToUser(String userEmail, Assignment assignment) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(userEmail);
-        message.setSubject("Assignment Approved - " + assignment.getTitle());
-        message.setText(
-                "Dear Student,\n\n" +
-                        "Your assignment '" + assignment.getTitle() + "' has been approved!\n\n" +
-                        "Assignment Details:\n" +
-                        "Type: " + assignment.getType() + "\n" +
-                        "Subject: " + assignment.getSubject() + "\n" +
-                        "Deadline: " + assignment.getDeadline() + "\n" +
-                        "Price: $" + (assignment.getPrice() != null ? assignment.getPrice() : "To be determined") + "\n\n" +
-                        "You can now proceed with the payment to start working on your assignment.\n\n" +
-                        "Best regards,\nAssignment Service Team"
-        );
+        // Your existing implementation
+    }
 
-        try {
-            mailSender.send(message);
-            System.out.println("Approval email sent to user: " + userEmail);
-        } catch (Exception e) {
-            System.err.println("Failed to send approval email: " + e.getMessage());
+    public void sendAdminInvitation(String email, String password) {
+        // Your existing implementation
+    }
+
+    // NEW METHODS FOR SOLUTION DELIVERY
+
+    /**
+     * Send solution files to user via email with attachments
+     */
+    public void sendSolutionToUser(User user, Assignment assignment, List<MultipartFile> solutionFiles)
+            throws MessagingException, IOException {
+
+        MimeMessage message = emailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        String subject = "Your Assignment Solution is Ready - " + assignment.getTitle();
+        String content = createSolutionEmailContent(user, assignment);
+
+        helper.setTo(user.getEmail());
+        helper.setSubject(subject);
+        helper.setText(content, true); // true = HTML content
+
+        // Attach solution files
+        for (MultipartFile file : solutionFiles) {
+            if (!file.isEmpty()) {
+                helper.addAttachment(
+                        file.getOriginalFilename(),
+                        new ByteArrayResource(file.getBytes()),
+                        file.getContentType()
+                );
+            }
         }
+
+        emailSender.send(message);
     }
 
-    private String createAssignmentEmailContent(Assignment assignment) {
-        return String.format(
-                "NEW ASSIGNMENT REQUEST\n\n" +
-                        "Assignment Details:\n" +
-                        "Title: %s\n" +
-                        "Type: %s\n" +
-                        "Subject: %s\n" +
-                        "Deadline: %s\n" +
-                        "Description: %s\n" +
-                        "Additional Requirements: %s\n\n" +
-                        "Student Information:\n" +
-                        "Name: %s\n" +
-                        "Email: %s\n\n" +
-                        "Please review this assignment in the admin panel and update its status.",
-                assignment.getTitle(),
-                assignment.getType(),
-                assignment.getSubject(),
-                assignment.getDeadline(),
-                assignment.getDescription(),
-                assignment.getAdditionalRequirements() != null ? assignment.getAdditionalRequirements() : "None",
-                assignment.getUser().getFullName(),
-                assignment.getUser().getEmail()
-        );
+    /**
+     * Send notification to user that solution is ready for download
+     */
+    public void sendSolutionNotificationToUser(User user, Assignment assignment) throws MessagingException {
+        MimeMessage message = emailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        String subject = "Your Assignment Solution is Ready for Download - " + assignment.getTitle();
+        String content = createSolutionNotificationContent(user, assignment);
+
+        helper.setTo(user.getEmail());
+        helper.setSubject(subject);
+        helper.setText(content, true);
+
+        emailSender.send(message);
     }
 
-    public void sendPaymentConfirmation(String userEmail, Assignment assignment) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(userEmail);
-        message.setSubject("Payment Confirmed - " + assignment.getTitle());
-        message.setText(
-                "Dear Student,\n\n" +
-                        "Your payment for assignment '" + assignment.getTitle() + "' has been confirmed!\n\n" +
-                        "Our team will now start working on your assignment. You will receive updates on the progress.\n\n" +
-                        "Thank you for choosing our service!\n\n" +
-                        "Best regards,\nAssignment Service Team"
-        );
+    /**
+     * Create HTML email content for solution delivery
+     */
+    private String createSolutionEmailContent(User user, Assignment assignment) {
+        return "<!DOCTYPE html>" +
+                "<html>" +
+                "<head>" +
+                "<style>" +
+                "body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }" +
+                ".container { max-width: 600px; margin: 0 auto; padding: 20px; }" +
+                ".header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; border-radius: 5px; }" +
+                ".content { background-color: #f9f9f9; padding: 20px; border-radius: 5px; margin-top: 20px; }" +
+                ".button { display: inline-block; background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin-top: 20px; }" +
+                ".footer { margin-top: 30px; font-size: 12px; color: #666; }" +
+                ".assignment-details { background: white; padding: 15px; border-left: 4px solid #4CAF50; margin: 20px 0; }" +
+                "</style>" +
+                "</head>" +
+                "<body>" +
+                "<div class='container'>" +
+                "<div class='header'>" +
+                "<h2>🎉 Assignment Solution Delivered!</h2>" +
+                "</div>" +
+                "<div class='content'>" +
+                "<p>Dear <strong>" + user.getFullName() + "</strong>,</p>" +
+                "<p>Your assignment solution for <strong>" + assignment.getTitle() + "</strong> is ready!</p>" +
 
-        try {
-            mailSender.send(message);
-        } catch (Exception e) {
-            System.err.println("Failed to send payment confirmation email: " + e.getMessage());
-        }
+                "<div class='assignment-details'>" +
+                "<h3>Assignment Details:</h3>" +
+                "<ul>" +
+                "<li><strong>Title:</strong> " + assignment.getTitle() + "</li>" +
+                "<li><strong>Subject:</strong> " + assignment.getSubject() + "</li>" +
+                "<li><strong>Type:</strong> " + assignment.getType() + "</li>" +
+                "<li><strong>Delivery Date:</strong> " +
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm")) + "</li>" +
+                (assignment.getPrice() != null ?
+                        "<li><strong>Final Price:</strong> $" + String.format("%.2f", assignment.getPrice()) + "</li>" : "") +
+                "</ul>" +
+                "</div>" +
+
+                "<p><strong>📎 Important:</strong> Your solution files are attached to this email. Please download them for your review.</p>" +
+
+                "<div style='text-align: center; margin: 25px 0;'>" +
+                "<a href='http://localhost:8080/dashboard' class='button'>Go to Dashboard</a>" +
+                "</div>" +
+
+                "<div style='background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0;'>" +
+                "<h4 style='color: #856404; margin-top: 0;'>📋 Important Notes:</h4>" +
+                "<ul style='margin-bottom: 0;'>" +
+                "<li>Please review all files carefully</li>" +
+                "<li>If you need any revisions, please submit a revision request through your dashboard</li>" +
+                "<li>For any questions, contact our support team</li>" +
+                "</ul>" +
+                "</div>" +
+
+                "<p>We hope you're satisfied with the solution. Thank you for choosing our service!</p>" +
+                "</div>" +
+
+                "<div class='footer'>" +
+                "<p>Best regards,<br><strong>Assignment Service Team</strong></p>" +
+                "<p style='font-size: 11px; color: #999;'>" +
+                "This is an automated message. Please do not reply to this email.<br>" +
+                "If you have any questions, please contact support@assignmentservice.com" +
+                "</p>" +
+                "</div>" +
+                "</div>" +
+                "</body>" +
+                "</html>";
     }
 
-    public void sendAdminInvitation(String adminEmail, String temporaryPassword) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(adminEmail);
-        message.setSubject("Welcome as Administrator - Assignment Service");
-        message.setText(
-                "Dear Administrator,\n\n" +
-                        "You have been added as an administrator to the Assignment Service platform.\n\n" +
-                        "Your login credentials:\n" +
-                        "Email: " + adminEmail + "\n" +
-                        "Temporary Password: " + temporaryPassword + "\n\n" +
-                        "Please login at: " + appUrl + "/login\n\n" +
-                        "For security reasons, please change your password after your first login.\n\n" +
-                        "Best regards,\nAssignment Service Team"
-        );
+    /**
+     * Create HTML content for solution notification
+     */
+    private String createSolutionNotificationContent(User user, Assignment assignment) {
+        return "<!DOCTYPE html>" +
+                "<html>" +
+                "<head>" +
+                "<style>" +
+                "body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }" +
+                ".container { max-width: 600px; margin: 0 auto; padding: 20px; }" +
+                ".header { background-color: #2196F3; color: white; padding: 20px; text-align: center; border-radius: 5px; }" +
+                ".content { background-color: #f9f9f9; padding: 20px; border-radius: 5px; margin-top: 20px; }" +
+                ".button { display: inline-block; background-color: #2196F3; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin-top: 20px; }" +
+                "</style>" +
+                "</head>" +
+                "<body>" +
+                "<div class='container'>" +
+                "<div class='header'>" +
+                "<h2>📬 Assignment Solution Available!</h2>" +
+                "</div>" +
+                "<div class='content'>" +
+                "<p>Dear <strong>" + user.getFullName() + "</strong>,</p>" +
+                "<p>Your assignment solution for <strong>" + assignment.getTitle() + "</strong> is ready for download!</p>" +
 
-        try {
-            mailSender.send(message);
-            System.out.println("Admin invitation email sent to: " + adminEmail);
-        } catch (Exception e) {
-            System.err.println("Failed to send admin invitation email: " + e.getMessage());
-        }
+                "<p>Please log in to your account to download the solution files and review your work.</p>" +
+
+                "<ul>" +
+                "<li><strong>Assignment:</strong> " + assignment.getTitle() + "</li>" +
+                "<li><strong>Subject:</strong> " + assignment.getSubject() + "</li>" +
+                "<li><strong>Status:</strong> Completed</li>" +
+                "</ul>" +
+
+                "<div style='text-align: center; margin: 25px 0;'>" +
+                "<a href='http://localhost:8080/dashboard' class='button'>Download Solution</a>" +
+                "</div>" +
+
+                "<p style='font-size: 14px; color: #666;'>" +
+                "If the button doesn't work, copy and paste this link in your browser:<br>" +
+                "http://localhost:8080/dashboard" +
+                "</p>" +
+                "</div>" +
+
+                "<div class='footer'>" +
+                "<p>Best regards,<br>Assignment Service Team</p>" +
+                "</div>" +
+                "</div>" +
+                "</body>" +
+                "</html>";
     }
-
-
 }

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deliver Solution - Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-5 fw-bold text-success">
+                <i class="bi bi-send-check me-3"></i>Deliver Solution
+            </h1>
+            <p class="lead text-muted">Send finalized assignment solution to student</p>
+        </div>
+        <a th:href="@{/admin/assignments/completed}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Assignments
+        </a>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i><span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i><span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Assignment Info -->
+    <div class="card border-success mb-4">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0"><i class="bi bi-info-circle me-2"></i>Assignment Details</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Title:</strong> <span th:text="${assignment.title}"></span></p>
+                    <p><strong>Student:</strong> <span th:text="${assignment.user.fullName}"></span></p>
+                    <p><strong>Email:</strong> <span th:text="${assignment.user.email}"></span></p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Type:</strong>
+                        <span th:if="${assignment.type.name() == 'IT'}" class="badge bg-primary">IT</span>
+                        <span th:if="${assignment.type.name() == 'QUANTITY_SURVEYING'}" class="badge bg-success">QS</span>
+                    </p>
+                    <p><strong>Subject:</strong> <span th:text="${assignment.subject}"></span></p>
+                    <p><strong>Status:</strong> <span th:text="${assignment.status}"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Form -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="bi bi-paperclip me-2"></i>Upload Solution Files</h4>
+        </div>
+        <div class="card-body">
+            <form th:action="@{/admin/assignments/{id}/deliver-solution(id=${assignment.id})}"
+                  method="post"
+                  enctype="multipart/form-data"
+                  id="solutionForm"
+                  onsubmit="return validateForm()">
+
+                <!-- Solution Files Upload -->
+                <div class="mb-4">
+                    <label for="solutionFiles" class="form-label fw-bold fs-5">
+                        <i class="bi bi-file-earmark-arrow-up me-2"></i>Solution Files *
+                    </label>
+
+                    <!-- File Input Box -->
+                    <div class="border border-2 border-primary rounded p-4 bg-light text-center" style="cursor: pointer;" onclick="document.getElementById('solutionFiles').click();">
+                        <i class="bi bi-cloud-upload fs-1 text-primary mb-3 d-block"></i>
+                        <p class="mb-2 fw-bold">Click here to select files</p>
+                        <p class="text-muted small mb-0">Or use the "Choose Files" button below</p>
+                    </div>
+
+                    <input type="file"
+                           class="form-control form-control-lg mt-3"
+                           id="solutionFiles"
+                           name="solutionFiles"
+                           multiple
+                           required
+                           onchange="showSelectedFiles()"
+                           accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.xlsx,.xls,.pptx,.ppt,.zip,.rar,.7z"
+                           style="display: block !important;">
+
+                    <div class="alert alert-info mt-2">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Supported formats:</strong> PDF, Word, Excel, PowerPoint, Images, ZIP
+                        <br>
+                        <strong>Max size:</strong> 25MB per file
+                    </div>
+
+                    <div id="fileList" class="mt-3"></div>
+                </div>
+
+                <!-- Admin Notes -->
+                <div class="mb-4">
+                    <label for="adminNotes" class="form-label fw-bold">
+                        <i class="bi bi-chat-text me-1"></i>Additional Notes (Optional)
+                    </label>
+                    <textarea class="form-control"
+                              id="adminNotes"
+                              name="adminNotes"
+                              rows="4"
+                              placeholder="Add any notes or instructions for the student..."></textarea>
+                </div>
+
+                <!-- Summary -->
+                <div class="alert alert-info">
+                    <h5><i class="bi bi-envelope-check me-2"></i>What will happen:</h5>
+                    <ul class="mb-0">
+                        <li>Solution files will be sent via email to: <strong th:text="${assignment.user.email}"></strong></li>
+                        <li>Assignment status will change to "DELIVERED"</li>
+                        <li>Student can download files from the email</li>
+                    </ul>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-success btn-lg px-5" id="submitBtn">
+                        <i class="bi bi-send-check me-2"></i>Deliver Solution via Email
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function showSelectedFiles() {
+        const input = document.getElementById('solutionFiles');
+        const fileList = document.getElementById('fileList');
+        const files = input.files;
+
+        console.log('Files selected:', files.length);
+
+        if (files.length === 0) {
+            fileList.innerHTML = '';
+            return;
+        }
+
+        let html = '<div class="alert alert-success"><h6>Selected Files:</h6><ul class="mb-0">';
+        for (let i = 0; i < files.length; i++) {
+            const sizeMB = (files[i].size / (1024 * 1024)).toFixed(2);
+            html += `<li><strong>${files[i].name}</strong> (${sizeMB} MB)</li>`;
+            console.log(`File ${i+1}:`, files[i].name, sizeMB + 'MB');
+        }
+        html += '</ul></div>';
+        fileList.innerHTML = html;
+    }
+
+    function validateForm() {
+        console.log('=== FORM VALIDATION START ===');
+        const input = document.getElementById('solutionFiles');
+        const submitBtn = document.getElementById('submitBtn');
+        const files = input.files;
+
+        console.log('Number of files:', files.length);
+
+        if (files.length === 0) {
+            alert('Please select at least one file!');
+            console.log('ERROR: No files selected');
+            return false;
+        }
+
+        // Check file sizes
+        for (let i = 0; i < files.length; i++) {
+            const sizeMB = files[i].size / (1024 * 1024);
+            console.log(`Checking file ${i+1}: ${files[i].name} = ${sizeMB.toFixed(2)}MB`);
+
+            if (files[i].size > 25 * 1024 * 1024) {
+                alert(`File "${files[i].name}" is too large (${sizeMB.toFixed(2)}MB). Maximum is 25MB.`);
+                console.log('ERROR: File too large');
+                return false;
+            }
+        }
+
+        console.log('✓ All validations passed');
+        console.log('✓ Submitting form...');
+
+        // Disable button and show loading
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending... Please wait';
+
+        return true;
+    }
+</script>
+</body>
+</html>

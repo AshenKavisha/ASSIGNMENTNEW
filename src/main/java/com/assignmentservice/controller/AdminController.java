@@ -4,6 +4,8 @@ import com.assignmentservice.dto.AdminPerformanceDto;
 import com.assignmentservice.dto.AdminRegistrationDto;
 import com.assignmentservice.model.*;
 import com.assignmentservice.service.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,10 +24,16 @@ import jakarta.validation.constraints.Min;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
+import jakarta.mail.MessagingException;
+import java.util.Arrays;
 
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
+
+    private static final Logger log = LoggerFactory.getLogger(AdminController.class);
 
     @Autowired
     private AssignmentService assignmentService;
@@ -518,6 +526,166 @@ public class AdminController {
     @GetMapping("/assignments")
     public String redirectToCompletedAssignments() {
         return "redirect:/admin/assignments/completed";
+    }
+
+    // In AdminController.java, add this method
+
+    @GetMapping("/assignments/{id}/deliver")
+    public String showDeliverSolutionForm(@PathVariable Long id, Model model) {
+        if (!isAdminUser()) {
+            return "redirect:/dashboard?error=Unauthorized";
+        }
+
+        Optional<Assignment> assignmentOpt = assignmentService.getAssignmentById(id);
+        if (assignmentOpt.isEmpty()) {
+            return "redirect:/admin/assignments/completed?error=Assignment not found";
+        }
+
+        Assignment assignment = assignmentOpt.get();
+
+        // Only allow delivery for approved, completed or in-progress assignments (not for already delivered)
+        if (assignment.getStatus() != Assignment.AssignmentStatus.APPROVED &&
+                assignment.getStatus() != Assignment.AssignmentStatus.COMPLETED &&
+                assignment.getStatus() != Assignment.AssignmentStatus.IN_PROGRESS) {
+            return "redirect:/admin/assignments/" + id + "?error=Cannot deliver solution at this stage";
+        }
+
+        model.addAttribute("assignment", assignment);
+        return "admin/assignment-solution-delivery";
+    }
+
+    @PostMapping("/assignments/{id}/deliver-solution")
+    public String deliverSolution(@PathVariable Long id,
+                                  @RequestParam("solutionFiles") List<MultipartFile> solutionFiles,
+                                  @RequestParam(required = false) String adminNotes,
+                                  RedirectAttributes redirectAttributes) {
+
+        if (!isAdminUser()) {
+            return "redirect:/dashboard?error=Unauthorized";
+        }
+
+        try {
+            Optional<Assignment> assignmentOpt = assignmentService.getAssignmentById(id);
+            if (assignmentOpt.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Assignment not found!");
+                return "redirect:/admin/assignments/completed";
+            }
+
+            Assignment assignment = assignmentOpt.get();
+            User user = assignment.getUser();
+
+            // Validate files
+            if (solutionFiles == null || solutionFiles.isEmpty() || solutionFiles.get(0).isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Please attach at least one solution file");
+                return "redirect:/admin/assignments/" + id + "/deliver";
+            }
+
+            // Validate file types and sizes
+            for (MultipartFile file : solutionFiles) {
+                if (file.isEmpty()) continue;
+
+                if (!isValidSolutionFileType(file.getOriginalFilename())) {
+                    redirectAttributes.addFlashAttribute("error",
+                            "Invalid file type: " + file.getOriginalFilename() +
+                                    ". Allowed: PDF, Word, Excel, PowerPoint, Images, ZIP files");
+                    return "redirect:/admin/assignments/" + id + "/deliver";
+                }
+
+                if (file.getSize() > 25 * 1024 * 1024) { // 25MB limit
+                    redirectAttributes.addFlashAttribute("error",
+                            "File too large: " + file.getOriginalFilename() +
+                                    ". Maximum size is 25MB");
+                    return "redirect:/admin/assignments/" + id + "/deliver";
+                }
+            }
+
+            // Send solution via email with attachments
+            emailService.sendSolutionToUser(user, assignment, solutionFiles);
+
+            // Update assignment status and details
+            assignment.setStatus(Assignment.AssignmentStatus.DELIVERED);
+            assignment.setAdminNotes(adminNotes);
+            assignment.setDeliveredAt(LocalDateTime.now());
+
+            // Save solution file names (optional - for tracking)
+            String solutionFileNames = solutionFiles.stream()
+                    .filter(file -> !file.isEmpty())
+                    .map(MultipartFile::getOriginalFilename)
+                    .collect(Collectors.joining(", "));
+            assignment.setSolutionFiles(solutionFileNames);
+
+            assignmentService.saveAssignment(assignment);
+
+            redirectAttributes.addFlashAttribute("success",
+                    "Solution delivered successfully to " + user.getEmail() +
+                            " with " + solutionFiles.size() + " file(s)");
+
+        } catch (MessagingException e) {
+            log.error("Email sending failed: ", e);
+            redirectAttributes.addFlashAttribute("error",
+                    "Failed to send email: " + e.getMessage());
+            return "redirect:/admin/assignments/" + id + "/deliver";
+        } catch (IOException e) {
+            log.error("File processing failed: ", e);
+            redirectAttributes.addFlashAttribute("error",
+                    "Failed to process files: " + e.getMessage());
+            return "redirect:/admin/assignments/" + id + "/deliver";
+        } catch (Exception e) {
+            log.error("Error delivering solution: ", e);
+            redirectAttributes.addFlashAttribute("error",
+                    "Failed to deliver solution: " + e.getMessage());
+            return "redirect:/admin/assignments/" + id + "/deliver";
+        }
+
+        return "redirect:/admin/assignments/completed";
+    }
+
+    @PostMapping("/assignments/{id}/mark-ready")
+    public String markAssignmentReadyForDelivery(@PathVariable Long id,
+                                                 RedirectAttributes redirectAttributes) {
+        if (!isAdminUser()) {
+            return "redirect:/dashboard?error=Unauthorized";
+        }
+
+        try {
+            Optional<Assignment> assignmentOpt = assignmentService.getAssignmentById(id);
+            if (assignmentOpt.isPresent()) {
+                Assignment assignment = assignmentOpt.get();
+                assignment.setStatus(Assignment.AssignmentStatus.READY_FOR_DELIVERY);
+                assignmentService.saveAssignment(assignment);
+
+                redirectAttributes.addFlashAttribute("success",
+                        "Assignment marked as ready for delivery");
+            } else {
+                redirectAttributes.addFlashAttribute("error", "Assignment not found!");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Failed to update status: " + e.getMessage());
+        }
+
+        return "redirect:/admin/assignments/completed";
+    }
+
+    /**
+     * Helper method to validate solution file types
+     */
+    private boolean isValidSolutionFileType(String filename) {
+        if (filename == null) return false;
+
+        String[] allowedExtensions = {".pdf", ".doc", ".docx", ".txt",
+                ".jpg", ".jpeg", ".png", ".gif", ".bmp",
+                ".xlsx", ".xls", ".pptx", ".ppt",
+                ".zip", ".rar", ".7z", ".tar.gz"};
+
+        String fileExtension = "";
+        if (filename.contains(".")) {
+            fileExtension = filename.substring(filename.lastIndexOf(".")).toLowerCase();
+        } else {
+            return false;
+        }
+
+        return Arrays.asList(allowedExtensions).contains(fileExtension);
     }
 
 }

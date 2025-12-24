@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,17 +83,31 @@ public class AssignmentService {
     }
 
     // NEW METHODS FOR COMPLETED ASSIGNMENTS
+    // These methods now return all "active" assignments (not just COMPLETED status)
+    // This includes: APPROVED, IN_PROGRESS, COMPLETED, DELIVERED, PAID
 
     public Page<Assignment> getCompletedAssignments(Pageable pageable) {
-        return assignmentRepository.findByStatus(Assignment.AssignmentStatus.COMPLETED, pageable);
+        // Return all assignments that are not PENDING or REJECTED
+        List<Assignment.AssignmentStatus> excludedStatuses = new ArrayList<>();
+        excludedStatuses.add(Assignment.AssignmentStatus.PENDING);
+        excludedStatuses.add(Assignment.AssignmentStatus.REJECTED);
+        return assignmentRepository.findByStatusNotIn(excludedStatuses, pageable);
     }
 
     public Page<Assignment> getCompletedAssignmentsByType(Assignment.AssignmentType type, Pageable pageable) {
-        return assignmentRepository.findByTypeAndStatus(type, Assignment.AssignmentStatus.COMPLETED, pageable);
+        // Return all assignments of a specific type that are not PENDING or REJECTED
+        List<Assignment.AssignmentStatus> excludedStatuses = new ArrayList<>();
+        excludedStatuses.add(Assignment.AssignmentStatus.PENDING);
+        excludedStatuses.add(Assignment.AssignmentStatus.REJECTED);
+        return assignmentRepository.findByTypeAndStatusNotIn(type, excludedStatuses, pageable);
     }
 
     public long countCompletedAssignmentsByType(Assignment.AssignmentType type) {
-        return assignmentRepository.countByTypeAndStatus(type, Assignment.AssignmentStatus.COMPLETED);
+        // Count assignments that are not PENDING or REJECTED
+        List<Assignment.AssignmentStatus> excludedStatuses = new ArrayList<>();
+        excludedStatuses.add(Assignment.AssignmentStatus.PENDING);
+        excludedStatuses.add(Assignment.AssignmentStatus.REJECTED);
+        return assignmentRepository.countByTypeAndStatusNotIn(type, excludedStatuses);
     }
 
     // REPORT METHODS

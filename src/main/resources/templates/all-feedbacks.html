@@ -4,66 +4,123 @@
       layout:decorate="~{layout}">
 <head>
     <title>Student Feedback - Assignment Service</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
 <div layout:fragment="content">
     <div class="container mt-4">
         <div class="row">
             <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2><i class="bi bi-chat-left-text"></i> Student Feedback</h2>
-                    <a th:href="@{/feedback/submit}" class="btn btn-primary">
-                        <i class="bi bi-plus-circle"></i> Add Feedback
-                    </a>
-                </div>
-
-                <!-- Average Rating -->
-                <div th:if="${averageRating > 0}" class="card mb-4">
-                    <div class="card-body text-center">
-                        <h3 class="text-warning mb-2">
-                            <i class="bi bi-star-fill"></i>
-                            <span th:text="${#numbers.formatDecimal(averageRating, 1, 1)}"></span>/5.0
-                        </h3>
-                        <p class="text-muted mb-0">
-                            Average rating based on <span th:text="${feedbacks.size()}"></span> student feedbacks
-                        </p>
+                <!-- Page Header -->
+                <div class="page-header mb-5">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="display-5 fw-bold mb-2">
+                                <i class="bi bi-chat-left-text me-3 icon-bounce"></i>Student Feedback
+                            </h1>
+                            <p class="lead text-muted mb-0">See what our students are saying about their experience</p>
+                        </div>
+                        <a th:href="@{/feedback/submit}" class="btn btn-primary add-feedback-btn">
+                            <i class="bi bi-plus-circle me-2"></i> Add Feedback
+                        </a>
                     </div>
                 </div>
 
-                <!-- Feedback List -->
-                <div th:if="${feedbacks == null or feedbacks.empty}">
-                    <div class="card text-center py-5">
-                        <div class="card-body">
-                            <i class="bi bi-chat-square-text display-1 text-muted mb-3"></i>
-                            <h3>No Feedback Yet</h3>
-                            <p class="text-muted">Be the first to share your experience with our service.</p>
-                            <a th:href="@{/feedback/submit}" class="btn btn-primary">
-                                <i class="bi bi-plus-circle"></i> Share Your Feedback
+                <!-- Average Rating Card -->
+                <div th:if="${averageRating > 0}" class="rating-card mb-5">
+                    <div class="card border-0 shadow-lg">
+                        <div class="card-body text-center py-5">
+                            <div class="rating-display">
+                                <div class="rating-number mb-3">
+                                    <span class="display-2 fw-bold" th:text="${#numbers.formatDecimal(averageRating, 1, 1)}">4.5</span>
+                                    <span class="display-4 text-muted">/5.0</span>
+                                </div>
+                                <div class="stars-display mb-3">
+                                    <i class="bi bi-star-fill" th:each="i : ${#numbers.sequence(1, 5)}"></i>
+                                </div>
+                                <p class="text-muted mb-0 fs-5">
+                                    <i class="bi bi-people-fill me-2"></i>
+                                    Based on <strong><span th:text="${feedbacks.size()}">0</span></strong> student reviews
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div th:if="${feedbacks == null or feedbacks.empty}" class="empty-state">
+                    <div class="card border-0 shadow-lg text-center">
+                        <div class="card-body py-5">
+                            <div class="empty-icon mb-4">
+                                <i class="bi bi-chat-square-text display-1"></i>
+                            </div>
+                            <h2 class="fw-bold mb-3">No Feedback Yet</h2>
+                            <p class="text-muted lead mb-4">Be the first to share your experience with our service.</p>
+                            <a th:href="@{/feedback/submit}" class="btn btn-primary btn-lg px-5">
+                                <i class="bi bi-plus-circle me-2"></i> Share Your Feedback
                             </a>
                         </div>
                     </div>
                 </div>
 
+                <!-- Feedback List -->
                 <div th:if="${feedbacks != null and !feedbacks.empty}">
                     <div class="row">
-                        <div class="col-lg-8 mx-auto">
-                            <div class="card">
-                                <div class="card-body p-0">
-                                    <div class="list-group list-group-flush">
-                                        <div th:each="feedback : ${feedbacks}"
-                                             class="list-group-item">
-                                            <div class="d-flex w-100 justify-content-between mb-2">
-                                                <h6 class="mb-1" th:text="${feedback.user.fullName}"></h6>
-                                                <small class="text-muted"
-                                                       th:text="${#temporals.format(feedback.createdAt, 'MMM dd, yyyy')}"></small>
+                        <div class="col-lg-10 mx-auto">
+                            <div class="feedback-list-header mb-4">
+                                <h3 class="fw-bold">
+                                    <i class="bi bi-chat-dots me-2"></i>All Reviews
+                                    <span class="badge bg-primary ms-2" th:text="${feedbacks.size()}">0</span>
+                                </h3>
+                                <p class="text-muted">Real feedback from our students</p>
+                            </div>
+
+                            <div class="feedbacks-container">
+                                <div th:each="feedback, iterStat : ${feedbacks}"
+                                     th:classappend="'feedback-card-' + ${iterStat.index}"
+                                     class="feedback-card mb-4">
+                                    <div class="card border-0 shadow">
+                                        <div class="card-body p-4">
+                                            <div class="feedback-header d-flex justify-content-between align-items-start mb-3">
+                                                <div class="user-info d-flex align-items-center">
+                                                    <div class="user-avatar">
+                                                        <i class="bi bi-person-circle"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h5 class="mb-1 fw-bold" th:text="${feedback.user.fullName}">Student Name</h5>
+                                                        <small class="text-muted">
+                                                            <i class="bi bi-calendar3 me-1"></i>
+                                                            <span th:text="${#temporals.format(feedback.createdAt, 'MMMM dd, yyyy')}">Date</span>
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                                <div class="rating-badge">
+                                                    <span class="badge">
+                                                        <i class="bi bi-star-fill me-1"></i>
+                                                        <span th:text="${feedback.rating}">5</span>/5
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <div class="text-warning mb-2">
+
+                                            <div class="stars-rating mb-3">
                                                 <i class="bi bi-star-fill"
                                                    th:each="i : ${#numbers.sequence(1, feedback.rating)}"></i>
                                                 <i class="bi bi-star"
                                                    th:each="i : ${#numbers.sequence(feedback.rating + 1, 5)}"></i>
                                             </div>
-                                            <p class="mb-1" th:text="${feedback.message}"></p>
+
+                                            <div class="feedback-message">
+                                                <p class="mb-0" th:text="${feedback.message}">Feedback message goes here...</p>
+                                            </div>
+
+                                            <div class="feedback-footer mt-3">
+                                                <span class="verified-badge">
+                                                    <i class="bi bi-patch-check-fill me-1"></i>
+                                                    Verified Student
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -74,6 +131,420 @@
             </div>
         </div>
     </div>
+
+    <style>
+        /* General Styles */
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+        }
+
+        /* Page Header */
+        .page-header {
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .page-header h1 {
+            color: #2c2f48;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .page-header .lead {
+            font-size: 1.1rem;
+        }
+
+        /* Icon Animation */
+        .icon-bounce {
+            display: inline-block;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Add Feedback Button */
+        .add-feedback-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 15px;
+            padding: 15px 30px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .add-feedback-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+            z-index: -1;
+        }
+
+        .add-feedback-btn:hover::before {
+            width: 400px;
+            height: 400px;
+        }
+
+        .add-feedback-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Rating Card */
+        .rating-card {
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .rating-card .card {
+            border-radius: 25px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fc 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .rating-card .card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.05) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .rating-display {
+            position: relative;
+            z-index: 1;
+        }
+
+        .rating-number {
+            color: #667eea;
+        }
+
+        .rating-number .display-2 {
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stars-display i {
+            font-size: 2rem;
+            color: #ffc107;
+            margin: 0 5px;
+            filter: drop-shadow(2px 2px 4px rgba(255, 193, 7, 0.3));
+            animation: starPulse 2s ease-in-out infinite;
+        }
+
+        .stars-display i:nth-child(1) { animation-delay: 0s; }
+        .stars-display i:nth-child(2) { animation-delay: 0.1s; }
+        .stars-display i:nth-child(3) { animation-delay: 0.2s; }
+        .stars-display i:nth-child(4) { animation-delay: 0.3s; }
+        .stars-display i:nth-child(5) { animation-delay: 0.4s; }
+
+        @keyframes starPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        /* Empty State */
+        .empty-state {
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .empty-state .card {
+            border-radius: 25px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fc 100%);
+        }
+
+        .empty-icon i {
+            color: #667eea;
+            opacity: 0.3;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .empty-state h2 {
+            color: #2c2f48;
+        }
+
+        /* Feedback List Header */
+        .feedback-list-header {
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .feedback-list-header h3 {
+            color: #2c2f48;
+        }
+
+        .feedback-list-header .badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Feedback Cards */
+        .feedback-card {
+            animation: fadeInUp 0.6s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .feedback-card-0 { animation-delay: 0.1s; }
+        .feedback-card-1 { animation-delay: 0.2s; }
+        .feedback-card-2 { animation-delay: 0.3s; }
+        .feedback-card-3 { animation-delay: 0.4s; }
+        .feedback-card-4 { animation-delay: 0.5s; }
+
+        .feedback-card .card {
+            border-radius: 20px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: linear-gradient(135deg, #ffffff 0%, #fafbff 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feedback-card .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .feedback-card .card:hover::before {
+            transform: scaleY(1);
+        }
+
+        .feedback-card .card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2) !important;
+        }
+
+        /* User Info */
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2.5rem;
+            margin-right: 15px;
+            box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .feedback-card:hover .user-avatar {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .user-info h5 {
+            color: #2c2f48;
+            font-size: 1.2rem;
+        }
+
+        .user-info small {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        /* Rating Badge */
+        .rating-badge .badge {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            color: #212529;
+            padding: 0.7rem 1.2rem;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: 800;
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        /* Stars Rating */
+        .stars-rating i {
+            font-size: 1.5rem;
+            margin-right: 3px;
+        }
+
+        .stars-rating .bi-star-fill {
+            color: #ffc107;
+            filter: drop-shadow(0 2px 4px rgba(255, 193, 7, 0.3));
+        }
+
+        .stars-rating .bi-star {
+            color: #e0e0e0;
+        }
+
+        /* Feedback Message */
+        .feedback-message {
+            color: #4a5568;
+            font-size: 1.05rem;
+            line-height: 1.8;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8f9fc 0%, #ffffff 100%);
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        /* Feedback Footer */
+        .feedback-footer {
+            border-top: 2px solid #e9ecef;
+            padding-top: 15px;
+        }
+
+        .verified-badge {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border: 2px solid #28a745;
+        }
+
+        .verified-badge i {
+            color: #28a745;
+            font-size: 1.1rem;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .page-header {
+                text-align: center;
+            }
+
+            .page-header .d-flex {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .page-header h1 {
+                font-size: 2rem;
+            }
+
+            .add-feedback-btn {
+                width: 100%;
+                padding: 12px 25px;
+            }
+
+            .rating-number .display-2 {
+                font-size: 3rem;
+            }
+
+            .stars-display i {
+                font-size: 1.5rem;
+                margin: 0 3px;
+            }
+
+            .user-avatar {
+                width: 50px;
+                height: 50px;
+                font-size: 2rem;
+            }
+
+            .user-info h5 {
+                font-size: 1.1rem;
+            }
+
+            .feedback-message {
+                font-size: 1rem;
+            }
+
+            .rating-badge .badge {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .feedback-card .card-body {
+                padding: 1.5rem !important;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .feedback-header {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 15px;
+            }
+
+            .rating-badge {
+                align-self: flex-start;
+            }
+        }
+    </style>
 </div>
 </body>
 </html>

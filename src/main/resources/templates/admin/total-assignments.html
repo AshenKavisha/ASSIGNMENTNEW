@@ -4,30 +4,384 @@
       layout:decorate="~{layout}">
 <head>
     <title>Total Assignments - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
-        .filter-btn.active {
-            background-color: #0d6efd;
+        body {
+            background-color: #f8f9fa;
+        }
+
+        /* Page Header Styling */
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
-        .assignment-card {
-            transition: transform 0.2s;
-            border-left: 4px solid;
+
+        .page-header h1 {
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
-        .assignment-card:hover {
+
+        .page-header .lead {
+            color: rgba(255,255,255,0.9);
+            margin: 0;
+        }
+
+        /* Statistics Cards */
+        .stats-card {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .stats-card.bg-primary {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+        }
+
+        .stats-card.bg-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+        }
+
+        .stats-card.bg-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+        }
+
+        .stats-card .card-body {
+            padding: 1.5rem;
+        }
+
+        .stats-card h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .stats-card h6 {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Filter Section */
+        .filter-card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+
+        .filter-card .card-body {
+            padding: 1.5rem;
+        }
+
+        .filter-btn {
+            border-radius: 8px;
+            padding: 0.6rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid #0d6efd;
+        }
+
+        .filter-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
         }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+            color: white;
+            border-color: #0d6efd;
+        }
+
+        /* Search Input */
+        .input-group {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .input-group-text {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: none;
+        }
+
+        .input-group .form-control {
+            border: none;
+            padding: 0.75rem 1rem;
+        }
+
+        .input-group .form-control:focus {
+            box-shadow: none;
+        }
+
+        .input-group .btn-primary {
+            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+        }
+
+        /* Assignment Cards */
+        .assignment-card {
+            border: none;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border-left: 5px solid;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            background: white;
+        }
+
+        .assignment-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
         .it-card {
             border-left-color: #0d6efd;
         }
+
+        .it-card:hover {
+            border-left-color: #0a58ca;
+            box-shadow: 0 8px 25px rgba(13, 110, 253, 0.2);
+        }
+
         .qs-card {
             border-left-color: #198754;
         }
-        .feedback-modal .modal-dialog {
-            max-width: 700px;
+
+        .qs-card:hover {
+            border-left-color: #146c43;
+            box-shadow: 0 8px 25px rgba(25, 135, 84, 0.2);
         }
-        .rating-stars {
-            color: #ffc107;
+
+        .assignment-card .card-body {
+            padding: 1.5rem;
+        }
+
+        .assignment-card h5 {
+            color: #212529;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .assignment-card .badge {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .assignment-card .badge.bg-primary {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+        }
+
+        .assignment-card .badge.bg-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+        }
+
+        .assignment-card .badge.bg-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+        }
+
+        .assignment-card .badge.bg-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%) !important;
+            color: #fff;
+        }
+
+        .assignment-card .badge.bg-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
+        }
+
+        .assignment-card small.text-muted {
+            color: #6c757d;
+            font-size: 0.8rem;
+            display: block;
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .assignment-card .fw-bold {
+            color: #212529;
+            font-size: 0.95rem;
+        }
+
+        /* Buttons */
+        .btn {
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .btn-outline-info {
+            border: 2px solid #17a2b8;
+            color: #17a2b8;
+            background: transparent;
+        }
+
+        .btn-outline-info:hover {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+            border-color: #17a2b8;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        }
+
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* Already Delivered Badge */
+        .badge.bg-info.ms-2 {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+        }
+
+        /* Pagination */
+        .pagination {
+            margin-top: 2rem;
+        }
+
+        .pagination .page-link {
+            border: 2px solid #0d6efd;
+            color: #0d6efd;
+            font-weight: 600;
+            margin: 0 0.25rem;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .pagination .page-link:hover {
+            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
+        }
+
+        .pagination .page-item.active .page-link {
+            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+            border-color: #0d6efd;
+            color: white;
+        }
+
+        .pagination .page-item.disabled .page-link {
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+            color: #6c757d;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .empty-state i {
+            opacity: 0.3;
+        }
+
+        .empty-state h2 {
+            color: #212529;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .page-header {
+                padding: 1.5rem;
+            }
+
+            .assignment-card .row > div {
+                margin-bottom: 1rem;
+            }
+
+            .assignment-card .text-end {
+                text-align: start !important;
+            }
+
+            .btn-group {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn-group .btn {
+                width: 100%;
+            }
+
+            .stats-card h2 {
+                font-size: 2rem;
+            }
+
+            .filter-card .row {
+                flex-direction: column;
+            }
+
+            .filter-card .col-md-6 {
+                margin-bottom: 1rem;
+            }
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .assignment-item {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Loading State */
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+            border-width: 0.15em;
         }
     </style>
 </head>
@@ -35,22 +389,24 @@
 <div layout:fragment="content">
     <div class="container mt-4">
         <!-- Page Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h1 class="display-5 fw-bold">
-                    <i class="bi bi-journal-text me-3"></i>Total Assignments
-                </h1>
-                <p class="lead text-muted">View all completed assignments</p>
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-5 fw-bold">
+                        <i class="bi bi-journal-text me-3"></i>Total Assignments
+                    </h1>
+                    <p class="lead">View all completed assignments</p>
+                </div>
+                <a th:href="@{/admin/dashboard}" class="btn btn-light">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
             </div>
-            <a th:href="@{/admin/dashboard}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Back to Dashboard
-            </a>
         </div>
 
         <!-- Statistics Cards -->
         <div class="row mb-4">
             <div class="col-md-4 mb-3">
-                <div class="card bg-primary text-white">
+                <div class="card stats-card bg-primary text-white">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
@@ -63,7 +419,7 @@
                 </div>
             </div>
             <div class="col-md-4 mb-3">
-                <div class="card bg-success text-white">
+                <div class="card stats-card bg-success text-white">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
@@ -76,7 +432,7 @@
                 </div>
             </div>
             <div class="col-md-4 mb-3">
-                <div class="card bg-info text-white">
+                <div class="card stats-card bg-info text-white">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
@@ -91,11 +447,11 @@
         </div>
 
         <!-- Filter Section -->
-        <div class="card mb-4">
+        <div class="card filter-card">
             <div class="card-body">
                 <div class="row align-items-center">
-                    <div class="col-md-6">
-                        <h5 class="mb-3">Filter Assignments</h5>
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <h5 class="mb-3"><i class="bi bi-funnel me-2"></i>Filter Assignments</h5>
                         <div class="btn-group" role="group">
                             <a th:href="@{/admin/assignments/completed}"
                                class="btn btn-outline-primary filter-btn active">All Types</a>
@@ -129,45 +485,73 @@
                                     <h5 th:text="${assignment.title}" class="card-title"></h5>
                                     <div class="mb-2">
                                         <span th:if="${assignment.type.name()} == 'IT'"
-                                              class="badge bg-primary">IT Assignment</span>
+                                              class="badge bg-primary"><i class="bi bi-laptop me-1"></i>IT Assignment</span>
                                         <span th:if="${assignment.type.name()} == 'QUANTITY_SURVEYING'"
-                                              class="badge bg-success">QS Assignment</span>
+                                              class="badge bg-success"><i class="bi bi-calculator me-1"></i>QS Assignment</span>
                                     </div>
-                                    <small class="text-muted">Subject: </small>
-                                    <span th:text="${assignment.subject}" class="fw-bold"></span>
+                                    <small class="text-muted">Subject</small>
+                                    <p class="fw-bold mb-0" th:text="${assignment.subject}"></p>
                                 </div>
 
                                 <div class="col-md-3">
                                     <small class="text-muted">Student</small>
                                     <p class="mb-1 fw-bold" th:text="${assignment.user.fullName}"></p>
-                                    <small class="text-muted" th:text="${assignment.user.email}"></small>
+                                    <small class="text-muted" style="text-transform: none;" th:text="${assignment.user.email}"></small>
                                 </div>
 
                                 <div class="col-md-2">
                                     <small class="text-muted">Completed On</small>
-                                    <p class="mb-1 fw-bold" th:text="${#temporals.format(assignment.updatedAt, 'MMM dd, yyyy')}"></p>
-                                    <small class="text-muted">Price: $</small>
-                                    <span th:text="${assignment.price != null ? assignment.price : 'N/A'}" class="fw-bold"></span>
+                                    <p class="mb-2 fw-bold" th:text="${#temporals.format(assignment.updatedAt, 'MMM dd, yyyy')}"></p>
+                                    <small class="text-muted">Price</small>
+                                    <p class="fw-bold mb-0 text-success">$<span th:text="${assignment.price != null ? assignment.price : 'N/A'}"></span></p>
                                 </div>
 
                                 <div class="col-md-2">
                                     <small class="text-muted">Status</small>
                                     <div>
-                                        <span class="badge bg-success">
+                                        <!-- Show actual status badge -->
+                                        <span th:if="${assignment.status.name() == 'COMPLETED'}" class="badge bg-success">
                                             <i class="bi bi-check-circle"></i> COMPLETED
                                         </span>
+                                        <span th:if="${assignment.status.name() == 'IN_PROGRESS'}" class="badge bg-warning">
+                                            <i class="bi bi-gear"></i> IN PROGRESS
+                                        </span>
+                                        <span th:if="${assignment.status.name() == 'DELIVERED'}" class="badge bg-info">
+                                            <i class="bi bi-send-check"></i> DELIVERED
+                                        </span>
+                                        <span th:if="${assignment.status.name() == 'APPROVED'}" class="badge bg-primary">
+                                            <i class="bi bi-check-circle"></i> APPROVED
+                                        </span>
+                                        <span th:if="${assignment.status.name() == 'PENDING'}" class="badge bg-secondary">
+                                            <i class="bi bi-clock"></i> PENDING
+                                        </span>
                                     </div>
-                                    <small th:if="${assignment.feedbacks != null and !assignment.feedbacks.empty}">
-                                        Has Feedback
-                                    </small>
                                 </div>
 
                                 <div class="col-md-2 text-end">
-                                    <div class="btn-group" role="group">
+                                    <!-- Show Deliver button for all statuses EXCEPT DELIVERED -->
+                                    <div th:if="${assignment.status.name() != 'DELIVERED'}"
+                                         class="btn-group" role="group">
                                         <a th:href="@{/admin/assignments/{id}(id=${assignment.id})}"
-                                           class="btn btn-outline-info">
-                                            <i class="bi bi-eye"></i> View Details
+                                           class="btn btn-outline-info btn-sm">
+                                            <i class="bi bi-eye"></i> View
                                         </a>
+                                        <a th:href="@{'/admin/assignments/' + ${assignment.id} + '/deliver'}"
+                                           class="btn btn-success btn-sm">
+                                            <i class="bi bi-send-check"></i> Deliver
+                                        </a>
+                                    </div>
+
+                                    <!-- For DELIVERED assignments, only show View button -->
+                                    <div th:if="${assignment.status.name() == 'DELIVERED'}"
+                                         class="d-flex align-items-center justify-content-end gap-2">
+                                        <a th:href="@{/admin/assignments/{id}(id=${assignment.id})}"
+                                           class="btn btn-outline-info btn-sm">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        <span class="badge bg-info">
+                                            <i class="bi bi-check-circle"></i> Delivered
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -180,20 +564,25 @@
             <nav th:if="${totalPages > 1}" aria-label="Page navigation" class="mt-4">
                 <ul class="pagination justify-content-center">
                     <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled' : ''">
-                        <a class="page-link" th:href="@{/admin/assignments/completed(page=${currentPage-1})}">Previous</a>
+                        <a class="page-link" th:href="@{/admin/assignments/completed(page=${currentPage-1})}">
+                            <i class="bi bi-chevron-left"></i> Previous
+                        </a>
                     </li>
                     <li th:each="page : ${#numbers.sequence(1, totalPages)}"
                         class="page-item" th:classappend="${page == currentPage} ? 'active' : ''">
                         <a class="page-link" th:href="@{/admin/assignments/completed(page=${page})}" th:text="${page}"></a>
                     </li>
                     <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled' : ''">
-                        <a class="page-link" th:href="@{/admin/assignments/completed(page=${currentPage+1})}">Next</a>
+                        <a class="page-link" th:href="@{/admin/assignments/completed(page=${currentPage+1})}">
+                            Next <i class="bi bi-chevron-right"></i>
+                        </a>
                     </li>
                 </ul>
             </nav>
         </div>
 
-        <div th:if="${completedAssignments == null or completedAssignments.empty}" class="text-center py-5">
+        <!-- Empty State -->
+        <div th:if="${completedAssignments == null or completedAssignments.empty}" class="empty-state">
             <i class="bi bi-journal-x display-1 text-muted mb-3"></i>
             <h2>No Completed Assignments</h2>
             <p class="text-muted lead">There are no completed assignments to display.</p>
@@ -226,8 +615,12 @@
                     performSearch();
                 }
             });
+
+            // Real-time search
+            searchInput.addEventListener('input', performSearch);
         });
     </script>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

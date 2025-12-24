@@ -4,31 +4,626 @@
       layout:decorate="~{layout}">
 <head>
     <title>Reports - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
-        .report-card {
-            border-radius: 10px;
-            transition: all 0.3s ease;
-            height: 100%;
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding-bottom: 3rem;
+            overflow-y: auto;
         }
-        .report-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+
+        .container {
+            padding-bottom: 3rem;
+            margin-bottom: 3rem;
         }
-        .stat-badge {
-            font-size: 0.9rem;
-            padding: 0.25rem 0.75rem;
+
+        html {
+            overflow-y: auto;
         }
-        .trend-up {
-            color: #198754;
+
+        /* Page Header */
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
         }
-        .trend-down {
-            color: #dc3545;
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            z-index: -1;
         }
+
+        .page-header::after {
+            content: '';
+            position: absolute;
+            bottom: -80px;
+            left: -80px;
+            width: 250px;
+            height: 250px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header .lead {
+            color: rgba(255,255,255,0.95);
+            margin: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header .btn-secondary {
+            position: relative;
+            z-index: 100;
+            pointer-events: auto;
+        }
+
+        .page-header .date-range-picker {
+            position: relative;
+            z-index: 100;
+        }
+
+        /* Date Range Picker */
         .date-range-picker {
             background: white;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
-            padding: 0.5rem;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            padding: 0.7rem 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 100;
+        }
+
+        .date-range-picker:hover {
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+
+        .date-range-picker select {
+            font-weight: 600;
+            color: #495057;
+            cursor: pointer;
+            position: relative;
+            z-index: 101;
+        }
+
+        .date-range-picker select:focus {
+            outline: none;
+        }
+
+        .date-range-picker i {
+            color: #667eea;
+            font-size: 1.2rem;
+            margin-right: 0.5rem;
+            pointer-events: none;
+        }
+
+        /* Report Cards */
+        .report-card {
+            border: none;
+            border-radius: 15px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            height: 100%;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            position: relative;
+        }
+
+        .report-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .report-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.25);
+        }
+
+        .report-card:hover::before {
+            opacity: 1;
+        }
+
+        .report-card.border-primary {
+            border-top: 4px solid #007bff;
+        }
+
+        .report-card.border-success {
+            border-top: 4px solid #28a745;
+        }
+
+        .report-card.border-warning {
+            border-top: 4px solid #ffc107;
+        }
+
+        .report-card.border-info {
+            border-top: 4px solid #17a2b8;
+        }
+
+        .report-card .card-body {
+            padding: 1.8rem;
+        }
+
+        .report-card h6 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+        }
+
+        .report-card h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .report-card .display-6 {
+            font-size: 3rem;
+            transition: transform 0.3s ease;
+        }
+
+        .report-card:hover .display-6 {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        /* Stat Badges */
+        .stat-badge {
+            font-size: 0.85rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .stat-badge:hover {
+            transform: scale(1.05);
+        }
+
+        .bg-primary-light {
+            background: linear-gradient(135deg, #e7f0ff 0%, #cfe2ff 100%);
+        }
+
+        .bg-success-light {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        }
+
+        .bg-warning-light {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        }
+
+        .bg-info-light {
+            background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+        }
+
+        /* Detailed Reports Card */
+        .detailed-reports-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            background: white;
+            overflow: hidden;
+        }
+
+        .detailed-reports-card .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border: none;
+        }
+
+        .detailed-reports-card .card-header h5 {
+            font-weight: 700;
+            margin: 0;
+            font-size: 1.3rem;
+        }
+
+        /* Nav Tabs */
+        .nav-tabs {
+            border-bottom: 3px solid #e9ecef;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 0.5rem 1rem;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            color: #6c757d;
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+            border-radius: 10px 10px 0 0;
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            cursor: pointer;
+        }
+
+        .nav-tabs .nav-link.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            cursor: pointer;
+        }
+
+        .nav-tabs .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            padding: 2rem;
+        }
+
+        /* Table Styling */
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .table thead th {
+            border: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 1rem;
+            font-size: 0.85rem;
+        }
+
+        .table tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        .table tbody tr:hover {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            transform: scale(1.01);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-color: #e9ecef;
+        }
+
+        /* Progress Bars */
+        .progress {
+            height: 10px;
+            border-radius: 10px;
+            background: #e9ecef;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            transition: width 0.6s ease;
+        }
+
+        /* Statistics Cards */
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+        }
+
+        .stat-card .display-4 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-card .text-primary {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-card .text-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-card .text-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-card.bg-light {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        /* Export Cards */
+        .export-card {
+            border: none;
+            border-radius: 15px;
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            background: white;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .export-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .export-card:hover {
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+
+        .export-card:hover::before {
+            opacity: 1;
+        }
+
+        .export-card .card-body {
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .export-card .display-4 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .export-card:hover .display-4 {
+            transform: scale(1.2) rotate(10deg);
+        }
+
+        .export-card h5 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #212529;
+        }
+
+        /* Buttons */
+        .btn {
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            position: relative;
+            z-index: 10;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        }
+
+        .btn i {
+            margin-right: 0.5rem;
+        }
+
+        /* Trend Indicators */
+        .trend-up {
+            color: #28a745;
+            font-weight: 700;
+            animation: trendUp 1s ease-out;
+        }
+
+        .trend-down {
+            color: #dc3545;
+            font-weight: 700;
+            animation: trendDown 1s ease-out;
+        }
+
+        @keyframes trendUp {
+            from {
+                transform: translateY(10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes trendDown {
+            from {
+                transform: translateY(-10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Card Headers */
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border: none;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .card-header h5 {
+            margin: 0;
+            font-weight: 700;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .col-md-3, .col-md-4, .col-md-6 {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .col-md-3:nth-child(2) { animation-delay: 0.1s; }
+        .col-md-3:nth-child(3) { animation-delay: 0.2s; }
+        .col-md-3:nth-child(4) { animation-delay: 0.3s; }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .page-header {
+                padding: 1.5rem;
+            }
+
+            .page-header h1 {
+                font-size: 2rem;
+            }
+
+            .report-card h2 {
+                font-size: 2rem;
+            }
+
+            .report-card .display-6 {
+                font-size: 2.5rem;
+            }
+
+            .stat-card .display-4 {
+                font-size: 2.5rem;
+            }
+
+            .export-card .display-4 {
+                font-size: 3rem;
+            }
+
+            .nav-tabs .nav-link {
+                padding: 0.8rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .tab-content {
+                padding: 1rem;
+            }
+        }
+
+        /* Loading Animation for Charts */
+        .chart-loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -36,26 +631,28 @@
 <div layout:fragment="content">
     <div class="container mt-4">
         <!-- Page Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h1 class="display-5 fw-bold">
-                    <i class="bi bi-bar-chart me-3"></i>System Reports
-                </h1>
-                <p class="lead text-muted">Analytics and performance metrics</p>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-                <div class="date-range-picker">
-                    <i class="bi bi-calendar"></i>
-                    <select id="dateRange" class="border-0" onchange="window.location.href='/admin/reports?days=' + this.value">
-                        <option value="7" th:selected="${days == 7}">Last 7 days</option>
-                        <option value="30" th:selected="${days == 30}">Last 30 days</option>
-                        <option value="90" th:selected="${days == 90}">Last 90 days</option>
-                        <option value="365" th:selected="${days == 365}">Last year</option>
-                    </select>
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div class="mb-3 mb-md-0">
+                    <h1 class="display-5 fw-bold">
+                        <i class="bi bi-bar-chart me-3"></i>System Reports
+                    </h1>
+                    <p class="lead">Analytics and performance metrics</p>
                 </div>
-                <a th:href="@{/admin/dashboard}" class="btn btn-secondary">
-                    <i class="bi bi-arrow-left"></i> Dashboard
-                </a>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <div class="date-range-picker">
+                        <i class="bi bi-calendar"></i>
+                        <select id="dateRange" class="border-0" onchange="window.location.href='/admin/reports?days=' + this.value">
+                            <option value="7" th:selected="${days == 7}">Last 7 days</option>
+                            <option value="30" th:selected="${days == 30}">Last 30 days</option>
+                            <option value="90" th:selected="${days == 90}">Last 90 days</option>
+                            <option value="365" th:selected="${days == 365}">Last year</option>
+                        </select>
+                    </div>
+                    <a th:href="@{/admin/dashboard}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Dashboard
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -71,8 +668,8 @@
                             </div>
                             <i class="bi bi-journal-text display-6 text-primary opacity-50"></i>
                         </div>
-                        <div class="mt-2">
-                            <span class="stat-badge badge bg-primary-light text-primary">
+                        <div class="mt-3">
+                            <span class="stat-badge bg-primary-light text-primary">
                                 <i class="bi bi-arrow-up"></i> <span th:text="${stats != null and stats.completed != null ? stats.completed : 0}">0</span> completed
                             </span>
                         </div>
@@ -90,8 +687,8 @@
                             </div>
                             <i class="bi bi-check-circle display-6 text-success opacity-50"></i>
                         </div>
-                        <div class="mt-2">
-                            <span class="stat-badge badge bg-success-light text-success">
+                        <div class="mt-3">
+                            <span class="stat-badge bg-success-light text-success">
                                 <i class="bi bi-arrow-up"></i> <span th:text="${stats != null and stats.inProgress != null ? stats.inProgress : 0}">0</span> in progress
                             </span>
                         </div>
@@ -109,8 +706,8 @@
                             </div>
                             <i class="bi bi-clock display-6 text-warning opacity-50"></i>
                         </div>
-                        <div class="mt-2">
-                            <span class="stat-badge badge bg-warning-light text-warning">
+                        <div class="mt-3">
+                            <span class="stat-badge bg-warning-light text-warning">
                                 <i class="bi bi-clock-history"></i> <span th:text="${stats != null and stats.pending != null ? stats.pending : 0}">0</span> pending
                             </span>
                         </div>
@@ -128,8 +725,8 @@
                             </div>
                             <i class="bi bi-star display-6 text-info opacity-50"></i>
                         </div>
-                        <div class="mt-2">
-                            <span class="stat-badge badge bg-info-light text-info">
+                        <div class="mt-3">
+                            <span class="stat-badge bg-info-light text-info">
                                 <i class="bi bi-people"></i> <span th:text="${activeUsers != null ? activeUsers : 0}">0</span> active users
                             </span>
                         </div>
@@ -141,69 +738,152 @@
         <!-- Detailed Reports -->
         <div class="row">
             <div class="col-12">
-                <div class="card">
+                <div class="card detailed-reports-card">
                     <div class="card-header">
-                        <ul class="nav nav-tabs card-header-tabs" id="reportTabs" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="performance-tab" data-bs-toggle="tab"
-                                        data-bs-target="#performance" type="button">
-                                    <i class="bi bi-speedometer2"></i> Performance
-                                </button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="revenue-tab" data-bs-toggle="tab"
-                                        data-bs-target="#revenue" type="button">
-                                    <i class="bi bi-currency-dollar"></i> Revenue
-                                </button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="user-tab" data-bs-toggle="tab"
-                                        data-bs-target="#user" type="button">
-                                    <i class="bi bi-people"></i> User Activity
-                                </button>
-                            </li>
-                        </ul>
+                        <h5><i class="bi bi-graph-up me-2"></i>Detailed Analytics</h5>
                     </div>
                     <div class="card-body">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" data-bs-toggle="tab" href="#overview">
+                                    <i class="bi bi-speedometer2 me-2"></i>Overview
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#assignments">
+                                    <i class="bi bi-journal-text me-2"></i>Assignments
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#revenue">
+                                    <i class="bi bi-currency-dollar me-2"></i>Revenue
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#user">
+                                    <i class="bi bi-people me-2"></i>User Activity
+                                </a>
+                            </li>
+                        </ul>
+
                         <div class="tab-content">
-                            <!-- Performance Tab -->
-                            <div class="tab-pane fade show active" id="performance">
+                            <!-- Overview Tab -->
+                            <div class="tab-pane fade show active" id="overview">
+                                <div class="row">
+                                    <div class="col-md-6 mb-4">
+                                        <h5 class="mb-3"><i class="bi bi-pie-chart me-2"></i>Assignment Status Distribution</h5>
+                                        <div class="table-responsive">
+                                            <table class="table table-hover">
+                                                <thead>
+                                                <tr>
+                                                    <th>Status</th>
+                                                    <th>Count</th>
+                                                    <th>Percentage</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                <tr>
+                                                    <td><span class="badge bg-warning">Pending</span></td>
+                                                    <td th:text="${stats != null and stats.pending != null ? stats.pending : 0}">0</td>
+                                                    <td>
+                                                        <div class="progress">
+                                                            <div class="progress-bar bg-warning" style="width: 30%"></div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><span class="badge bg-info">In Progress</span></td>
+                                                    <td th:text="${stats != null and stats.inProgress != null ? stats.inProgress : 0}">0</td>
+                                                    <td>
+                                                        <div class="progress">
+                                                            <div class="progress-bar bg-info" style="width: 50%"></div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><span class="badge bg-success">Completed</span></td>
+                                                    <td th:text="${stats != null and stats.completed != null ? stats.completed : 0}">0</td>
+                                                    <td>
+                                                        <div class="progress">
+                                                            <div class="progress-bar bg-success" style="width: 80%"></div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6 mb-4">
+                                        <h5 class="mb-3"><i class="bi bi-graph-up-arrow me-2"></i>Key Performance Indicators</h5>
+                                        <div class="row">
+                                            <div class="col-6 mb-3">
+                                                <div class="stat-card">
+                                                    <i class="bi bi-lightning-charge text-warning" style="font-size: 2rem;"></i>
+                                                    <h3 th:text="${avgResponseTime != null ? avgResponseTime : '0h'}" class="text-warning">0h</h3>
+                                                    <p class="text-muted mb-0">Avg Response</p>
+                                                </div>
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <div class="stat-card">
+                                                    <i class="bi bi-star-fill text-info" style="font-size: 2rem;"></i>
+                                                    <h3 th:text="${avgSatisfaction != null ? avgSatisfaction : '0.0'}" class="text-info">0.0</h3>
+                                                    <p class="text-muted mb-0">Satisfaction</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Assignments Tab -->
+                            <div class="tab-pane fade" id="assignments">
+                                <div class="row mb-4">
+                                    <div class="col-md-4">
+                                        <div class="stat-card bg-light">
+                                            <h1 th:text="${stats != null and stats.completed != null ? stats.completed : 0}" class="display-4 text-success">0</h1>
+                                            <p class="text-muted">Completed Assignments</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="stat-card bg-light">
+                                            <h1 th:text="${stats != null and stats.inProgress != null ? stats.inProgress : 0}" class="display-4 text-primary">0</h1>
+                                            <p class="text-muted">In Progress</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="stat-card bg-light">
+                                            <h1 th:text="${stats != null and stats.pending != null ? stats.pending : 0}" class="display-4 text-warning">0</h1>
+                                            <p class="text-muted">Pending Review</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <h5 class="mb-3"><i class="bi bi-clock-history me-2"></i>Recent Assignments</h5>
                                 <div class="table-responsive">
                                     <table class="table table-hover">
                                         <thead>
                                         <tr>
-                                            <th>Admin</th>
-                                            <th>Specialization</th>
-                                            <th>Assigned</th>
-                                            <th>Completed</th>
-                                            <th>Pending</th>
-                                            <th>Avg. Time</th>
-                                            <th>Rating</th>
+                                            <th>Title</th>
+                                            <th>Student</th>
+                                            <th>Type</th>
+                                            <th>Status</th>
+                                            <th>Date</th>
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        <tr th:each="admin : ${adminPerformance}">
-                                            <td th:text="${admin.fullName}"></td>
+                                        <tr th:each="assignment : ${recentAssignments}">
+                                            <td th:text="${assignment.title}"></td>
+                                            <td th:text="${assignment.user.fullName}"></td>
                                             <td>
-                                                    <span th:if="${admin.specialization == 'IT'}"
-                                                          class="badge bg-primary">IT</span>
-                                                <span th:if="${admin.specialization == 'QUANTITY_SURVEYING'}"
-                                                      class="badge bg-success">QS</span>
-                                                <span th:if="${admin.specialization == 'BOTH'}"
-                                                      class="badge bg-info">Both</span>
+                                                <span th:if="${assignment.type.name() == 'IT'}" class="badge bg-primary">IT</span>
+                                                <span th:if="${assignment.type.name() == 'QUANTITY_SURVEYING'}" class="badge bg-success">QS</span>
                                             </td>
-                                            <td th:text="${admin.assignedCount}"></td>
-                                            <td th:text="${admin.completedCount}"></td>
-                                            <td th:text="${admin.pendingCount}"></td>
-                                            <td th:text="${admin.avgTime} + 'h'"></td>
                                             <td>
-                                                    <span th:each="i : ${#numbers.sequence(1, 5)}">
-                                                        <i th:if="${i <= admin.rating}"
-                                                           class="bi bi-star-fill text-warning"></i>
-                                                        <i th:if="${i > admin.rating}"
-                                                           class="bi bi-star text-warning"></i>
-                                                    </span>
+                                                <span th:if="${assignment.status.name() == 'COMPLETED'}" class="badge bg-success">Completed</span>
+                                                <span th:if="${assignment.status.name() == 'IN_PROGRESS'}" class="badge bg-info">In Progress</span>
+                                                <span th:if="${assignment.status.name() == 'PENDING'}" class="badge bg-warning">Pending</span>
                                             </td>
+                                            <td th:text="${#temporals.format(assignment.createdAt, 'MMM dd, yyyy')}"></td>
                                         </tr>
                                         </tbody>
                                     </table>
@@ -212,13 +892,14 @@
 
                             <!-- Revenue Tab -->
                             <div class="tab-pane fade" id="revenue">
-                                <div class="row">
+                                <div class="row mb-4">
                                     <div class="col-md-12">
+                                        <h5 class="mb-3"><i class="bi bi-cash-stack me-2"></i>Revenue Summary</h5>
                                         <div class="table-responsive">
-                                            <table class="table">
+                                            <table class="table table-hover">
                                                 <thead>
                                                 <tr>
-                                                    <th>Metric</th>
+                                                    <th>Period</th>
                                                     <th>IT Revenue</th>
                                                     <th>QS Revenue</th>
                                                     <th>Total Revenue</th>
@@ -226,9 +907,9 @@
                                                 </thead>
                                                 <tbody>
                                                 <tr>
-                                                    <td>Total Revenue (Last <span th:text="${days}"></span> days)</td>
-                                                    <td class="fw-bold text-primary">$<span th:text="${revenueData != null and revenueData.itRevenue != null ? revenueData.itRevenue : 0}">0</span></td>
-                                                    <td class="fw-bold text-success">$<span th:text="${revenueData != null and revenueData.qsRevenue != null ? revenueData.qsRevenue : 0}">0</span></td>
+                                                    <td><strong>Last <span th:text="${days}"></span> days</strong></td>
+                                                    <td class="text-primary fw-bold">$<span th:text="${revenueData != null and revenueData.itRevenue != null ? revenueData.itRevenue : 0}">0</span></td>
+                                                    <td class="text-success fw-bold">$<span th:text="${revenueData != null and revenueData.qsRevenue != null ? revenueData.qsRevenue : 0}">0</span></td>
                                                     <td class="fw-bold">$<span th:text="${revenueData != null and revenueData.totalRevenue != null ? revenueData.totalRevenue : 0}">0</span></td>
                                                 </tr>
                                                 </tbody>
@@ -238,19 +919,15 @@
                                 </div>
                                 <div class="row mt-4">
                                     <div class="col-md-6">
-                                        <div class="card">
-                                            <div class="card-body text-center">
-                                                <h1 th:text="${itPercentage != null ? itPercentage : '0%'}" class="display-4 text-primary">0%</h1>
-                                                <p class="text-muted">IT Assignments Percentage</p>
-                                            </div>
+                                        <div class="stat-card">
+                                            <h1 th:text="${itPercentage != null ? itPercentage : '0%'}" class="display-4 text-primary">0%</h1>
+                                            <p class="text-muted">IT Assignments Percentage</p>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <div class="card">
-                                            <div class="card-body text-center">
-                                                <h1 th:text="${qsPercentage != null ? qsPercentage : '0%'}" class="display-4 text-success">0%</h1>
-                                                <p class="text-muted">QS Assignments Percentage</p>
-                                            </div>
+                                        <div class="stat-card">
+                                            <h1 th:text="${qsPercentage != null ? qsPercentage : '0%'}" class="display-4 text-success">0%</h1>
+                                            <p class="text-muted">QS Assignments Percentage</p>
                                         </div>
                                     </div>
                                 </div>
@@ -258,37 +935,31 @@
 
                             <!-- User Activity Tab -->
                             <div class="tab-pane fade" id="user">
-                                <div class="row">
+                                <div class="row mb-4">
                                     <div class="col-md-4">
-                                        <div class="card bg-light">
-                                            <div class="card-body text-center">
-                                                <h1 th:text="${activeUsers != null ? activeUsers : 0}" class="display-4 text-success">0</h1>
-                                                <p class="text-muted">Active Users</p>
-                                            </div>
+                                        <div class="stat-card bg-light">
+                                            <h1 th:text="${activeUsers != null ? activeUsers : 0}" class="display-4 text-success">0</h1>
+                                            <p class="text-muted">Active Users</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
-                                        <div class="card bg-light">
-                                            <div class="card-body text-center">
-                                                <h1 th:text="${newUsers != null ? newUsers : 0}" class="display-4 text-primary">0</h1>
-                                                <p class="text-muted">New Users (Last <span th:text="${days}"></span> days)</p>
-                                            </div>
+                                        <div class="stat-card bg-light">
+                                            <h1 th:text="${newUsers != null ? newUsers : 0}" class="display-4 text-primary">0</h1>
+                                            <p class="text-muted">New Users (Last <span th:text="${days}"></span> days)</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
-                                        <div class="card bg-light">
-                                            <div class="card-body text-center">
-                                                <h1 th:text="${userStats != null and userStats.totalAdmins != null ? userStats.totalAdmins : 0}" class="display-4 text-info">0</h1>
-                                                <p class="text-muted">Total Administrators</p>
-                                            </div>
+                                        <div class="stat-card bg-light">
+                                            <h1 th:text="${userStats != null and userStats.totalAdmins != null ? userStats.totalAdmins : 0}" class="display-4 text-info">0</h1>
+                                            <p class="text-muted">Total Administrators</p>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="mt-4">
-                                    <h5>Top Active Users</h5>
+                                    <h5><i class="bi bi-trophy me-2"></i>Top Active Users</h5>
                                     <div class="table-responsive">
-                                        <table class="table">
+                                        <table class="table table-hover">
                                             <thead>
                                             <tr>
                                                 <th>User</th>
@@ -320,16 +991,19 @@
         </div>
 
         <!-- Export Section -->
-        <div class="row mt-4">
+        <div class="row" style="margin-top: 4rem; margin-bottom: 4rem;">
             <div class="col-12">
-                <div class="card">
+                <!-- Visual Separator -->
+                <div style="height: 2px; background: linear-gradient(90deg, transparent 0%, #667eea 50%, transparent 100%); margin-bottom: 2rem;"></div>
+
+                <div class="card detailed-reports-card">
                     <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-download"></i> Export Reports</h5>
+                        <h5><i class="bi bi-download me-2"></i>Export Reports</h5>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body" style="padding: 2.5rem;">
                         <div class="row">
                             <div class="col-md-4 mb-3">
-                                <div class="card text-center">
+                                <div class="card export-card text-center">
                                     <div class="card-body">
                                         <i class="bi bi-file-earmark-pdf display-4 text-danger mb-3"></i>
                                         <h5>PDF Report</h5>
@@ -341,7 +1015,7 @@
                                 </div>
                             </div>
                             <div class="col-md-4 mb-3">
-                                <div class="card text-center">
+                                <div class="card export-card text-center">
                                     <div class="card-body">
                                         <i class="bi bi-file-earmark-excel display-4 text-success mb-3"></i>
                                         <h5>Excel Data</h5>
@@ -353,7 +1027,7 @@
                                 </div>
                             </div>
                             <div class="col-md-4 mb-3">
-                                <div class="card text-center">
+                                <div class="card export-card text-center">
                                     <div class="card-body">
                                         <i class="bi bi-graph-up display-4 text-primary mb-3"></i>
                                         <h5>Summary Report</h5>
@@ -369,6 +1043,9 @@
                 </div>
             </div>
         </div>
+
+        <!-- Extra spacing at bottom -->
+        <div style="height: 100px;"></div>
     </div>
 </div>
 </body>

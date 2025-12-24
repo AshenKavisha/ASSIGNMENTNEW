@@ -148,6 +148,16 @@
     </div>
   </div>
 
+  <!-- In dashboard.html, add this notification for users -->
+  <div th:if="${user?.assignments.?[status?.name() == 'DELIVERED'].size() > 0}"
+       class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+    <h5><i class="bi bi-envelope-check me-2"></i>New Solutions Available!</h5>
+    <p>You have <strong th:text="${user?.assignments.?[status?.name() == 'DELIVERED'].size()}"></strong>
+      assignment solution(s) delivered to your email.</p>
+    <p>Please check your email inbox for attachments.</p>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+
   <!-- Admin Dashboard Section (Only for Admin Users) -->
   <div th:if="${user?.role == 'ADMIN'}" class="row mb-4">
     <div class="col-12">

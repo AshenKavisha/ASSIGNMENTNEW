@@ -4,91 +4,586 @@
       layout:decorate="~{layout}">
 <head>
     <title>Pending Assignments - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #fef9e7 0%, #fff9e6 100%);
+            min-height: 100vh;
+        }
+
+        /* Page Header Styling */
+        .page-header {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header .lead {
+            color: rgba(255,255,255,0.95);
+            margin: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header .btn-light {
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+
+        .page-header .btn-light:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* Alert Messages */
+        .alert {
+            border: none;
+            border-radius: 10px;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            animation: slideDown 0.5s ease-out;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Assignment Cards */
+        .assignment-card {
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            background: white;
+            height: 100%;
+            position: relative;
+        }
+
+        .assignment-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #f39c12 0%, #e67e22 100%);
+        }
+
+        .assignment-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 12px 35px rgba(243, 156, 18, 0.3);
+        }
+
+        .assignment-card .card-header {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            border-bottom: none;
+            padding: 1.5rem;
+            color: #212529;
+        }
+
+        .assignment-card .card-header h5 {
+            font-weight: 700;
+            margin: 0;
+            font-size: 1.3rem;
+        }
+
+        .assignment-card .card-header .badge {
+            padding: 0.6rem 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #212529 0%, #343a40 100%);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .assignment-card .card-body {
+            padding: 1.8rem;
+        }
+
+        /* Info Sections */
+        .info-row {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .info-row:hover {
+            border-color: #f39c12;
+            box-shadow: 0 2px 10px rgba(243, 156, 18, 0.1);
+            transform: translateX(5px);
+        }
+
+        .info-row small.text-muted {
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #6c757d;
+            margin-bottom: 0.3rem;
+            font-weight: 600;
+        }
+
+        .info-row .fw-bold {
+            color: #212529;
+            font-size: 0.95rem;
+        }
+
+        /* Type Badges */
+        .badge.bg-primary {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+        }
+
+        .badge.bg-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+        }
+
+        /* Description Section */
+        .description-section {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f0f8ff 100%);
+            border-left: 4px solid #2196f3;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .description-section small {
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #1976d2;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .description-section p {
+            color: #424242;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* Action Buttons Section */
+        .action-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+        }
+
+        /* Price Input Group */
+        .input-group {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .input-group .form-control {
+            border: none;
+            padding: 0.9rem 1rem;
+            font-weight: 600;
+            font-size: 1rem;
+            background: white;
+        }
+
+        .input-group .form-control:focus {
+            box-shadow: none;
+            outline: none;
+        }
+
+        .input-group .form-control::placeholder {
+            color: #adb5bd;
+            font-weight: 500;
+        }
+
+        /* Buttons */
+        .btn {
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #218838 0%, #1abc9c 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        }
+
+        .btn i {
+            margin-right: 0.5rem;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .empty-state i {
+            font-size: 6rem;
+            color: #28a745;
+            opacity: 0.7;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .empty-state h2 {
+            color: #212529;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .empty-state .lead {
+            color: #6c757d;
+            margin-bottom: 2rem;
+        }
+
+        .empty-state .btn-primary {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+        }
+
+        /* Pending Counter Animation */
+        .pending-counter {
+            display: inline-block;
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            color: #856404;
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(133, 100, 4, 0.2);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        /* Grid Layout Enhancement */
+        .assignments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .assignments-grid {
+                grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .assignments-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-header {
+                padding: 1.5rem;
+            }
+
+            .page-header h1 {
+                font-size: 2rem;
+            }
+
+            .assignment-card .card-body {
+                padding: 1.2rem;
+            }
+
+            .btn {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.85rem;
+            }
+
+            .empty-state {
+                padding: 3rem 1rem;
+            }
+
+            .empty-state i {
+                font-size: 4rem;
+            }
+        }
+
+        /* Loading Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .col-lg-6 {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .col-lg-6:nth-child(2n) {
+            animation-delay: 0.1s;
+        }
+
+        /* Icon Enhancements */
+        .bi {
+            transition: transform 0.3s ease;
+        }
+
+        .btn:hover .bi {
+            transform: scale(1.2);
+        }
+
+        /* Card Hover Glow Effect */
+        .assignment-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.1) 0%, rgba(230, 126, 34, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+            border-radius: 15px;
+        }
+
+        .assignment-card:hover::after {
+            opacity: 1;
+        }
+
+        /* Status Label Animation */
+        .card-header .badge {
+            animation: pulse 3s infinite;
+        }
+    </style>
 </head>
 <body>
 <div layout:fragment="content">
     <div class="container mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h1 class="display-5 fw-bold text-warning">
-                    <i class="bi bi-clock-history me-3"></i>Pending Assignments
-                </h1>
-                <p class="lead text-muted" th:text="'You have ' + ${pendingCount} + ' assignments waiting for review'"></p>
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-5 fw-bold">
+                        <i class="bi bi-clock-history me-3"></i>Pending Assignments
+                    </h1>
+                    <p class="lead">
+                        You have <span class="pending-counter" th:text="${pendingCount}">0</span> assignments waiting for review
+                    </p>
+                </div>
+                <a th:href="@{/admin/dashboard}" class="btn btn-light">
+                    <i class="bi bi-arrow-left"></i> Back to Admin Dashboard
+                </a>
             </div>
-            <a th:href="@{/admin/dashboard}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Back to Dashboard
-            </a>
         </div>
 
         <!-- Success/Error Messages -->
         <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle"></i> <span th:text="${success}"></span>
+            <i class="bi bi-check-circle me-2"></i> <span th:text="${success}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
         <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle"></i> <span th:text="${error}"></span>
+            <i class="bi bi-exclamation-triangle me-2"></i> <span th:text="${error}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
 
+        <!-- Assignments List -->
         <div th:if="${assignments != null and !assignments.empty}">
             <div class="row">
                 <div th:each="assignment : ${assignments}" class="col-lg-6 mb-4">
-                    <div class="card border-warning h-100">
-                        <div class="card-header bg-warning text-dark">
+                    <div class="card assignment-card border-warning h-100">
+                        <div class="card-header">
                             <div class="d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0" th:text="${assignment.title}"></h5>
+                                <h5 th:text="${assignment.title}">Assignment Title</h5>
                                 <span class="badge bg-dark">
                                     <i class="bi bi-clock"></i> PENDING
                                 </span>
                             </div>
                         </div>
                         <div class="card-body">
+                            <!-- Student Info -->
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <small class="text-muted">Student</small>
-                                    <p class="fw-bold mb-0" th:text="${assignment.user.fullName}"></p>
+                                    <div class="info-row">
+                                        <small class="text-muted">Student</small>
+                                        <p class="fw-bold mb-0" th:text="${assignment.user.fullName}">Student Name</p>
+                                    </div>
                                 </div>
                                 <div class="col-6">
-                                    <small class="text-muted">Email</small>
-                                    <p class="fw-bold mb-0" th:text="${assignment.user.email}"></p>
+                                    <div class="info-row">
+                                        <small class="text-muted">Email</small>
+                                        <p class="fw-bold mb-0" th:text="${assignment.user.email}">email@example.com</p>
+                                    </div>
                                 </div>
                             </div>
 
+                            <!-- Type and Subject -->
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <small class="text-muted">Type</small>
-                                    <p class="mb-0">
-                                        <span th:if="${assignment.type.name() == 'IT'}" class="badge bg-primary">IT</span>
-                                        <span th:if="${assignment.type.name() == 'QUANTITY_SURVEYING'}" class="badge bg-success">QS</span>
-                                    </p>
+                                    <div class="info-row">
+                                        <small class="text-muted">Type</small>
+                                        <p class="mb-0">
+                                            <span th:if="${assignment.type.name() == 'IT'}" class="badge bg-primary">
+                                                <i class="bi bi-laptop"></i> IT
+                                            </span>
+                                            <span th:if="${assignment.type.name() == 'QUANTITY_SURVEYING'}" class="badge bg-success">
+                                                <i class="bi bi-calculator"></i> QS
+                                            </span>
+                                        </p>
+                                    </div>
                                 </div>
                                 <div class="col-6">
-                                    <small class="text-muted">Subject</small>
-                                    <p class="fw-bold mb-0" th:text="${assignment.subject}"></p>
+                                    <div class="info-row">
+                                        <small class="text-muted">Subject</small>
+                                        <p class="fw-bold mb-0" th:text="${assignment.subject}">Subject Name</p>
+                                    </div>
                                 </div>
                             </div>
 
+                            <!-- Deadline and Submitted -->
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <small class="text-muted">Deadline</small>
-                                    <p class="fw-bold mb-0" th:text="${assignment.deadline}"></p>
+                                    <div class="info-row">
+                                        <small class="text-muted"><i class="bi bi-calendar-event me-1"></i>Deadline</small>
+                                        <p class="fw-bold mb-0 text-danger" th:text="${assignment.deadline}">2024-01-01</p>
+                                    </div>
                                 </div>
                                 <div class="col-6">
-                                    <small class="text-muted">Submitted</small>
-                                    <p class="fw-bold mb-0" th:text="${#temporals.format(assignment.createdAt, 'MMM dd, yyyy')}"></p>
+                                    <div class="info-row">
+                                        <small class="text-muted"><i class="bi bi-calendar-check me-1"></i>Submitted</small>
+                                        <p class="fw-bold mb-0" th:text="${#temporals.format(assignment.createdAt, 'MMM dd, yyyy')}">Jan 01, 2024</p>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="mb-3">
-                                <small class="text-muted">Description</small>
-                                <p class="mb-0" th:text="${assignment.description}"></p>
+                            <!-- Description -->
+                            <div class="description-section">
+                                <small><i class="bi bi-card-text me-1"></i>Description</small>
+                                <p th:text="${assignment.description}">Assignment description goes here...</p>
                             </div>
 
-                            <div class="d-grid gap-2">
+                            <!-- Action Section -->
+                            <div class="action-section">
                                 <!-- Approve Form -->
-                                <form th:action="@{/admin/assignments/{id}/approve(id=${assignment.id})}" method="post" class="d-inline">
-                                    <div class="input-group mb-2">
-                                        <input type="number" name="price" class="form-control" placeholder="Set price ($)" step="0.01" min="0" required>
+                                <form th:action="@{/admin/assignments/{id}/approve(id=${assignment.id})}" method="post" class="mb-3">
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white">
+                                            <i class="bi bi-currency-dollar text-success"></i>
+                                        </span>
+                                        <input type="number"
+                                               name="price"
+                                               class="form-control"
+                                               placeholder="Enter price amount"
+                                               step="0.01"
+                                               min="0"
+                                               required>
                                         <button type="submit" class="btn btn-success">
                                             <i class="bi bi-check-circle"></i> Approve
                                         </button>
@@ -96,9 +591,11 @@
                                 </form>
 
                                 <!-- Reject Button -->
-                                <form th:action="@{/admin/assignments/{id}/reject(id=${assignment.id})}" method="post" class="d-inline">
-                                    <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Are you sure you want to reject this assignment?')">
-                                        <i class="bi bi-x-circle"></i> Reject
+                                <form th:action="@{/admin/assignments/{id}/reject(id=${assignment.id})}" method="post">
+                                    <button type="submit"
+                                            class="btn btn-danger w-100"
+                                            onclick="return confirm('Are you sure you want to reject this assignment?')">
+                                        <i class="bi bi-x-circle"></i> Reject Assignment
                                     </button>
                                 </form>
                             </div>
@@ -108,15 +605,17 @@
             </div>
         </div>
 
-        <div th:if="${assignments == null or assignments.empty}" class="text-center py-5">
-            <i class="bi bi-check-circle display-1 text-success mb-3"></i>
+        <!-- Empty State -->
+        <div th:if="${assignments == null or assignments.empty}" class="empty-state">
+            <i class="bi bi-check-circle display-1 mb-3"></i>
             <h2>No Pending Assignments</h2>
             <p class="text-muted lead">All assignments have been reviewed. Great job!</p>
-            <a th:href="@{/admin/dashboard}" class="btn btn-primary btn-lg">
+            <a th:href="@{/dashboard}" class="btn btn-primary btn-lg">
                 <i class="bi bi-speedometer2"></i> Back to Dashboard
             </a>
         </div>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -44,6 +44,17 @@ public class Assignment {
     @Column(name = "requirements_files", columnDefinition = "TEXT")
     private String requirementsFiles; // Store file paths as comma-separated string
 
+    // NEW FIELDS FOR SOLUTION DELIVERY
+    @Column(name = "solution_files", columnDefinition = "TEXT")
+    private String solutionFiles; // Store solution file paths as comma-separated string
+
+    @Column(columnDefinition = "TEXT")
+    private String adminNotes;
+
+    private LocalDateTime deliveredAt;
+
+    private Double finalPrice;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AssignmentStatus status = AssignmentStatus.PENDING;
@@ -63,6 +74,10 @@ public class Assignment {
     @Transient
     private List<MultipartFile> requirementsFileList;
 
+    // NEW: Transient field for solution files
+    @Transient
+    private List<MultipartFile> solutionFileList;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -78,8 +93,10 @@ public class Assignment {
         IT, QUANTITY_SURVEYING
     }
 
+    // UPDATED: Added new statuses for solution delivery
     public enum AssignmentStatus {
-        PENDING, APPROVED, REJECTED, IN_PROGRESS, COMPLETED, PAID
+        PENDING, APPROVED, REJECTED, IN_PROGRESS,
+        READY_FOR_DELIVERY, COMPLETED, DELIVERED, PAID
     }
 
     // Constructors
@@ -122,6 +139,22 @@ public class Assignment {
 
     public String getRequirementsFiles() { return requirementsFiles; }
     public void setRequirementsFiles(String requirementsFiles) { this.requirementsFiles = requirementsFiles; }
+
+    // NEW: Solution delivery getters and setters
+    public String getSolutionFiles() { return solutionFiles; }
+    public void setSolutionFiles(String solutionFiles) { this.solutionFiles = solutionFiles; }
+
+    public String getAdminNotes() { return adminNotes; }
+    public void setAdminNotes(String adminNotes) { this.adminNotes = adminNotes; }
+
+    public LocalDateTime getDeliveredAt() { return deliveredAt; }
+    public void setDeliveredAt(LocalDateTime deliveredAt) { this.deliveredAt = deliveredAt; }
+
+    public Double getFinalPrice() { return finalPrice; }
+    public void setFinalPrice(Double finalPrice) { this.finalPrice = finalPrice; }
+
+    public List<MultipartFile> getSolutionFileList() { return solutionFileList; }
+    public void setSolutionFileList(List<MultipartFile> solutionFileList) { this.solutionFileList = solutionFileList; }
 
     public List<MultipartFile> getDescriptionFileList() { return descriptionFileList; }
     public void setDescriptionFileList(List<MultipartFile> descriptionFileList) { this.descriptionFileList = descriptionFileList; }

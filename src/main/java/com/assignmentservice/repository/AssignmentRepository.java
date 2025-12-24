@@ -69,4 +69,29 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     Double sumPriceByTypeStatusAndCreatedAtAfter(@Param("type") Assignment.AssignmentType type,
                                                  @Param("status") Assignment.AssignmentStatus status,
                                                  @Param("startDate") LocalDateTime startDate);
+
+    // ============ NEW METHODS FOR FETCHING ASSIGNMENTS BY EXCLUDING STATUSES ============
+    // These methods allow querying for assignments excluding certain statuses
+    // Useful for showing all "active" assignments (excluding PENDING and REJECTED)
+
+    /**
+     * Find all assignments whose status is NOT in the provided list
+     * Example: Fetch all assignments except PENDING and REJECTED
+     */
+    Page<Assignment> findByStatusNotIn(List<Assignment.AssignmentStatus> statuses, Pageable pageable);
+
+    /**
+     * Find assignments by type, excluding certain statuses
+     * Example: Fetch all IT assignments except PENDING and REJECTED
+     */
+    Page<Assignment> findByTypeAndStatusNotIn(Assignment.AssignmentType type,
+                                              List<Assignment.AssignmentStatus> statuses,
+                                              Pageable pageable);
+
+    /**
+     * Count assignments by type, excluding certain statuses
+     * Example: Count all QS assignments except PENDING and REJECTED
+     */
+    long countByTypeAndStatusNotIn(Assignment.AssignmentType type,
+                                   List<Assignment.AssignmentStatus> statuses);
 }
