@@ -238,14 +238,17 @@
                   <span th:text="${#temporals.format(assignment?.createdAt ?: T(java.time.LocalDateTime).now(), 'MMM dd, yyyy')}">Date</span>
                 </small>
               </div>
+              <!-- UPDATED: Added DELIVERED status -->
               <span class="badge status-badge"
-                    th:classappend="${assignment?.status?.name() == 'COMPLETED'} ? 'bg-success' :
-                                                 (${assignment?.status?.name() == 'PENDING'} ? 'bg-warning' :
-                                                 (${assignment?.status?.name() == 'APPROVED'} ? 'bg-info' :
-                                                 (${assignment?.status?.name() == 'IN_PROGRESS'} ? 'bg-primary' : 'bg-secondary')))"
-                    th:text="${assignment?.status?.name()}">
-                                Status
-                            </span>
+                    th:classappend="${assignment?.status?.name() == 'DELIVERED'} ? 'bg-success' :
+                                   (${assignment?.status?.name() == 'COMPLETED'} ? 'bg-success' :
+                                   (${assignment?.status?.name() == 'PENDING'} ? 'bg-warning' :
+                                   (${assignment?.status?.name() == 'APPROVED'} ? 'bg-info' :
+                                   (${assignment?.status?.name() == 'IN_PROGRESS'} ? 'bg-primary' :
+                                   (${assignment?.status?.name() == 'READY_FOR_DELIVERY'} ? 'bg-info' : 'bg-secondary')))))"
+                    th:text="${assignment?.status?.name() == 'READY_FOR_DELIVERY'} ? 'READY' : ${assignment?.status?.name()}">
+                Status
+              </span>
             </div>
 
             <div class="row mt-2">
@@ -254,8 +257,8 @@
                 <span class="badge ms-1"
                       th:classappend="${assignment?.type?.name() == 'IT'} ? 'bg-info' : 'bg-success'"
                       th:text="${assignment?.type?.name() == 'IT'} ? 'IT' : 'QS'">
-                                    Type
-                                </span>
+                  Type
+                </span>
               </div>
               <div class="col-sm-4" th:if="${assignment?.price != null}">
                 <small class="text-muted">Price:</small>
@@ -267,6 +270,13 @@
                   <i class="bi bi-eye"></i> View Details
                 </a>
               </div>
+            </div>
+
+            <!-- UPDATED: Show delivery info if delivered -->
+            <div th:if="${assignment?.status?.name() == 'DELIVERED' and assignment?.deliveredAt != null}"
+                 class="mt-2 small text-success">
+              <i class="bi bi-send-check"></i> Delivered on:
+              <span th:text="${#temporals.format(assignment?.deliveredAt, 'MMM dd, yyyy HH:mm')}"></span>
             </div>
           </div>
         </div>

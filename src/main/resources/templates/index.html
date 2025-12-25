@@ -3,38 +3,599 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Assignment Service - Home</title>
+  <title>Assignment Service - Professional IT & QS Assignment Help</title>
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    .hero-section {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 4rem 0;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #333;
+    }
+
+    /* Navigation Styles */
+    nav.navbar {
+      transition: all 0.5s ease;
+      padding: 10px 0;
+    }
+
+    nav.navbar.scrolled {
+      background-color: #212529 !important;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .navbar-brand {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff !important;
+    }
+
+    .nav-link {
+      color: #fff !important;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .nav-link:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 5px;
+    }
+
+    .started{
+        font-family: 'Poppins', sans-serif;
+        font-weight: 700;
+        letter-spacing: 2px;
+        background: #fbf9f9;
+        color: #212211;
+        padding: 14px 25px;
+        font-size: 16px;
+        border-radius: 30px;
+        cursor: pointer;
+        border: 0;
+        outline: 0;
+        display: inline-flex;
+        align-items:center;
+        justify-content: center;
+
+    }
+
+    .started:hover {
+      background: #f0f0f0;
+      transform: translateY(-2px);
+      color: #212529;
+    }
+
+    .btn-auth {
+      background: #fff;
+      color: #212529;
+      padding: 8px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-left: 10px;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-auth:hover {
+      background: #f0f0f0;
+      transform: translateY(-2px);
+      color: #212529;
+    }
+
+    .btn-register {
+      background: #667eea;
+      color: #fff;
+    }
+
+    .btn-register:hover {
+      background: #764ba2;
+      color: #fff;
+    }
+
+    /* Hero Section */
+    .hero {
+      width: 100%;
+      min-height: 100vh;
+      background: linear-gradient(rgba(8, 0, 58, 0.7), rgba(8, 0, 58, 0.7)),
+      url('/images/hero.png');
+      background-size: cover;
+      background-position: center;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .hero-text {
+      max-width: 800px;
+      padding: 0 20px;
+    }
+
+    .hero-text h1 {
+      font-size: 60px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .hero-text p {
+      max-width: 700px;
+      margin: 10px auto 30px;
+      line-height: 1.6;
+      font-size: 18px;
+    }
+
+    /* Title Component */
+    .title {
+      text-align: center;
+      color: #212EA0;
+      font-size: 15px;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin: 70px 0 30px;
+    }
+
+    .title h2 {
+      font-size: 32px;
+      color: #000F38;
+      margin-top: 5px;
+      text-transform: none;
+    }
+
+    /* Programs Section */
+    .programs {
+      margin: 80px auto;
+      width: 90%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .program {
+      flex-basis: 31%;
+      position: relative;
+      overflow: hidden;
+      border-radius: 10px;
+    }
+
+    .program img {
+      width: 100%;
+      border-radius: 10px;
+      display: block;
+      height: 300px;
+      object-fit: cover;
+    }
+
+    .caption {
+      border-radius: 10px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      background: rgba(0, 15, 152, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: #fff;
+      cursor: pointer;
+      opacity: 0;
+      padding-top: 70%;
+      transition: 0.4s;
+    }
+
+    .caption img {
+      width: 60px;
+      margin-bottom: 10px;
+      height: auto;
+    }
+
+    .caption p {
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .program:hover .caption {
+      opacity: 1;
+      padding-top: 0;
+    }
+
+    /* Assignment Cards */
     .assignment-card {
-      transition: transform 0.2s;
+      transition: transform 0.3s, box-shadow 0.3s;
       border: 1px solid #dee2e6;
       border-radius: 0.5rem;
       height: 100%;
+      overflow: hidden;
     }
+
     .assignment-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      transform: translateY(-10px);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
     }
+
+    /* Step Cards */
     .step-card {
       border: none;
       text-align: center;
       padding: 2rem 1rem;
+      background: #fff;
+      transition: all 0.3s ease;
+    }
+
+    .step-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .step-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Testimonials Section */
+    .testimonials-section {
+      padding: 80px 0;
+      background: #f8f9fa;
+    }
+
+    .section-title {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .section-title p {
+      color: #667eea;
+      font-size: 15px;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .section-title h2 {
+      font-size: 36px;
+      font-weight: 700;
+      color: #212529;
+    }
+
+    .testimonials-container {
+      position: relative;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 60px;
+    }
+
+    .testimonial-slider {
+      overflow: hidden;
+    }
+
+    .slider-wrapper {
+      display: flex;
+      transition: transform 0.5s ease;
+    }
+
+    .testimonial-slide {
+      min-width: 100%;
+      padding: 0 15px;
+    }
+
+    .testimonial-card {
+      background: #fff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .testimonial-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+
+    .testimonial-avatar {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      margin-right: 20px;
+      object-fit: cover;
+      border: 4px solid #667eea;
+    }
+
+    .testimonial-info h3 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #667eea;
+      margin-bottom: 5px;
+    }
+
+    .testimonial-info .rating {
+      color: #ffc107;
+      font-size: 16px;
+    }
+
+    .testimonial-text {
+      font-size: 16px;
+      line-height: 1.8;
+      color: #555;
+      font-style: italic;
+    }
+
+    .testimonial-date {
+      font-size: 14px;
+      color: #999;
+      margin-top: 15px;
+    }
+
+    .slider-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #667eea;
+      color: #fff;
+      border: none;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      z-index: 10;
+    }
+
+    .slider-btn:hover {
+      background: #764ba2;
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    .slider-btn.prev {
+      left: 0;
+    }
+
+    .slider-btn.next {
+      right: 0;
+    }
+
+    .average-rating {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 18px;
+      color: #667eea;
+      font-weight: 600;
+    }
+
+    .average-rating .stars {
+      color: #ffc107;
+      font-size: 24px;
+      margin: 0 10px;
+    }
+
+    /* Contact Section */
+    .contact-section {
+      padding: 80px 0;
+      background: #fff;
+    }
+
+    .contact-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+    }
+
+    .contact-info {
+      background: #f8f9fa;
+      padding: 40px;
+      border-radius: 12px;
+    }
+
+    .contact-info h3 {
+      font-size: 28px;
+      color: #667eea;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+    }
+
+    .contact-info h3 i {
+      margin-left: 10px;
+    }
+
+    .contact-info p {
+      font-size: 16px;
+      color: #555;
+      margin-bottom: 30px;
+      line-height: 1.8;
+    }
+
+    .contact-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .contact-list li {
+      display: flex;
+      align-items: center;
+      margin: 20px 0;
+      font-size: 16px;
+      color: #333;
+    }
+
+    .contact-list li i {
+      color: #667eea;
+      margin-right: 15px;
+      font-size: 20px;
+    }
+
+    .contact-form {
+      background: #fff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .contact-form label {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .contact-form input,
+    .contact-form textarea {
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 20px;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+
+    .contact-form input:focus,
+    .contact-form textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .contact-form textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .submit-btn {
+      background: #667eea;
+      color: #fff;
+      padding: 15px 40px;
+      border: none;
+      border-radius: 30px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .submit-btn:hover {
+      background: #764ba2;
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .form-message {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .form-message.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      display: block;
+    }
+
+    /* Footer */
+    footer {
+      background: #212529;
+      color: #fff;
+      padding: 40px 0;
+      text-align: center;
+    }
+
+    footer p {
+      margin: 5px 0;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 992px) {
+      .hero-text h1 {
+        font-size: 40px;
+      }
+
+      .contact-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .testimonials-container {
+        padding: 0 40px;
+      }
+
+      .programs {
+        flex-direction: column;
+      }
+
+      .program {
+        width: 100%;
+        margin-bottom: 30px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .hero {
+        padding: 20px;
+      }
+
+      .hero-text h1 {
+        font-size: 30px;
+      }
+
+      .hero-text p {
+        font-size: 16px;
+      }
+
+      .section-title h2 {
+        font-size: 28px;
+      }
+
+      .testimonials-container {
+        padding: 0 20px;
+      }
+
+      .slider-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+      }
+
+      .title h2 {
+        font-size: 26px;
+      }
     }
   </style>
 </head>
 <body>
 <!-- Navigation -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
   <div class="container">
     <a class="navbar-brand" href="/">
       <i class="bi bi-journal-text"></i> Assignment Service
@@ -45,21 +606,27 @@
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav me-auto">
         <li class="nav-item">
-          <a class="nav-link active" href="/">Home</a>
+          <a class="nav-link active" href="#hero">Home</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/about">About</a>
+          <a class="nav-link" href="#services">Services</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/contact">Contact</a>
+          <a class="nav-link" href="#how-it-works">How It Works</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#testimonials">Testimonials</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#contact">Contact</a>
         </li>
       </ul>
       <ul class="navbar-nav">
         <li class="nav-item">
-          <a class="nav-link" href="/login">Login</a>
+          <a class="btn-auth" href="/login">Login</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/register">Register</a>
+          <a class="btn-auth btn-register" href="/register">Register</a>
         </li>
       </ul>
     </div>
@@ -67,38 +634,51 @@
 </nav>
 
 <!-- Hero Section -->
-<section class="hero-section">
-  <div class="container">
-    <div class="row align-items-center">
-      <div class="col-lg-6">
-        <h1 class="display-4 fw-bold mb-4">Professional Assignment Help</h1>
-        <p class="lead mb-4">
-          Get expert help with your IT and Quantity Surveying assignments.
-          Our team of professionals is here to assist you in achieving academic success.
-        </p>
-        <div class="d-flex gap-3">
-          <a href="/register" class="btn btn-light btn-lg">
-            <i class="bi bi-person-plus"></i> Get Started
-          </a>
-          <a href="/about" class="btn btn-outline-light btn-lg">
-            Learn More
-          </a>
-        </div>
-      </div>
-      <div class="col-lg-6 text-center">
-        <i class="bi bi-journal-text display-1 text-light opacity-75"></i>
-      </div>
+<section class="hero" id="hero">
+  <div class="hero-text">
+    <h1>Professional Assignment Help for IT & QS Students</h1>
+    <p>We are committed to providing top-quality assignment assistance and helping students achieve academic excellence. Our experienced team specializes in IT programming and Quantity Surveying projects, ensuring timely delivery and exceptional results.</p>
+    <a href="/register" class="started">Get Started Today <i class="fas fa-arrow-right"></i></a>
+  </div>
+</section>
+
+<!-- Programs Section -->
+<div class="title" id="programs">
+  <p>Our Services</p>
+  <h2>What We Offer</h2>
+</div>
+
+<section class="programs container">
+  <div class="program">
+    <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80" alt="IT Assignments">
+    <div class="caption">
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/laptop.png" alt="IT Icon">
+      <p>IT Assignments</p>
+    </div>
+  </div>
+  <div class="program">
+    <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80" alt="Quantity Surveying">
+    <div class="caption">
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/calculator.png" alt="QS Icon">
+      <p>QS Assignments</p>
+    </div>
+  </div>
+  <div class="program">
+    <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80" alt="Expert Support">
+    <div class="caption">
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/online-support.png" alt="Support Icon">
+      <p>24/7 Support</p>
     </div>
   </div>
 </section>
 
 <!-- Services Section -->
-<section class="py-5">
+<section class="py-5" id="services">
   <div class="container">
     <div class="row text-center mb-5">
       <div class="col">
-        <h2 class="display-5 fw-bold">Our Services</h2>
-        <p class="lead text-muted">We specialize in two main areas</p>
+        <h2 class="display-5 fw-bold">Our Specialized Services</h2>
+        <p class="lead text-muted">Expert help in two main academic areas</p>
       </div>
     </div>
     <div class="row g-4">
@@ -108,14 +688,17 @@
             <i class="bi bi-laptop display-4 text-primary mb-3"></i>
             <h3 class="card-title">IT Assignments</h3>
             <p class="card-text">
-              Programming, Web Development, Database Design,
-              Software Engineering, Networking, and more.
+              From programming challenges to complex software projects, we provide
+              comprehensive assistance across all IT disciplines. Our experts ensure
+              your code is clean, efficient, and well-documented.
             </p>
             <ul class="list-unstyled text-start">
-              <li><i class="bi bi-check text-success"></i> Java, Python, C++</li>
-              <li><i class="bi bi-check text-success"></i> Web Development</li>
-              <li><i class="bi bi-check text-success"></i> Database Projects</li>
-              <li><i class="bi bi-check text-success"></i> Mobile Apps</li>
+              <li><i class="bi bi-check-circle text-success"></i> Java, Python, C++, JavaScript</li>
+              <li><i class="bi bi-check-circle text-success"></i> Web Development (HTML, CSS, React)</li>
+              <li><i class="bi bi-check-circle text-success"></i> Database Design & SQL</li>
+              <li><i class="bi bi-check-circle text-success"></i> Mobile App Development</li>
+              <li><i class="bi bi-check-circle text-success"></i> Data Structures & Algorithms</li>
+              <li><i class="bi bi-check-circle text-success"></i> Software Engineering Projects</li>
             </ul>
           </div>
         </div>
@@ -124,16 +707,19 @@
         <div class="card assignment-card">
           <div class="card-body text-center p-4">
             <i class="bi bi-calculator display-4 text-success mb-3"></i>
-            <h3 class="card-title">QS Assignments</h3>
+            <h3 class="card-title">Quantity Surveying Assignments</h3>
             <p class="card-text">
-              Quantity Surveying, Construction Management,
-              Cost Estimation, and related assignments.
+              Professional assistance with construction cost management, project planning,
+              and all aspects of quantity surveying. Get accurate calculations and
+              detailed reports that meet industry standards.
             </p>
             <ul class="list-unstyled text-start">
-              <li><i class="bi bi-check text-success"></i> Cost Estimation</li>
-              <li><i class="bi bi-check text-success"></i> Construction Management</li>
-              <li><i class="bi bi-check text-success"></i> Project Planning</li>
-              <li><i class="bi bi-check text-success"></i> Quantity Take-off</li>
+              <li><i class="bi bi-check-circle text-success"></i> Cost Estimation & Budgeting</li>
+              <li><i class="bi bi-check-circle text-success"></i> Construction Management</li>
+              <li><i class="bi bi-check-circle text-success"></i> Project Planning & Scheduling</li>
+              <li><i class="bi bi-check-circle text-success"></i> Quantity Take-off & Measurement</li>
+              <li><i class="bi bi-check-circle text-success"></i> Contract Administration</li>
+              <li><i class="bi bi-check-circle text-success"></i> Bill of Quantities (BOQ)</li>
             </ul>
           </div>
         </div>
@@ -143,67 +729,345 @@
 </section>
 
 <!-- How It Works -->
-<section class="py-5 bg-light">
+<section class="py-5 bg-light" id="how-it-works">
   <div class="container">
     <div class="row text-center mb-5">
       <div class="col">
         <h2 class="display-5 fw-bold">How It Works</h2>
+        <p class="lead text-muted">Simple steps to get your assignment done</p>
       </div>
     </div>
     <div class="row g-4">
       <div class="col-md-3 text-center">
         <div class="card step-card">
-          <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-               style="width: 80px; height: 80px;">
+          <div class="step-icon bg-primary text-white">
             <i class="bi bi-person-plus display-6"></i>
           </div>
-          <h4>1. Register</h4>
-          <p class="text-muted">Create your account and login to get started</p>
+          <h4>1. Register Account</h4>
+          <p class="text-muted">Create your free account in minutes. Provide basic information and you're ready to start.</p>
         </div>
       </div>
       <div class="col-md-3 text-center">
         <div class="card step-card">
-          <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-               style="width: 80px; height: 80px;">
+          <div class="step-icon bg-success text-white">
             <i class="bi bi-journal-text display-6"></i>
           </div>
-          <h4>2. Submit Assignment</h4>
-          <p class="text-muted">Provide details about your assignment requirements</p>
+          <h4>2. Submit Details</h4>
+          <p class="text-muted">Share your assignment requirements, deadline, and any specific instructions or files.</p>
         </div>
       </div>
       <div class="col-md-3 text-center">
         <div class="card step-card">
-          <div class="bg-warning text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-               style="width: 80px; height: 80px;">
+          <div class="step-icon bg-warning text-white">
             <i class="bi bi-check-circle display-6"></i>
           </div>
-          <h4>3. Get Approval</h4>
-          <p class="text-muted">We review and approve your assignment request</p>
+          <h4>3. Get Quote & Approve</h4>
+          <p class="text-muted">Receive a fair quote based on your requirements. Review and approve to proceed.</p>
         </div>
       </div>
       <div class="col-md-3 text-center">
         <div class="card step-card">
-          <div class="bg-info text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-               style="width: 80px; height: 80px;">
+          <div class="step-icon bg-info text-white">
             <i class="bi bi-credit-card display-6"></i>
           </div>
-          <h4>4. Make Payment</h4>
-          <p class="text-muted">Complete payment and we start working on it</p>
+          <h4>4. Pay & Receive</h4>
+          <p class="text-muted">Complete secure payment and our experts start working. Get your completed assignment on time.</p>
         </div>
       </div>
     </div>
   </div>
 </section>
 
+<!-- Testimonials Section -->
+<section class="testimonials-section" id="testimonials">
+  <div class="container">
+    <div class="section-title">
+      <p>What Our Clients Say</p>
+      <h2>Student Testimonials</h2>
+    </div>
+
+    <div class="testimonials-container">
+      <button class="slider-btn prev" id="prevBtn">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <button class="slider-btn next" id="nextBtn">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+
+      <div class="testimonial-slider">
+        <div class="slider-wrapper" id="sliderWrapper">
+          <!-- Testimonials will be dynamically loaded here -->
+          <div th:if="${pastFeedbacks != null and !pastFeedbacks.isEmpty()}" th:remove="tag">
+            <div th:each="feedback : ${pastFeedbacks}" class="testimonial-slide">
+              <div class="testimonial-card">
+                <div class="testimonial-header">
+                  <img src="https://ui-avatars.com/api/?name=${feedback.user.firstName}+${feedback.user.lastName}&background=667eea&color=fff&size=70"
+                       alt="User Avatar"
+                       class="testimonial-avatar"
+                       th:src="'https://ui-avatars.com/api/?name=' + ${feedback.user.firstName} + '+' + ${feedback.user.lastName} + '&background=667eea&color=fff&size=70'">
+                  <div class="testimonial-info">
+                    <h3 th:text="${feedback.user.firstName + ' ' + feedback.user.lastName}">Student Name</h3>
+                    <div class="rating">
+                      <span th:each="i : ${#numbers.sequence(1, feedback.rating)}">★</span>
+                      <span th:each="i : ${#numbers.sequence(feedback.rating + 1, 5)}">☆</span>
+                    </div>
+                  </div>
+                </div>
+                <p class="testimonial-text" th:text="${feedback.message}">
+                  Feedback message will appear here
+                </p>
+                <p class="testimonial-date" th:text="${#temporals.format(feedback.createdAt, 'MMM dd, yyyy')}">
+                  Date
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Default testimonials if no database feedbacks -->
+          <div th:if="${pastFeedbacks == null or pastFeedbacks.isEmpty()}" th:remove="tag">
+            <div class="testimonial-slide">
+              <div class="testimonial-card">
+                <div class="testimonial-header">
+                  <img src="https://ui-avatars.com/api/?name=Sarah+Johnson&background=667eea&color=fff&size=70"
+                       alt="Sarah Johnson"
+                       class="testimonial-avatar">
+                  <div class="testimonial-info">
+                    <h3>Sarah Johnson</h3>
+                    <div class="rating">★★★★★</div>
+                  </div>
+                </div>
+                <p class="testimonial-text">
+                  "Excellent service! They helped me with my Java programming assignment and delivered it before the deadline.
+                  The code was well-structured and thoroughly commented. Highly recommend for any IT student!"
+                </p>
+                <p class="testimonial-date">Dec 20, 2024</p>
+              </div>
+            </div>
+
+            <div class="testimonial-slide">
+              <div class="testimonial-card">
+                <div class="testimonial-header">
+                  <img src="https://ui-avatars.com/api/?name=Michael+Chen&background=667eea&color=fff&size=70"
+                       alt="Michael Chen"
+                       class="testimonial-avatar">
+                  <div class="testimonial-info">
+                    <h3>Michael Chen</h3>
+                    <div class="rating">★★★★★</div>
+                  </div>
+                </div>
+                <p class="testimonial-text">
+                  "Got help with my quantity surveying cost estimation project. The calculations were accurate and the report
+                  was professionally formatted. They really understand construction management!"
+                </p>
+                <p class="testimonial-date">Dec 18, 2024</p>
+              </div>
+            </div>
+
+            <div class="testimonial-slide">
+              <div class="testimonial-card">
+                <div class="testimonial-header">
+                  <img src="https://ui-avatars.com/api/?name=Emma+Williams&background=667eea&color=fff&size=70"
+                       alt="Emma Williams"
+                       class="testimonial-avatar">
+                  <div class="testimonial-info">
+                    <h3>Emma Williams</h3>
+                    <div class="rating">★★★★★</div>
+                  </div>
+                </div>
+                <p class="testimonial-text">
+                  "Amazing experience! The team was very responsive and made revisions based on my feedback.
+                  My web development project scored an A+. Will definitely use their services again!"
+                </p>
+                <p class="testimonial-date">Dec 15, 2024</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="average-rating" th:if="${averageRating != null and averageRating > 0}">
+        Average Rating:
+        <span class="stars" th:text="${#numbers.formatDecimal(averageRating, 1, 1)}">4.8</span>
+        / 5.0
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Contact Section -->
+<section class="contact-section" id="contact">
+  <div class="contact-container">
+    <div class="section-title">
+      <p>Get In Touch</p>
+      <h2>Contact Us</h2>
+    </div>
+
+    <div class="contact-grid">
+      <div class="contact-info">
+        <h3>
+          Send us a message
+          <i class="fas fa-paper-plane"></i>
+        </h3>
+        <p>
+          Have questions about our services or need help with your assignment?
+          Feel free to reach out to us. We're available 24/7 to assist you with
+          your IT and Quantity Surveying assignments. Our team is committed to
+          providing quick responses and quality support.
+        </p>
+        <ul class="contact-list">
+          <li>
+            <i class="fas fa-envelope"></i>
+            <span>support@assignmentservice.com</span>
+          </li>
+          <li>
+            <i class="fas fa-phone"></i>
+            <span>+1 (555) 123-4567</span>
+          </li>
+          <li>
+            <i class="fas fa-map-marker-alt"></i>
+            <span>Available Worldwide - Remote Services</span>
+          </li>
+          <li>
+            <i class="fas fa-clock"></i>
+            <span>24/7 Customer Support</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="contact-form">
+        <form id="contactForm">
+          <label>Your Name</label>
+          <input type="text" name="name" placeholder="Enter your full name" required>
+
+          <label>Email Address</label>
+          <input type="email" name="email" placeholder="Enter your email" required>
+
+          <label>Phone Number</label>
+          <input type="tel" name="phone" placeholder="Enter your phone number" required>
+
+          <label>Your Message</label>
+          <textarea name="message" placeholder="Tell us about your assignment or ask any questions..." required></textarea>
+
+          <!-- Web3Forms Access Key -->
+          <input type="hidden" name="access_key" value="51f04cfe-5e79-41dd-9ccf-de7d4a73a1c5">
+
+          <button type="submit" class="submit-btn">
+            Send Message <i class="fas fa-arrow-right"></i>
+          </button>
+
+          <div id="formMessage" class="form-message"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- Footer -->
-<footer class="bg-dark text-white py-4 mt-5">
-  <div class="container text-center">
-    <p>&copy; 2024 Assignment Service. All rights reserved.</p>
-    <p class="mb-0">Helping students with IT and QS assignments</p>
+<footer>
+  <div class="container">
+    <p>&copy; 2026 Assignment Service. All rights reserved.</p>
+    <p class="mb-0">Professional IT & Quantity Surveying Assignment Help</p>
+    <p class="mt-3">
+      <a href="#" style="color: #fff; margin: 0 10px;">Terms of Service</a> |
+      <a href="#" style="color: #fff; margin: 0 10px;">Privacy Policy</a>
+    </p>
   </div>
 </footer>
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // Navbar scroll effect
+  window.addEventListener('scroll', () => {
+    const navbar = document.querySelector('.navbar');
+    if (window.scrollY > 50) {
+      navbar.classList.add('scrolled');
+    } else {
+      navbar.classList.remove('scrolled');
+    }
+  });
+
+  // Testimonial slider
+  let currentSlide = 0;
+  const sliderWrapper = document.getElementById('sliderWrapper');
+  const slides = document.querySelectorAll('.testimonial-slide');
+  const totalSlides = slides.length;
+
+  function showSlide(index) {
+    if (index >= totalSlides) {
+      currentSlide = 0;
+    } else if (index < 0) {
+      currentSlide = totalSlides - 1;
+    } else {
+      currentSlide = index;
+    }
+
+    sliderWrapper.style.transform = `translateX(-${currentSlide * 100}%)`;
+  }
+
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    showSlide(currentSlide + 1);
+  });
+
+  document.getElementById('prevBtn').addEventListener('click', () => {
+    showSlide(currentSlide - 1);
+  });
+
+  // Auto-slide every 5 seconds
+  setInterval(() => {
+    showSlide(currentSlide + 1);
+  }, 5000);
+
+  // Contact form submission
+  document.getElementById('contactForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formMessage = document.getElementById('formMessage');
+    formMessage.textContent = 'Sending...';
+    formMessage.className = 'form-message';
+    formMessage.style.display = 'block';
+
+    const formData = new FormData(e.target);
+
+    // The access key is already included in the form data from the hidden input
+    // formData.append("access_key", "5f5e9347-4ebd-43e6-9372-81eaeb5b6189");
+
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        formMessage.textContent = "Form Submitted Successfully";
+        formMessage.className = 'form-message success';
+        e.target.reset();
+      } else {
+        formMessage.textContent = data.message || "Something went wrong!";
+        formMessage.className = 'form-message';
+      }
+    } catch (error) {
+      formMessage.textContent = "Network error. Please try again.";
+      formMessage.className = 'form-message';
+    }
+  });
+
+  // Smooth scrolling for navigation links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        window.scrollTo({
+          top: target.offsetTop - 80,
+          behavior: 'smooth'
+        });
+      }
+    });
+  });
+</script>
 </body>
 </html>

@@ -72,7 +72,8 @@ public class AdminController {
                 .count();
 
         long completedCount = allAssignments.stream()
-                .filter(a -> a.getStatus() == Assignment.AssignmentStatus.COMPLETED)
+                .filter(a -> a.getStatus() == Assignment.AssignmentStatus.COMPLETED ||
+                        a.getStatus() == Assignment.AssignmentStatus.DELIVERED)
                 .count();
 
         model.addAttribute("pendingAssignments", pendingAssignments);

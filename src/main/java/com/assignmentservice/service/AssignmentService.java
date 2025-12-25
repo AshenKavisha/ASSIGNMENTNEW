@@ -254,23 +254,28 @@ public class AssignmentService {
         Map<String, Object> stats = new HashMap<>();
 
         long totalAssignments = assignmentRepository.countByCreatedAtAfter(startDate);
-        long completed = assignmentRepository.countByStatusAndCreatedAtAfter(
+
+        // ✅ UPDATED: Count both COMPLETED and DELIVERED as completed
+        long completedCount = assignmentRepository.countByStatusAndCreatedAtAfter(
                 Assignment.AssignmentStatus.COMPLETED, startDate);
+        long deliveredCount = assignmentRepository.countByStatusAndCreatedAtAfter(
+                Assignment.AssignmentStatus.DELIVERED, startDate);
+        long completed = completedCount + deliveredCount;  // Combine both!
+
         long pending = assignmentRepository.countByStatusAndCreatedAtAfter(
                 Assignment.AssignmentStatus.PENDING, startDate);
         long inProgress = assignmentRepository.countByStatusAndCreatedAtAfter(
                 Assignment.AssignmentStatus.IN_PROGRESS, startDate);
 
         stats.put("totalAssignments", totalAssignments);
-        stats.put("completed", completed);
+        stats.put("completed", completed);  // Now includes DELIVERED!
         stats.put("pending", pending);
         stats.put("inProgress", inProgress);
 
         double completionRate = totalAssignments > 0 ? (completed * 100.0) / totalAssignments : 0;
         stats.put("completionRate", String.format("%.1f%%", completionRate));
 
-        // Calculate average response time (simplified)
-        double avgResponseTime = 24.0; // Example value in hours
+        double avgResponseTime = 24.0;
         stats.put("avgResponseTime", String.format("%.1f hours", avgResponseTime));
 
         return stats;
@@ -293,17 +298,23 @@ public class AssignmentService {
             return stats; // No access
         }
 
-        // Get filtered statistics (you'll need to add these methods to repository)
+        // Get filtered statistics
         long totalAssignments = assignmentRepository.countByTypeAndCreatedAtAfter(adminType, startDate);
-        long completed = assignmentRepository.countByTypeAndStatusAndCreatedAtAfter(
+
+        // ✅ UPDATED: Count both COMPLETED and DELIVERED as completed
+        long completedCount = assignmentRepository.countByTypeAndStatusAndCreatedAtAfter(
                 adminType, Assignment.AssignmentStatus.COMPLETED, startDate);
+        long deliveredCount = assignmentRepository.countByTypeAndStatusAndCreatedAtAfter(
+                adminType, Assignment.AssignmentStatus.DELIVERED, startDate);
+        long completed = completedCount + deliveredCount;  // Combine both!
+
         long pending = assignmentRepository.countByTypeAndStatusAndCreatedAtAfter(
                 adminType, Assignment.AssignmentStatus.PENDING, startDate);
         long inProgress = assignmentRepository.countByTypeAndStatusAndCreatedAtAfter(
                 adminType, Assignment.AssignmentStatus.IN_PROGRESS, startDate);
 
         stats.put("totalAssignments", totalAssignments);
-        stats.put("completed", completed);
+        stats.put("completed", completed);  // Now includes DELIVERED!
         stats.put("pending", pending);
         stats.put("inProgress", inProgress);
 
