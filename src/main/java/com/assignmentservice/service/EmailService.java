@@ -32,8 +32,21 @@ public class EmailService {
         // Your existing implementation
     }
 
-    public void sendAdminInvitation(String email, String password) {
-        // Your existing implementation
+    /**
+     * Send admin invitation email with login credentials
+     */
+    public void sendAdminInvitation(String email, String password) throws MessagingException {
+        MimeMessage message = emailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        String subject = "Welcome to Assignment Service - Admin Account Created";
+        String content = createAdminInvitationContent(email, password);
+
+        helper.setTo(email);
+        helper.setSubject(subject);
+        helper.setText(content, true); // true = HTML content
+
+        emailSender.send(message);
     }
 
     // NEW METHODS FOR SOLUTION DELIVERY
@@ -83,6 +96,79 @@ public class EmailService {
         helper.setText(content, true);
 
         emailSender.send(message);
+    }
+
+    /**
+     * Create HTML email content for admin invitation
+     */
+    private String createAdminInvitationContent(String email, String password) {
+        return "<!DOCTYPE html>" +
+                "<html>" +
+                "<head>" +
+                "<style>" +
+                "body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }" +
+                ".container { max-width: 600px; margin: 0 auto; padding: 20px; }" +
+                ".header { background-color: #007bff; color: white; padding: 20px; text-align: center; border-radius: 5px; }" +
+                ".content { background-color: #f9f9f9; padding: 20px; border-radius: 5px; margin-top: 20px; }" +
+                ".credentials-box { background: white; padding: 20px; border: 2px solid #007bff; border-radius: 5px; margin: 20px 0; }" +
+                ".button { display: inline-block; background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin-top: 20px; }" +
+                ".footer { margin-top: 30px; font-size: 12px; color: #666; }" +
+                ".alert-box { background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 20px 0; }" +
+                "</style>" +
+                "</head>" +
+                "<body>" +
+                "<div class='container'>" +
+                "<div class='header'>" +
+                "<h2>🎉 Welcome to Assignment Service!</h2>" +
+                "</div>" +
+                "<div class='content'>" +
+                "<p>Hello,</p>" +
+                "<p>You have been registered as an <strong>Administrator</strong> for Assignment Service.</p>" +
+
+                "<div class='credentials-box'>" +
+                "<h3 style='margin-top: 0; color: #007bff;'>📧 Your Login Credentials</h3>" +
+                "<p style='margin: 10px 0;'><strong>Email:</strong> " + email + "</p>" +
+                "<p style='margin: 10px 0;'><strong>Password:</strong> " + password + "</p>" +
+                "</div>" +
+
+                "<div class='alert-box'>" +
+                "<h4 style='margin-top: 0; color: #856404;'>⚠️ Important Security Notice</h4>" +
+                "<ul style='margin-bottom: 0;'>" +
+                "<li>Please change your password after your first login</li>" +
+                "<li>Keep your credentials confidential</li>" +
+                "<li>Never share your password with anyone</li>" +
+                "</ul>" +
+                "</div>" +
+
+                "<h3>🔑 Getting Started:</h3>" +
+                "<ol>" +
+                "<li>Click the button below to access the admin panel</li>" +
+                "<li>Log in with the credentials provided above</li>" +
+                "<li>Update your password in Account Settings</li>" +
+                "<li>Start managing assignments!</li>" +
+                "</ol>" +
+
+                "<div style='text-align: center; margin: 30px 0;'>" +
+                "<a href='http://localhost:8080/login' class='button'>Login to Admin Panel</a>" +
+                "</div>" +
+
+                "<p style='font-size: 14px; color: #666;'>" +
+                "If the button doesn't work, copy and paste this link in your browser:<br>" +
+                "<strong>http://localhost:8080/login</strong>" +
+                "</p>" +
+
+                "<p>If you have any questions or need assistance, please don't hesitate to contact the system administrator.</p>" +
+                "</div>" +
+
+                "<div class='footer'>" +
+                "<p>Best regards,<br><strong>Assignment Service Team</strong></p>" +
+                "<p style='font-size: 11px; color: #999;'>" +
+                "This is an automated message. If you received this email by mistake, please contact us immediately." +
+                "</p>" +
+                "</div>" +
+                "</div>" +
+                "</body>" +
+                "</html>";
     }
 
     /**

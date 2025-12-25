@@ -54,15 +54,19 @@ public class AdminController {
             return "redirect:/dashboard?error=Unauthorized";
         }
 
-        List<Assignment> pendingAssignments = assignmentService.getPendingAssignments();
-        List<Assignment> allAssignments = assignmentService.getAllAssignments();
+        // Get current admin
+        Optional<User> currentAdminOpt = getCurrentAdmin();
+        if (!currentAdminOpt.isPresent()) {
+            return "redirect:/dashboard?error=User not found";
+        }
 
-        // Get current user
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = auth.getName();
-        Optional<User> currentUser = userService.getUserByEmail(email);
+        User currentAdmin = currentAdminOpt.get();
 
-        // Calculate status counts properly
+        // Use filtered methods based on admin specialization
+        List<Assignment> pendingAssignments = assignmentService.getPendingAssignmentsByAdminSpecialization(currentAdmin);
+        List<Assignment> allAssignments = assignmentService.getAllAssignmentsByAdminSpecialization(currentAdmin);
+
+        // Calculate status counts with filtering
         long inProgressCount = allAssignments.stream()
                 .filter(a -> a.getStatus() == Assignment.AssignmentStatus.IN_PROGRESS)
                 .count();
@@ -76,9 +80,9 @@ public class AdminController {
         model.addAttribute("totalAssignments", allAssignments.size());
         model.addAttribute("inProgressCount", inProgressCount);
         model.addAttribute("completedCount", completedCount);
-        model.addAttribute("user", currentUser.orElse(null));
+        model.addAttribute("user", currentAdmin);
 
-        return "admin/admin-dashboard"; // CHANGED THIS LINE
+        return "admin/admin-dashboard";
     }
 
     // ============ CUSTOMER PROFILES PAGE - NEW FEATURE ============
@@ -93,10 +97,7 @@ public class AdminController {
         }
 
         // Get current admin user
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = auth.getName();
-        Optional<User> currentAdminOpt = userService.getUserByEmail(email);
-
+        Optional<User> currentAdminOpt = getCurrentAdmin();
         if (!currentAdminOpt.isPresent()) {
             return "redirect:/dashboard?error=User not found";
         }
@@ -149,10 +150,7 @@ public class AdminController {
         }
 
         // Get current admin user
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = auth.getName();
-        Optional<User> currentAdminOpt = userService.getUserByEmail(email);
-
+        Optional<User> currentAdminOpt = getCurrentAdmin();
         if (!currentAdminOpt.isPresent()) {
             return "redirect:/dashboard?error=User not found";
         }
@@ -172,8 +170,10 @@ public class AdminController {
             return "redirect:/admin/customers?error=You don't have permission to view this customer";
         }
 
-        // Get customer's assignments
-        List<Assignment> customerAssignments = customer.getAssignments();
+        // Get customer's assignments (filtered by admin specialization)
+        List<Assignment> customerAssignments = customer.getAssignments().stream()
+                .filter(assignment -> assignmentService.canAdminAccessAssignment(currentAdmin, assignment))
+                .collect(Collectors.toList());
 
         // Calculate statistics
         long totalAssignments = customerAssignments.size();
@@ -244,19 +244,50 @@ public class AdminController {
             return "redirect:/dashboard?error=Unauthorized";
         }
 
+        // Get current admin
+        Optional<User> currentAdminOpt = getCurrentAdmin();
+        if (!currentAdminOpt.isPresent()) {
+            return "redirect:/dashboard?error=User not found";
+        }
+
+        User currentAdmin = currentAdminOpt.get();
+
         int pageSize = 10;
         Pageable pageable = PageRequest.of(page - 1, pageSize, Sort.by("updatedAt").descending());
 
         Page<Assignment> assignmentPage;
+
+        // Filter assignments based on admin specialization
         if (type != null && !type.isEmpty()) {
             Assignment.AssignmentType assignmentType = Assignment.AssignmentType.valueOf(type);
-            assignmentPage = assignmentService.getCompletedAssignmentsByType(assignmentType, pageable);
+
+            // Check if admin can access this type
+            if (!assignmentService.canAdminAccessAssignmentType(currentAdmin, assignmentType)) {
+                return "redirect:/admin/assignments/completed?error=Access Denied: You don't have permission to view " + type + " assignments";
+            }
+
+            assignmentPage = assignmentService.getCompletedAssignmentsByTypeForAdmin(assignmentType, currentAdmin, pageable);
         } else {
-            assignmentPage = assignmentService.getCompletedAssignments(pageable);
+            // Get all completed assignments the admin has access to
+            assignmentPage = assignmentService.getCompletedAssignmentsForAdmin(currentAdmin, pageable);
         }
 
-        long itCount = assignmentService.countCompletedAssignmentsByType(Assignment.AssignmentType.IT);
-        long qsCount = assignmentService.countCompletedAssignmentsByType(Assignment.AssignmentType.QUANTITY_SURVEYING);
+        // Calculate counts based on admin access
+        long itCount = 0;
+        long qsCount = 0;
+
+        if (currentAdmin.getSpecialization() == User.Specialization.BOTH) {
+            // Super admin can see both counts
+            itCount = assignmentService.countCompletedAssignmentsByType(Assignment.AssignmentType.IT);
+            qsCount = assignmentService.countCompletedAssignmentsByType(Assignment.AssignmentType.QUANTITY_SURVEYING);
+        } else if (currentAdmin.getSpecialization() == User.Specialization.IT) {
+            // IT admin sees only IT count
+            itCount = assignmentService.countCompletedAssignmentsByType(Assignment.AssignmentType.IT);
+        } else if (currentAdmin.getSpecialization() == User.Specialization.QUANTITY_SURVEYING) {
+            // QS admin sees only QS count
+            qsCount = assignmentService.countCompletedAssignmentsByType(Assignment.AssignmentType.QUANTITY_SURVEYING);
+        }
+
         long totalCount = itCount + qsCount;
 
         model.addAttribute("completedAssignments", assignmentPage.getContent());
@@ -265,6 +296,7 @@ public class AdminController {
         model.addAttribute("itCompletedCount", itCount);
         model.addAttribute("qsCompletedCount", qsCount);
         model.addAttribute("totalCompletedCount", totalCount);
+        model.addAttribute("currentAdmin", currentAdmin);
 
         return "admin/total-assignments";
     }
@@ -276,9 +308,21 @@ public class AdminController {
             return "redirect:/dashboard?error=Unauthorized";
         }
 
-        List<Assignment> pendingAssignments = assignmentService.getPendingAssignments();
+        // Get current admin
+        Optional<User> currentAdminOpt = getCurrentAdmin();
+        if (!currentAdminOpt.isPresent()) {
+            return "redirect:/dashboard?error=User not found";
+        }
+
+        User currentAdmin = currentAdminOpt.get();
+
+        // Get pending assignments filtered by admin specialization
+        List<Assignment> pendingAssignments = assignmentService.getPendingAssignmentsByAdminSpecialization(currentAdmin);
+
         model.addAttribute("assignments", pendingAssignments);
         model.addAttribute("pendingCount", pendingAssignments.size());
+        model.addAttribute("currentAdmin", currentAdmin);
+
         return "admin/pending-assignments";
     }
 
@@ -291,8 +335,17 @@ public class AdminController {
             return "redirect:/dashboard?error=Unauthorized";
         }
 
+        // Get current admin
+        Optional<User> currentAdminOpt = getCurrentAdmin();
+        if (!currentAdminOpt.isPresent()) {
+            return "redirect:/dashboard?error=User not found";
+        }
+
+        User currentAdmin = currentAdminOpt.get();
+
         try {
-            Optional<Assignment> assignmentOpt = assignmentService.getAssignmentById(id);
+            // Check if admin has access to this assignment
+            Optional<Assignment> assignmentOpt = assignmentService.getAssignmentByIdForAdmin(id, currentAdmin);
             if (assignmentOpt.isPresent()) {
                 Assignment assignment = assignmentOpt.get();
                 assignment.setStatus(Assignment.AssignmentStatus.APPROVED);
@@ -305,7 +358,7 @@ public class AdminController {
 
                 redirectAttributes.addFlashAttribute("success", "Assignment approved successfully!");
             } else {
-                redirectAttributes.addFlashAttribute("error", "Assignment not found!");
+                redirectAttributes.addFlashAttribute("error", "Assignment not found or you don't have permission to approve it!");
             }
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Failed to approve assignment: " + e.getMessage());
@@ -319,15 +372,24 @@ public class AdminController {
             return "redirect:/dashboard?error=Unauthorized";
         }
 
+        // Get current admin
+        Optional<User> currentAdminOpt = getCurrentAdmin();
+        if (!currentAdminOpt.isPresent()) {
+            return "redirect:/dashboard?error=User not found";
+        }
+
+        User currentAdmin = currentAdminOpt.get();
+
         try {
-            Optional<Assignment> assignmentOpt = assignmentService.getAssignmentById(id);
+            // Check if admin has access to this assignment
+            Optional<Assignment> assignmentOpt = assignmentService.getAssignmentByIdForAdmin(id, currentAdmin);
             if (assignmentOpt.isPresent()) {
                 Assignment assignment = assignmentOpt.get();
                 assignment.setStatus(Assignment.AssignmentStatus.REJECTED);
                 assignmentService.saveAssignment(assignment);
                 redirectAttributes.addFlashAttribute("success", "Assignment rejected successfully!");
             } else {
-                redirectAttributes.addFlashAttribute("error", "Assignment not found!");
+                redirectAttributes.addFlashAttribute("error", "Assignment not found or you don't have permission to reject it!");
             }
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Failed to reject assignment: " + e.getMessage());
@@ -341,12 +403,22 @@ public class AdminController {
             return "redirect:/dashboard?error=Unauthorized";
         }
 
-        Optional<Assignment> assignmentOpt = assignmentService.getAssignmentById(id);
+        // Get current admin
+        Optional<User> currentAdminOpt = getCurrentAdmin();
+        if (!currentAdminOpt.isPresent()) {
+            return "redirect:/dashboard?error=User not found";
+        }
+
+        User currentAdmin = currentAdminOpt.get();
+
+        // Check if admin has access to this assignment
+        Optional<Assignment> assignmentOpt = assignmentService.getAssignmentByIdForAdmin(id, currentAdmin);
         if (assignmentOpt.isPresent()) {
             model.addAttribute("assignment", assignmentOpt.get());
+            model.addAttribute("currentAdmin", currentAdmin);
             return "admin/assignment-details";
         }
-        return "redirect:/admin/assignments/completed?error=Assignment not found";
+        return "redirect:/admin/assignments/completed?error=Assignment not found or you don't have permission to view it";
     }
 
     // ============ SYSTEM MANAGEMENT PAGE ============
@@ -356,15 +428,18 @@ public class AdminController {
             return "redirect:/dashboard?error=Unauthorized";
         }
 
+        // *** NEW: Only super admins can access system management ***
+        if (!isSuperAdmin()) {
+            return "redirect:/admin/dashboard?error=Access Denied: Only Super Administrators can manage the system";
+        }
+
         List<User> admins = userService.getAllAdmins();
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = auth.getName();
-        Optional<User> currentUser = userService.getUserByEmail(email);
+        Optional<User> currentUserOpt = getCurrentAdmin();
 
         model.addAttribute("admins", admins);
         model.addAttribute("adminCount", admins.size());
-        model.addAttribute("currentUser", currentUser.orElse(null));
+        model.addAttribute("currentUser", currentUserOpt.orElse(null));
         model.addAttribute("adminRegistrationDto", new AdminRegistrationDto());
 
         return "admin/system-management";
@@ -377,6 +452,13 @@ public class AdminController {
 
         if (!isAdminUser()) {
             return "redirect:/dashboard?error=Unauthorized";
+        }
+
+        // *** NEW: Only super admins can add new admins ***
+        if (!isSuperAdmin()) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Access Denied: Only Super Administrators (with BOTH specializations) can add new admins");
+            return "redirect:/admin/management";
         }
 
         // Validate email doesn't exist
@@ -435,6 +517,13 @@ public class AdminController {
             return "redirect:/dashboard?error=Unauthorized";
         }
 
+        // *** NEW: Only super admins can deactivate admins ***
+        if (!isSuperAdmin()) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Access Denied: Only Super Administrators can deactivate admins");
+            return "redirect:/admin/management";
+        }
+
         try {
             Optional<User> adminOpt = userService.getUserById(id);
             if (adminOpt.isPresent()) {
@@ -468,10 +557,18 @@ public class AdminController {
             return "redirect:/dashboard?error=Unauthorized";
         }
 
+        // Get current admin
+        Optional<User> currentAdminOpt = getCurrentAdmin();
+        if (!currentAdminOpt.isPresent()) {
+            return "redirect:/dashboard?error=User not found";
+        }
+
+        User currentAdmin = currentAdminOpt.get();
+
         LocalDateTime startDate = LocalDateTime.now().minusDays(days);
 
-        // Get assignment statistics
-        Map<String, Object> assignmentStats = assignmentService.getAssignmentStatistics(startDate);
+        // Get assignment statistics (filtered by admin specialization)
+        Map<String, Object> assignmentStats = assignmentService.getAssignmentStatisticsForAdmin(startDate, currentAdmin);
         model.addAttribute("stats", assignmentStats);
 
         // Get user statistics
@@ -498,9 +595,19 @@ public class AdminController {
         model.addAttribute("activeUsers", userStats.get("activeUsers"));
         model.addAttribute("newUsers", userStats.get("newUsers"));
 
-        // Calculate percentages for charts
-        long itCompleted = assignmentService.countCompletedAssignmentsByType(Assignment.AssignmentType.IT);
-        long qsCompleted = assignmentService.countCompletedAssignmentsByType(Assignment.AssignmentType.QUANTITY_SURVEYING);
+        // Calculate percentages for charts (filtered by admin specialization)
+        long itCompleted = 0;
+        long qsCompleted = 0;
+
+        if (currentAdmin.getSpecialization() == User.Specialization.BOTH) {
+            itCompleted = assignmentService.countCompletedAssignmentsByType(Assignment.AssignmentType.IT);
+            qsCompleted = assignmentService.countCompletedAssignmentsByType(Assignment.AssignmentType.QUANTITY_SURVEYING);
+        } else if (currentAdmin.getSpecialization() == User.Specialization.IT) {
+            itCompleted = assignmentService.countCompletedAssignmentsByType(Assignment.AssignmentType.IT);
+        } else if (currentAdmin.getSpecialization() == User.Specialization.QUANTITY_SURVEYING) {
+            qsCompleted = assignmentService.countCompletedAssignmentsByType(Assignment.AssignmentType.QUANTITY_SURVEYING);
+        }
+
         long totalCompleted = itCompleted + qsCompleted;
 
         double itPercentage = totalCompleted > 0 ? (itCompleted * 100.0) / totalCompleted : 0;
@@ -509,18 +616,9 @@ public class AdminController {
         model.addAttribute("itPercentage", String.format("%.1f%%", itPercentage));
         model.addAttribute("qsPercentage", String.format("%.1f%%", qsPercentage));
         model.addAttribute("days", days);
+        model.addAttribute("currentAdmin", currentAdmin);
 
         return "admin/view-reports";
-    }
-
-    /**
-     * Helper method to check if the current user is an admin
-     */
-    private boolean isAdminUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-        Optional<User> userOptional = userService.getUserByEmail(email);
-        return userOptional.isPresent() && "ADMIN".equals(userOptional.get().getRole());
     }
 
     @GetMapping("/assignments")
@@ -528,22 +626,30 @@ public class AdminController {
         return "redirect:/admin/assignments/completed";
     }
 
-    // In AdminController.java, add this method
-
+    // ============ SOLUTION DELIVERY ============
     @GetMapping("/assignments/{id}/deliver")
     public String showDeliverSolutionForm(@PathVariable Long id, Model model) {
         if (!isAdminUser()) {
             return "redirect:/dashboard?error=Unauthorized";
         }
 
-        Optional<Assignment> assignmentOpt = assignmentService.getAssignmentById(id);
+        // Get current admin
+        Optional<User> currentAdminOpt = getCurrentAdmin();
+        if (!currentAdminOpt.isPresent()) {
+            return "redirect:/dashboard?error=User not found";
+        }
+
+        User currentAdmin = currentAdminOpt.get();
+
+        // *** NEW: Check if admin has access to this assignment ***
+        Optional<Assignment> assignmentOpt = assignmentService.getAssignmentByIdForAdmin(id, currentAdmin);
         if (assignmentOpt.isEmpty()) {
-            return "redirect:/admin/assignments/completed?error=Assignment not found";
+            return "redirect:/admin/assignments/completed?error=Access Denied: You don't have permission to access this assignment";
         }
 
         Assignment assignment = assignmentOpt.get();
 
-        // Only allow delivery for approved, completed or in-progress assignments (not for already delivered)
+        // Only allow delivery for approved, completed or in-progress assignments
         if (assignment.getStatus() != Assignment.AssignmentStatus.APPROVED &&
                 assignment.getStatus() != Assignment.AssignmentStatus.COMPLETED &&
                 assignment.getStatus() != Assignment.AssignmentStatus.IN_PROGRESS) {
@@ -551,6 +657,7 @@ public class AdminController {
         }
 
         model.addAttribute("assignment", assignment);
+        model.addAttribute("currentAdmin", currentAdmin);
         return "admin/assignment-solution-delivery";
     }
 
@@ -564,10 +671,20 @@ public class AdminController {
             return "redirect:/dashboard?error=Unauthorized";
         }
 
+        // Get current admin
+        Optional<User> currentAdminOpt = getCurrentAdmin();
+        if (!currentAdminOpt.isPresent()) {
+            return "redirect:/dashboard?error=User not found";
+        }
+
+        User currentAdmin = currentAdminOpt.get();
+
         try {
-            Optional<Assignment> assignmentOpt = assignmentService.getAssignmentById(id);
+            // *** NEW: Check if admin has access to this assignment ***
+            Optional<Assignment> assignmentOpt = assignmentService.getAssignmentByIdForAdmin(id, currentAdmin);
             if (assignmentOpt.isEmpty()) {
-                redirectAttributes.addFlashAttribute("error", "Assignment not found!");
+                redirectAttributes.addFlashAttribute("error",
+                        "Access Denied: You don't have permission to access this assignment");
                 return "redirect:/admin/assignments/completed";
             }
 
@@ -647,8 +764,17 @@ public class AdminController {
             return "redirect:/dashboard?error=Unauthorized";
         }
 
+        // Get current admin
+        Optional<User> currentAdminOpt = getCurrentAdmin();
+        if (!currentAdminOpt.isPresent()) {
+            return "redirect:/dashboard?error=User not found";
+        }
+
+        User currentAdmin = currentAdminOpt.get();
+
         try {
-            Optional<Assignment> assignmentOpt = assignmentService.getAssignmentById(id);
+            // Check if admin has access to this assignment
+            Optional<Assignment> assignmentOpt = assignmentService.getAssignmentByIdForAdmin(id, currentAdmin);
             if (assignmentOpt.isPresent()) {
                 Assignment assignment = assignmentOpt.get();
                 assignment.setStatus(Assignment.AssignmentStatus.READY_FOR_DELIVERY);
@@ -657,7 +783,8 @@ public class AdminController {
                 redirectAttributes.addFlashAttribute("success",
                         "Assignment marked as ready for delivery");
             } else {
-                redirectAttributes.addFlashAttribute("error", "Assignment not found!");
+                redirectAttributes.addFlashAttribute("error",
+                        "Assignment not found or you don't have permission to update it!");
             }
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error",
@@ -665,6 +792,41 @@ public class AdminController {
         }
 
         return "redirect:/admin/assignments/completed";
+    }
+
+    // ============ HELPER METHODS ============
+
+    /**
+     * Helper method to check if the current user is an admin
+     */
+    private boolean isAdminUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        Optional<User> userOptional = userService.getUserByEmail(email);
+        return userOptional.isPresent() && "ADMIN".equals(userOptional.get().getRole());
+    }
+
+    /**
+     * Check if current admin is a super admin (BOTH specialization)
+     */
+    private boolean isSuperAdmin() {
+        Optional<User> adminOpt = getCurrentAdmin();
+        if (adminOpt.isEmpty()) {
+            return false;
+        }
+
+        User admin = adminOpt.get();
+        return "ADMIN".equals(admin.getRole()) &&
+                admin.getSpecialization() == User.Specialization.BOTH;
+    }
+
+    /**
+     * Get current admin user
+     */
+    private Optional<User> getCurrentAdmin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        return userService.getUserByEmail(email);
     }
 
     /**
@@ -687,5 +849,4 @@ public class AdminController {
 
         return Arrays.asList(allowedExtensions).contains(fileExtension);
     }
-
 }

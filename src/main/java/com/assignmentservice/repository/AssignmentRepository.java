@@ -38,6 +38,9 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     // Count assignments by status (for statistics)
     long countByStatus(Assignment.AssignmentStatus status);
 
+    // Count assignments by type
+    long countByType(Assignment.AssignmentType type);
+
     // Count assignments by type and status
     long countByTypeAndStatus(Assignment.AssignmentType type,
                               Assignment.AssignmentStatus status);
@@ -59,6 +62,15 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
 
     long countByStatusAndCreatedAtAfter(Assignment.AssignmentStatus status,
                                         LocalDateTime startDate);
+
+    // NEW: Count by type and date
+    long countByTypeAndCreatedAtAfter(Assignment.AssignmentType type,
+                                      LocalDateTime startDate);
+
+    // NEW: Count by type, status and date
+    long countByTypeAndStatusAndCreatedAtAfter(Assignment.AssignmentType type,
+                                               Assignment.AssignmentStatus status,
+                                               LocalDateTime startDate);
 
     // Revenue queries
     @Query("SELECT SUM(a.price) FROM Assignment a WHERE a.status = :status AND a.createdAt >= :startDate")
