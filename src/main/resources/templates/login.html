@@ -77,6 +77,11 @@
       color: white;
     }
 
+    .alert-warning {
+      background: linear-gradient(45deg, #f39c12, #e67e22);
+      color: white;
+    }
+
     .form-label {
       font-weight: 600;
       color: var(--secondary-color);
@@ -142,6 +147,34 @@
     .bi {
       margin-right: 8px;
     }
+
+    .forgot-password-link {
+      display: block;
+      text-align: right;
+      margin-top: -8px;
+      margin-bottom: 15px;
+      font-size: 0.9rem;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid #dee2e6;
+    }
+
+    .divider span {
+      padding: 0 10px;
+      color: #6c757d;
+      font-size: 0.9rem;
+    }
   </style>
 </head>
 <body>
@@ -162,6 +195,17 @@
         <i class="bi bi-check-circle"></i> <span th:text="${message}"></span>
       </div>
 
+      <!-- Logout Message -->
+      <div th:if="${param.logout}" class="alert alert-info">
+        <i class="bi bi-info-circle"></i> You have been successfully logged out.
+      </div>
+
+      <!-- Email Not Verified Warning -->
+      <div th:if="${param.unverified}" class="alert alert-warning">
+        <i class="bi bi-envelope-exclamation"></i> Please verify your email before logging in.
+        <a href="/resend-verification" style="color: white; text-decoration: underline;">Resend verification email</a>
+      </div>
+
       <!-- Login Form -->
       <form th:action="@{/login}" method="post">
         <div class="mb-3">
@@ -174,6 +218,9 @@
           <label for="password" class="form-label">Password</label>
           <input type="password" class="form-control" id="password" name="password"
                  placeholder="Enter your password" required>
+          <a href="/forgot-password" class="forgot-password-link">
+            <i class="bi bi-key"></i> Forgot Password?
+          </a>
         </div>
 
         <button type="submit" class="btn btn-primary">
@@ -181,7 +228,11 @@
         </button>
       </form>
 
-      <div class="text-center mt-3">
+      <div class="divider">
+        <span>OR</span>
+      </div>
+
+      <div class="text-center">
         <p>Don't have an account? <a th:href="@{/register}">Register here</a></p>
       </div>
 

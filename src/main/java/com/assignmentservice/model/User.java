@@ -35,6 +35,13 @@ public class User {
     private LocalDateTime createdAt;
     private LocalDateTime lastLogin;
 
+    // NEW FIELDS FOR EMAIL VERIFICATION
+    @Column(nullable = false)
+    private boolean emailVerified = false;
+
+    @Column(name = "verification_sent_at")
+    private LocalDateTime verificationSentAt;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Assignment> assignments = new ArrayList<>();
 
@@ -60,6 +67,7 @@ public class User {
         this.fullName = fullName;
         this.email = email;
         this.password = password;
+        this.emailVerified = false;
     }
 
     // Helper method for Spring Security
@@ -97,4 +105,11 @@ public class User {
 
     public List<Feedback> getFeedbacks() { return feedbacks; }
     public void setFeedbacks(List<Feedback> feedbacks) { this.feedbacks = feedbacks; }
+
+    // NEW GETTERS AND SETTERS FOR EMAIL VERIFICATION
+    public boolean isEmailVerified() { return emailVerified; }
+    public void setEmailVerified(boolean emailVerified) { this.emailVerified = emailVerified; }
+
+    public LocalDateTime getVerificationSentAt() { return verificationSentAt; }
+    public void setVerificationSentAt(LocalDateTime verificationSentAt) { this.verificationSentAt = verificationSentAt; }
 }

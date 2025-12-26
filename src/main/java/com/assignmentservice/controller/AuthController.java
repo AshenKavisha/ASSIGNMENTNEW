@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Optional;
 
@@ -29,6 +30,10 @@ public class AuthController {
     @Autowired
     private AssignmentService assignmentService;
 
+    // ==========================================
+    // REGISTRATION ENDPOINTS (Updated with Email Verification)
+    // ==========================================
+
     @GetMapping("/register")
     public String showRegisterForm(Model model) {
         model.addAttribute("user", new User());
@@ -38,25 +43,223 @@ public class AuthController {
     @PostMapping("/register")
     public String registerUser(@Valid @ModelAttribute User user,
                                BindingResult result,
-                               Model model) {
+                               Model model,
+                               RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             return "register";
         }
 
         try {
+            // Check if user already exists
+            if (userService.getUserByEmail(user.getEmail()).isPresent()) {
+                model.addAttribute("error", "Email already registered");
+                return "register";
+            }
+
+            // Register user (will send verification email automatically)
             userService.registerUser(user);
-            return "redirect:/login?registered=true";
+
+            // Redirect to verification sent page
+            redirectAttributes.addFlashAttribute("email", user.getEmail());
+            redirectAttributes.addFlashAttribute("message",
+                    "Registration successful! Please check your email to verify your account.");
+
+            return "redirect:/verification-sent";
+
         } catch (RuntimeException e) {
             model.addAttribute("error", e.getMessage());
             return "register";
         }
     }
 
+    // ==========================================
+    // EMAIL VERIFICATION ENDPOINTS (NEW)
+    // ==========================================
+
+    /**
+     * Show verification sent page
+     */
+    @GetMapping("/verification-sent")
+    public String showVerificationSent(Model model) {
+        return "verification-sent";
+    }
+
+    /**
+     * Handle email verification
+     */
+    @GetMapping("/verify")
+    public String verifyEmail(@RequestParam("token") String token,
+                              RedirectAttributes redirectAttributes) {
+        try {
+            boolean verified = userService.verifyEmail(token);
+
+            if (verified) {
+                redirectAttributes.addFlashAttribute("message",
+                        "Email verified successfully! You can now login.");
+                return "redirect:/login";
+            } else {
+                redirectAttributes.addFlashAttribute("error",
+                        "Invalid or expired verification link. Please request a new one.");
+                return "redirect:/resend-verification";
+            }
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Verification failed: " + e.getMessage());
+            return "redirect:/login";
+        }
+    }
+
+    /**
+     * Show resend verification page
+     */
+    @GetMapping("/resend-verification")
+    public String showResendVerification() {
+        return "resend-verification";
+    }
+
+    /**
+     * Handle resend verification email
+     */
+    @PostMapping("/resend-verification")
+    public String resendVerification(@RequestParam("email") String email,
+                                     RedirectAttributes redirectAttributes) {
+        try {
+            boolean sent = userService.resendVerificationEmail(email);
+
+            if (sent) {
+                redirectAttributes.addFlashAttribute("email", email);
+                redirectAttributes.addFlashAttribute("message",
+                        "Verification email sent! Please check your inbox.");
+                return "redirect:/verification-sent";
+            } else {
+                redirectAttributes.addFlashAttribute("error",
+                        "Could not send verification email. Email may already be verified or not found.");
+                return "redirect:/resend-verification";
+            }
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Error: " + e.getMessage());
+            return "redirect:/resend-verification";
+        }
+    }
+
+    // ==========================================
+    // PASSWORD RESET ENDPOINTS (NEW)
+    // ==========================================
+
+    /**
+     * Show forgot password page
+     */
+    @GetMapping("/forgot-password")
+    public String showForgotPasswordForm() {
+        return "forgot-password";
+    }
+
+    /**
+     * Handle forgot password form submission
+     */
+    @PostMapping("/forgot-password")
+    public String processForgotPassword(@RequestParam("email") String email,
+                                        RedirectAttributes redirectAttributes) {
+        try {
+            userService.createPasswordResetToken(email);
+
+            // Always show success message (security best practice - don't reveal if email exists)
+            redirectAttributes.addFlashAttribute("message",
+                    "If an account exists with that email, you will receive password reset instructions.");
+
+            return "redirect:/forgot-password";
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error",
+                    "An error occurred. Please try again.");
+            return "redirect:/forgot-password";
+        }
+    }
+
+    /**
+     * Show reset password page
+     */
+    @GetMapping("/reset-password")
+    public String showResetPasswordForm(@RequestParam("token") String token,
+                                        Model model,
+                                        RedirectAttributes redirectAttributes) {
+        try {
+            // Validate token
+            boolean isValid = userService.validatePasswordResetToken(token);
+
+            if (!isValid) {
+                redirectAttributes.addFlashAttribute("error",
+                        "Invalid or expired password reset link. Please request a new one.");
+                return "redirect:/forgot-password";
+            }
+
+            model.addAttribute("token", token);
+            return "reset-password";
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error",
+                    "An error occurred. Please try again.");
+            return "redirect:/forgot-password";
+        }
+    }
+
+    /**
+     * Handle reset password form submission
+     */
+    @PostMapping("/reset-password")
+    public String processResetPassword(@RequestParam("token") String token,
+                                       @RequestParam("password") String password,
+                                       @RequestParam("confirmPassword") String confirmPassword,
+                                       RedirectAttributes redirectAttributes) {
+        try {
+            // Validate passwords match
+            if (!password.equals(confirmPassword)) {
+                redirectAttributes.addFlashAttribute("error", "Passwords do not match");
+                redirectAttributes.addFlashAttribute("token", token);
+                return "redirect:/reset-password?token=" + token;
+            }
+
+            // Validate password length
+            if (password.length() < 6) {
+                redirectAttributes.addFlashAttribute("error",
+                        "Password must be at least 6 characters long");
+                redirectAttributes.addFlashAttribute("token", token);
+                return "redirect:/reset-password?token=" + token;
+            }
+
+            // Reset password
+            boolean success = userService.resetPassword(token, password);
+
+            if (success) {
+                redirectAttributes.addFlashAttribute("message",
+                        "Password reset successfully! You can now login with your new password.");
+                return "redirect:/login";
+            } else {
+                redirectAttributes.addFlashAttribute("error",
+                        "Invalid or expired reset link. Please request a new one.");
+                return "redirect:/forgot-password";
+            }
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error",
+                    "An error occurred: " + e.getMessage());
+            return "redirect:/forgot-password";
+        }
+    }
+
+    // ==========================================
+    // LOGIN & LOGOUT ENDPOINTS (Your Original Code)
+    // ==========================================
+
     @GetMapping("/login")
     public String showLoginForm(@RequestParam(value = "error", required = false) String error,
                                 @RequestParam(value = "logout", required = false) String logout,
                                 @RequestParam(value = "registered", required = false) String registered,
                                 @RequestParam(value = "redirect", required = false) String redirect,
+                                @RequestParam(value = "unverified", required = false) String unverified,
                                 Model model) {
         if (error != null) {
             model.addAttribute("error", "Invalid email or password!");
@@ -66,6 +269,9 @@ public class AuthController {
         }
         if (registered != null) {
             model.addAttribute("message", "Registration successful! Please login.");
+        }
+        if (unverified != null) {
+            model.addAttribute("error", "Please verify your email before logging in.");
         }
         if (redirect != null) {
             model.addAttribute("redirectUrl", redirect);
@@ -88,6 +294,12 @@ public class AuthController {
             Optional<User> userOptional = userService.getUserByEmail(email);
             if (userOptional.isPresent()) {
                 User user = userOptional.get();
+
+                // Check if email is verified
+                if (!user.isEmailVerified()) {
+                    return "redirect:/login?unverified=true";
+                }
+
                 model.addAttribute("user", user);
                 // Also set user in session for compatibility
                 session.setAttribute("user", user);
