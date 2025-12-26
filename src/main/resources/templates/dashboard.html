@@ -71,6 +71,72 @@
         padding: 1.5rem;
       }
     }
+
+    .profile-pic {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid white;
+    }
+
+    .online-indicator {
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      width: 10px;
+      height: 10px;
+      background-color: #28a745;
+      border-radius: 50%;
+      border: 2px solid #fff;
+    }
+
+    .profile-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    .navbar-text i {
+      font-size: 1.5rem;
+    }
+
+    /* Profile page specific styles */
+    .profile-card {
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .profile-header {
+      background: linear-gradient(135deg, var(--primary-color), #2980b9);
+      border-radius: 15px 15px 0 0;
+      padding: 2rem;
+      color: white;
+    }
+
+    .profile-avatar {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 5px solid white;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .profile-avatar-upload {
+      position: relative;
+      display: inline-block;
+    }
+
+    .profile-avatar-upload .btn {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+    }
+
   </style>
 </head>
 <body>
@@ -80,10 +146,30 @@
     <a class="navbar-brand" href="#">
       <i class="bi bi-journal-check"></i> Assignment Service
     </a>
-    <div class="navbar-nav ms-auto">
-        <span class="navbar-text me-3">
-          <i class="bi bi-person-circle"></i> Welcome, <span th:text="${user?.fullName} ?: 'User'">User</span>
+    <div class="navbar-nav ms-auto align-items-center">
+      <!-- Profile Picture with Online Indicator -->
+      <div class="profile-container me-2">
+        <a th:href="@{/profile}" class="text-decoration-none">
+          <img th:if="${user?.profilePicture != null}"
+               th:src="'data:image/jpeg;base64,' + ${user?.profilePicture}"
+               alt="Profile" class="profile-pic">
+          <i th:unless="${user?.profilePicture != null}"
+             class="bi bi-person-circle text-light fs-4"></i>
+          <div class="online-indicator" th:if="${user?.isOnline()}"></div>
+        </a>
+      </div>
+
+      <!-- Welcome Text -->
+      <span class="navbar-text me-3">
+          Welcome, <span th:text="${user?.fullName} ?: 'User'">User</span>
         </span>
+
+      <!-- Profile Button -->
+      <a class="btn btn-outline-light btn-sm me-2" th:href="@{/profile}">
+        <i class="bi bi-person"></i> Profile
+      </a>
+
+      <!-- Logout Button -->
       <a class="btn btn-outline-light btn-sm" th:href="@{/logout}">
         <i class="bi bi-box-arrow-right"></i> Logout
       </a>

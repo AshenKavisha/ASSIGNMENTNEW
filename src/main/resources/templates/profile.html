@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Assignment Service</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+        }
+
+        .profile-card {
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, var(--primary-color), #2980b9);
+            border-radius: 15px 15px 0 0;
+            padding: 2rem;
+            color: white;
+        }
+
+        .profile-avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .profile-avatar-upload {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-avatar-upload .btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+        }
+
+        .online-indicator-large {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            width: 15px;
+            height: 15px;
+            background-color: #28a745;
+            border-radius: 50%;
+            border: 2px solid #fff;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            color: var(--secondary-color);
+        }
+
+        .nav-tabs .nav-link.active {
+            border-bottom: 3px solid var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .form-control, .form-select {
+            border-radius: 10px;
+            padding: 10px 15px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        .bio-text {
+            white-space: pre-line;
+        }
+
+        /* Add profile picture styles */
+        .profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+        }
+
+        .online-indicator {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 10px;
+            height: 10px;
+            background-color: #28a745;
+            border-radius: 50%;
+            border: 2px solid #fff;
+        }
+
+        .profile-container {
+            position: relative;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+<!-- Navigation Bar (Same as dashboard) -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/dashboard}">
+            <i class="bi bi-journal-check"></i> Assignment Service
+        </a>
+        <div class="navbar-nav ms-auto align-items-center">
+            <div class="profile-container me-2">
+                <a th:href="@{/profile}" class="text-decoration-none">
+                    <img th:if="${user?.profilePicture != null}"
+                         th:src="'data:image/jpeg;base64,' + ${user?.profilePicture}"
+                         alt="Profile" class="profile-pic">
+                    <i th:unless="${user?.profilePicture != null}"
+                       class="bi bi-person-circle text-light fs-4"></i>
+                    <div class="online-indicator" th:if="${user?.isOnline()}"></div>
+                </a>
+            </div>
+            <span class="navbar-text me-3">
+                <span th:text="${user?.fullName}">User</span>
+            </span>
+            <a class="btn btn-outline-light btn-sm me-2" th:href="@{/dashboard}">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            <a class="btn btn-outline-light btn-sm" th:href="@{/logout}">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4 mb-5">
+    <!-- Success/Error Messages -->
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle"></i> <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-circle"></i> <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${passwordError}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-circle"></i> <span th:text="${passwordError}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-4">
+            <!-- Profile Card -->
+            <div class="card profile-card mb-4">
+                <div class="profile-header text-center">
+                    <div class="profile-avatar-upload">
+                        <img th:if="${user?.profilePicture != null}"
+                             th:src="'data:image/jpeg;base64,' + ${user?.profilePicture}"
+                             alt="Profile" class="profile-avatar">
+                        <i th:unless="${user?.profilePicture != null}"
+                           class="bi bi-person-circle profile-avatar"
+                           style="font-size: 7rem; background: white; color: #ccc;"></i>
+                        <div class="online-indicator-large" th:if="${user?.isOnline()}"></div>
+                    </div>
+                    <h3 class="mt-3 mb-0" th:text="${user?.fullName}">User Name</h3>
+                    <p class="text-light mb-0" th:text="${user?.email}">user@example.com</p>
+
+                    <!-- Upload/Change Picture Form -->
+                    <form th:action="@{/profile/upload-picture}" method="post" enctype="multipart/form-data" class="mt-3">
+                        <div class="input-group">
+                            <input type="file" class="form-control" name="profilePicture"
+                                   accept="image/*" id="profilePictureInput" style="display: none;">
+                            <button type="button" class="btn btn-light btn-sm" onclick="document.getElementById('profilePictureInput').click()">
+                                <i class="bi bi-camera"></i> Change Picture
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bi bi-upload"></i> Upload
+                            </button>
+                        </div>
+                        <div class="mt-2">
+                            <button type="submit" formaction="@{/profile/remove-picture}"
+                                    class="btn btn-outline-danger btn-sm" th:if="${user?.profilePicture != null}">
+                                <i class="bi bi-trash"></i> Remove Picture
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card-body">
+                    <!-- Quick Stats -->
+                    <div class="row text-center mb-3">
+                        <div class="col-4">
+                            <h5 class="mb-0" th:text="${user?.assignments?.size() ?: 0}">0</h5>
+                            <small class="text-muted">Assignments</small>
+                        </div>
+                        <div class="col-4">
+                            <h5 class="mb-0" th:text="${user?.feedbacks?.size() ?: 0}">0</h5>
+                            <small class="text-muted">Feedbacks</small>
+                        </div>
+                        <div class="col-4">
+                            <h5 class="mb-0">
+                                <span th:if="${user?.isOnline()}">Online</span>
+                                <span th:unless="${user?.isOnline()}">Offline</span>
+                            </h5>
+                            <small class="text-muted">Status</small>
+                        </div>
+                    </div>
+
+                    <!-- Bio Section -->
+                    <div th:if="${user?.bio}" class="mt-3">
+                        <h6>About Me</h6>
+                        <p class="bio-text" th:text="${user?.bio}">User bio goes here...</p>
+                    </div>
+
+                    <!-- Contact Info -->
+                    <div class="mt-3">
+                        <h6>Contact Information</h6>
+                        <ul class="list-unstyled">
+                            <li th:if="${user?.phoneNumber}">
+                                <i class="bi bi-telephone me-2"></i>
+                                <span th:text="${user?.phoneNumber}">Phone</span>
+                            </li>
+                            <li th:if="${user?.location}">
+                                <i class="bi bi-geo-alt me-2"></i>
+                                <span th:text="${user?.location}">Location</span>
+                            </li>
+                            <li th:if="${user?.website}">
+                                <i class="bi bi-globe me-2"></i>
+                                <a th:href="${user?.website}" th:text="${user?.website}" target="_blank">Website</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <!-- Tab Navigation -->
+            <ul class="nav nav-tabs mb-4" id="profileTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="edit-tab" data-bs-toggle="tab"
+                            data-bs-target="#edit" type="button" role="tab">
+                        <i class="bi bi-pencil"></i> Edit Profile
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="password-tab" data-bs-toggle="tab"
+                            data-bs-target="#password" type="button" role="tab">
+                        <i class="bi bi-key"></i> Change Password
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="activity-tab" data-bs-toggle="tab"
+                            data-bs-target="#activity" type="button" role="tab">
+                        <i class="bi bi-clock-history"></i> Recent Activity
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content" id="profileTabContent">
+                <!-- Edit Profile Tab -->
+                <div class="tab-pane fade show active" id="edit" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Edit Profile Details</h5>
+                            <form th:action="@{/profile/update-details}" method="post" th:object="${userDetails}">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Full Name</label>
+                                        <input type="text" class="form-control" th:field="*{fullName}" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" class="form-control" th:value="${user?.email}" readonly>
+                                        <small class="text-muted">Email cannot be changed</small>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Phone Number</label>
+                                        <input type="tel" class="form-control" th:field="*{phoneNumber}">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Birth Date</label>
+                                        <input type="date" class="form-control" th:field="*{birthDate}">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Bio/About Me</label>
+                                    <textarea class="form-control" th:field="*{bio}" rows="3"
+                                              placeholder="Tell us about yourself..."></textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Work Experience</label>
+                                    <textarea class="form-control" th:field="*{workExperience}" rows="3"
+                                              placeholder="Describe your work experience..."></textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Education</label>
+                                    <textarea class="form-control" th:field="*{education}" rows="2"
+                                              placeholder="Your educational background..."></textarea>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Skills</label>
+                                        <textarea class="form-control" th:field="*{skills}" rows="2"
+                                                  placeholder="Your skills (comma separated)..."></textarea>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Location</label>
+                                        <input type="text" class="form-control" th:field="*{location}"
+                                               placeholder="City, Country">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Website/Portfolio</label>
+                                    <input type="url" class="form-control" th:field="*{website}"
+                                           placeholder="https://yourwebsite.com">
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save"></i> Save Changes
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Change Password Tab -->
+                <div class="tab-pane fade" id="password" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Change Password</h5>
+                            <form th:action="@{/profile/change-password}" method="post">
+                                <div class="mb-3">
+                                    <label class="form-label">Current Password</label>
+                                    <input type="password" class="form-control" name="currentPassword" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">New Password</label>
+                                    <input type="password" class="form-control" name="newPassword" required>
+                                    <small class="text-muted">Must be at least 6 characters long</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Confirm New Password</label>
+                                    <input type="password" class="form-control" name="confirmPassword" required>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-key"></i> Change Password
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity Tab -->
+                <div class="tab-pane fade" id="activity" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Recent Activity</h5>
+
+                            <div th:if="${user?.assignments?.empty}" class="text-center py-4">
+                                <i class="bi bi-inbox display-4 text-muted"></i>
+                                <p class="mt-3">No assignments yet</p>
+                                <a th:href="@{/assignments/create}" class="btn btn-primary">
+                                    <i class="bi bi-plus-lg"></i> Create Your First Assignment
+                                </a>
+                            </div>
+
+                            <div th:unless="${user?.assignments?.empty}" class="list-group">
+                                <div th:each="assignment : ${user?.assignments}"
+                                     class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1" th:text="${assignment?.title}">Assignment Title</h6>
+                                        <small th:text="${#temporals.format(assignment?.createdAt, 'MMM dd, yyyy')}">Date</small>
+                                    </div>
+                                    <p class="mb-1 text-muted" th:text="${assignment?.description?.length() > 100 ? assignment?.description?.substring(0,100) + '...' : assignment?.description}">
+                                        Assignment description...
+                                    </p>
+                                    <small>
+                                        Status: <span th:text="${assignment?.status?.name()}"
+                                                      th:class="${'badge bg-' + (assignment?.status?.name() == 'COMPLETED' ? 'success' : (assignment?.status?.name() == 'PENDING' ? 'warning' : (assignment?.status?.name() == 'DELIVERED' ? 'success' : (assignment?.status?.name() == 'IN_PROGRESS' ? 'info' : 'secondary'))))}">
+                                            Status
+                                        </span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white py-4 mt-5">
+    <div class="container text-center">
+        <p class="mb-0">&copy; 2025 Assignment Service. All rights reserved.</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Preview image before upload
+    document.getElementById('profilePictureInput').addEventListener('change', function(e) {
+        if (this.files && this.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.querySelector('.profile-avatar').src = e.target.result;
+            }
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+
+    // Initialize tabs
+    var triggerTabList = [].slice.call(document.querySelectorAll('#profileTab button'))
+    triggerTabList.forEach(function (triggerEl) {
+        var tabTrigger = new bootstrap.Tab(triggerEl)
+        triggerEl.addEventListener('click', function (event) {
+            event.preventDefault()
+            tabTrigger.show()
+        })
+    });
+</script>
+</body>
+</html>
