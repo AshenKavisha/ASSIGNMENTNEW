@@ -804,9 +804,9 @@
                   <img src="https://ui-avatars.com/api/?name=${feedback.user.firstName}+${feedback.user.lastName}&background=667eea&color=fff&size=70"
                        alt="User Avatar"
                        class="testimonial-avatar"
-                       th:src="'https://ui-avatars.com/api/?name=' + ${feedback.user.firstName} + '+' + ${feedback.user.lastName} + '&background=667eea&color=fff&size=70'">
+                       th:src="'https://ui-avatars.com/api/?name=' + ${feedback.user.fullName} + '&background=667eea&color=fff&size=70'">
                   <div class="testimonial-info">
-                    <h3 th:text="${feedback.user.firstName + ' ' + feedback.user.lastName}">Student Name</h3>
+                    <h3 th:text="${feedback.user.fullName}">Student Name</h3>
                     <div class="rating">
                       <span th:each="i : ${#numbers.sequence(1, feedback.rating)}">★</span>
                       <span th:each="i : ${#numbers.sequence(feedback.rating + 1, 5)}">☆</span>
@@ -963,16 +963,541 @@
 </section>
 
 <!-- Footer -->
-<footer>
-  <div class="container">
-    <p>&copy; 2026 Assignment Service. All rights reserved.</p>
-    <p class="mb-0">Professional IT & Quantity Surveying Assignment Help</p>
-    <p class="mt-3">
-      <a href="#" style="color: #fff; margin: 0 10px;">Terms of Service</a> |
-      <a href="#" style="color: #fff; margin: 0 10px;">Privacy Policy</a>
-    </p>
+<footer class="modern-footer">
+  <div class="footer-container">
+    <!-- Main Footer Content -->
+    <div class="footer-main">
+      <!-- Company Info Section -->
+      <div class="footer-column">
+        <div class="footer-logo">
+          <h3>Assignment Service</h3>
+        </div>
+        <p class="footer-description">
+          Professional IT & Quantity Surveying assignment help. We deliver quality solutions tailored to your academic needs.
+        </p>
+        <div class="footer-social">
+          <a href="#" class="social-link" aria-label="Facebook">
+            <i class="fab fa-facebook-f"></i>
+          </a>
+          <a href="#" class="social-link" aria-label="Twitter">
+            <i class="fab fa-twitter"></i>
+          </a>
+          <a href="#" class="social-link" aria-label="LinkedIn">
+            <i class="fab fa-linkedin-in"></i>
+          </a>
+          <a href="#" class="social-link" aria-label="Instagram">
+            <i class="fab fa-instagram"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Quick Links Section -->
+      <div class="footer-column">
+        <h4 class="footer-title">Quick Links</h4>
+        <ul class="footer-links">
+          <li><a href="/">Home</a></li>
+          <li><a href="/about">About Us</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="/feedback/all">Testimonials</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+
+      <!-- Services Section -->
+      <div class="footer-column">
+        <h4 class="footer-title">Our Services</h4>
+        <ul class="footer-links">
+          <li><a href="#services">IT Assignments</a></li>
+          <li><a href="#services">Quantity Surveying</a></li>
+          <li><a href="#services">Programming Help</a></li>
+          <li><a href="#services">Cost Estimation</a></li>
+          <li><a href="#services">Project Support</a></li>
+        </ul>
+      </div>
+
+      <!-- Contact Info Section -->
+      <div class="footer-column">
+        <h4 class="footer-title">Get In Touch</h4>
+        <ul class="footer-contact">
+          <!-- WhatsApp -->
+          <li>
+            <a href="https://wa.me/1234567890" class="contact-item whatsapp" target="_blank">
+              <div class="contact-icon whatsapp-icon">
+                <i class="fab fa-whatsapp"></i>
+              </div>
+              <div class="contact-details">
+                <span class="contact-label">WhatsApp</span>
+                <span class="contact-value">+1 (234) 567-890</span>
+              </div>
+            </a>
+          </li>
+
+          <!-- Phone -->
+          <li>
+            <a href="tel:+15551234567" class="contact-item">
+              <div class="contact-icon phone-icon">
+                <i class="fas fa-phone-alt"></i>
+              </div>
+              <div class="contact-details">
+                <span class="contact-label">Phone</span>
+                <span class="contact-value">+1 (555) 123-4567</span>
+              </div>
+            </a>
+          </li>
+
+          <!-- Email -->
+          <li>
+            <a href="mailto:support@assignmentservice.com" class="contact-item">
+              <div class="contact-icon email-icon">
+                <i class="fas fa-envelope"></i>
+              </div>
+              <div class="contact-details">
+                <span class="contact-label">Email</span>
+                <span class="contact-value">support@assignmentservice.com</span>
+              </div>
+            </a>
+          </li>
+
+          <!-- Location (Optional) -->
+          <li>
+            <div class="contact-item">
+              <div class="contact-icon location-icon">
+                <i class="fas fa-map-marker-alt"></i>
+              </div>
+              <div class="contact-details">
+                <span class="contact-label">Location</span>
+                <span class="contact-value">Available Worldwide</span>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Footer Bottom -->
+    <div class="footer-bottom">
+      <div class="footer-bottom-content">
+        <p class="copyright">
+          &copy; 2025 Assignment Service. All rights reserved.
+        </p>
+        <div class="footer-bottom-links">
+          <a href="/privacy">Privacy Policy</a>
+          <span class="separator">|</span>
+          <a href="/terms">Terms of Service</a>
+          <span class="separator">|</span>
+          <a href="/refund">Refund Policy</a>
+        </div>
+      </div>
+    </div>
   </div>
+
+  <!-- Floating WhatsApp Button -->
+  <a href="https://wa.me/1234567890" class="whatsapp-float" target="_blank" aria-label="Contact us on WhatsApp">
+    <i class="fab fa-whatsapp"></i>
+  </a>
 </footer>
+
+<style>
+  /* ===== MODERN FOOTER STYLES ===== */
+  .modern-footer {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #1e3c72 100%);
+    color: #ffffff;
+    padding: 60px 0 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .modern-footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+    background-size: 200% 100%;
+    animation: gradientShift 3s ease infinite;
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .footer-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  /* Main Footer Grid */
+  .footer-main {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 40px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Footer Columns */
+  .footer-column {
+    animation: fadeInUp 0.6s ease-out;
+  }
+
+  .footer-column:nth-child(1) { animation-delay: 0.1s; }
+  .footer-column:nth-child(2) { animation-delay: 0.2s; }
+  .footer-column:nth-child(3) { animation-delay: 0.3s; }
+  .footer-column:nth-child(4) { animation-delay: 0.4s; }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Logo & Description */
+  .footer-logo h3 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    background: linear-gradient(135deg, #ffffff 0%, #a8c0ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .footer-description {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
+    margin-bottom: 20px;
+    font-size: 14px;
+  }
+
+  /* Social Links */
+  .footer-social {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .social-link {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+  }
+
+  .social-link:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    transform: translateY(-3px) scale(1.1);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+  }
+
+  /* Footer Titles */
+  .footer-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    position: relative;
+    padding-bottom: 10px;
+  }
+
+  .footer-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 50px;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    border-radius: 2px;
+  }
+
+  /* Footer Links */
+  .footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .footer-links li {
+    margin-bottom: 12px;
+  }
+
+  .footer-links a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    display: inline-block;
+    position: relative;
+  }
+
+  .footer-links a::before {
+    content: '→';
+    position: absolute;
+    left: -20px;
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+
+  .footer-links a:hover {
+    color: #ffffff;
+    padding-left: 20px;
+    transform: translateX(5px);
+  }
+
+  .footer-links a:hover::before {
+    opacity: 1;
+    left: 0;
+  }
+
+  /* Contact Items */
+  .footer-contact {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .footer-contact li {
+    margin-bottom: 15px;
+  }
+
+  .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .contact-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+    border-color: rgba(102, 126, 234, 0.5);
+  }
+
+  .contact-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+  }
+
+  .whatsapp-icon {
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+  }
+
+  .phone-icon {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  }
+
+  .email-icon {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);
+  }
+
+  .location-icon {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+  }
+
+  .contact-item:hover .contact-icon {
+    transform: scale(1.1) rotate(5deg);
+  }
+
+  .contact-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .contact-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 600;
+  }
+
+  .contact-value {
+    font-size: 14px;
+    color: #ffffff;
+    font-weight: 500;
+  }
+
+  /* WhatsApp Special Styling */
+  .contact-item.whatsapp:hover {
+    background: rgba(37, 211, 102, 0.1);
+    border-color: #25D366;
+  }
+
+  /* Footer Bottom */
+  .footer-bottom {
+    padding: 25px 0;
+    margin-top: 40px;
+  }
+
+  .footer-bottom-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .copyright {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .footer-bottom-links {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+  }
+
+  .footer-bottom-links a {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s ease;
+  }
+
+  .footer-bottom-links a:hover {
+    color: #ffffff;
+  }
+
+  .footer-bottom-links .separator {
+    color: rgba(255, 255, 255, 0.3);
+  }
+
+  /* Floating WhatsApp Button */
+  .whatsapp-float {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 30px;
+    box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4);
+    z-index: 1000;
+    transition: all 0.3s ease;
+    animation: pulse 2s infinite;
+  }
+
+  .whatsapp-float:hover {
+    transform: scale(1.1);
+    box-shadow: 0 12px 35px rgba(37, 211, 102, 0.6);
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4);
+    }
+    50% {
+      box-shadow: 0 8px 35px rgba(37, 211, 102, 0.6);
+    }
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .modern-footer {
+      padding: 40px 0 0;
+    }
+
+    .footer-main {
+      grid-template-columns: 1fr;
+      gap: 30px;
+    }
+
+    .footer-bottom-content {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .footer-bottom-links {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .whatsapp-float {
+      width: 50px;
+      height: 50px;
+      font-size: 25px;
+      bottom: 20px;
+      right: 20px;
+    }
+
+    .footer-logo h3 {
+      font-size: 24px;
+    }
+
+    .contact-item {
+      padding: 10px;
+    }
+
+    .contact-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .footer-social {
+      justify-content: center;
+    }
+
+    .footer-title::after {
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .footer-column {
+      text-align: center;
+    }
+
+    .footer-links a:hover::before {
+      display: none;
+    }
+
+    .footer-links a:hover {
+      padding-left: 0;
+    }
+  }
+</style>
+
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

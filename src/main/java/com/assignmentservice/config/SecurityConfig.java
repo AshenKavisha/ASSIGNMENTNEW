@@ -17,10 +17,11 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(authz -> authz
                         // Public pages - accessible without authentication
-                        .requestMatchers("/", "/css/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/", "/index", "/css/**", "/js/**", "/images/**").permitAll()
                         .requestMatchers("/register", "/about", "/contact").permitAll()
                         .requestMatchers("/login").permitAll()
                         .requestMatchers("/feedback/all").permitAll()
+                        .requestMatchers("/error").permitAll()  // ← ADDED THIS LINE
                         // Admin pages - require ADMIN role
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         // All other requests require authentication - MUST BE LAST
@@ -45,6 +46,10 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .maximumSessions(1)
                         .maxSessionsPreventsLogin(false)
+                )
+                // ← ADDED THIS SECTION
+                .exceptionHandling(exception -> exception
+                        .accessDeniedPage("/login")
                 )
                 .csrf(csrf -> csrf.disable()); // For development only
 

@@ -17,7 +17,11 @@ public class HomeController {
     @GetMapping("/")
     public String home(Model model) {
         List<Feedback> recentFeedbacks = feedbackService.getRecentFeedbacks();
-        model.addAttribute("feedbacks", recentFeedbacks);
+        double averageRating = feedbackService.getAverageRating();
+
+        model.addAttribute("pastFeedbacks", recentFeedbacks);  // ✅ Changed
+        model.addAttribute("averageRating", averageRating);    // ✅ Added
+
         return "index";
     }
 
