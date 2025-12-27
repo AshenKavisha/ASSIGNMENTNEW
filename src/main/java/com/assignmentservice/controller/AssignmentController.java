@@ -2,12 +2,20 @@ package com.assignmentservice.controller;
 
 import com.assignmentservice.model.Assignment;
 import com.assignmentservice.model.Assignment.AssignmentStatus;
+import com.assignmentservice.model.RevisionRequest;
 import com.assignmentservice.model.User;
 import com.assignmentservice.service.AssignmentService;
+import com.assignmentservice.service.EmailService;
 import com.assignmentservice.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -15,6 +23,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,12 +46,18 @@ public class AssignmentController {
     @Autowired
     private UserService userService;
 
-    // Define upload directory - you can move this to application.properties
+    @Autowired
+    private EmailService emailService;
+
+    // Define upload directory
     private static final String UPLOAD_BASE_DIR = "uploads/assignments/";
+
+    // ============================================
+    // EXISTING METHODS - All your current code
+    // ============================================
 
     @GetMapping("/create")
     public String showCreateForm(Model model) {
-        // Get authenticated user from Spring Security
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()
@@ -68,7 +83,6 @@ public class AssignmentController {
                                    BindingResult result,
                                    Model model,
                                    HttpServletRequest request) {
-        // Get authenticated user from Spring Security
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()
@@ -95,82 +109,60 @@ public class AssignmentController {
         if (result.hasErrors()) {
             System.out.println("=== DEBUG: Form validation errors ===");
             result.getAllErrors().forEach(error -> System.out.println("Error: " + error.getDefaultMessage()));
-
-            // Add user back to model for the form
             model.addAttribute("user", user);
             return "create-assignment";
         }
 
         try {
-            // Handle file uploads
-            System.out.println("=== DEBUG: Handling file uploads ===");
-            handleFileUploads(assignment, request, user);
-
-            // Set user and save assignment
             assignment.setUser(user);
-            System.out.println("=== DEBUG: Saving assignment to database ===");
+            assignment.setStatus(AssignmentStatus.PENDING);
+            System.out.println("Creating assignment with status: " + assignment.getStatus());
+
+            String userUploadDir = user.getId() + "/";
+            String absolutePath = UPLOAD_BASE_DIR + userUploadDir;
+            System.out.println("Checking upload directory: " + absolutePath);
+
+            File directory = new File(absolutePath);
+            if (!directory.exists()) {
+                System.out.println("Creating directory: " + absolutePath);
+                if (directory.mkdirs()) {
+                    System.out.println("Directory created successfully");
+                } else {
+                    System.err.println("Failed to create directory");
+                    throw new IOException("Could not create upload directory: " + absolutePath);
+                }
+            } else {
+                System.out.println("Directory already exists");
+            }
+
+            if (!directory.canWrite()) {
+                System.err.println("Directory is not writable");
+                throw new IOException("Upload directory is not writable: " + absolutePath);
+            }
+
+            handleFileUploads(assignment, absolutePath, userUploadDir);
             assignmentService.createAssignment(assignment);
+            System.out.println("Assignment created successfully with ID: " + assignment.getId());
 
-            System.out.println("=== DEBUG: Assignment created successfully ===");
-            return "redirect:/dashboard?success=Assignment submitted successfully! We'll review it and get back to you.";
-
-        } catch (IOException e) {
-            System.err.println("=== DEBUG: File upload error ===");
-            System.err.println("Error: " + e.getMessage());
-            e.printStackTrace();
-
-            // Handle file upload error
-            model.addAttribute("error", "Error uploading files: " + e.getMessage());
-            model.addAttribute("user", user);
-            return "create-assignment";
+            return "redirect:/dashboard?success=Assignment submitted successfully!";
 
         } catch (Exception e) {
-            System.err.println("=== DEBUG: General error ===");
-            System.err.println("Error type: " + e.getClass().getName());
+            System.err.println("=== ERROR: Assignment creation failed ===");
             System.err.println("Error message: " + e.getMessage());
-            System.err.println("Stack trace:");
+            System.err.println("Error class: " + e.getClass().getName());
             e.printStackTrace();
 
-            // Handle other errors
-            model.addAttribute("error", "Error submitting assignment: " +
-                    (e.getMessage() != null ? e.getMessage() : "Unknown error occurred"));
             model.addAttribute("user", user);
+            model.addAttribute("error", "Failed to create assignment: " + e.getMessage());
             return "create-assignment";
         }
     }
 
-    private void handleFileUploads(Assignment assignment, HttpServletRequest request, User user) throws IOException {
+    private void handleFileUploads(Assignment assignment, String absolutePath, String userUploadDir) throws Exception {
         try {
-            // Get project root
-            String projectRoot = System.getProperty("user.dir");
-            System.out.println("Project root: " + projectRoot);
-
-            // Create user-specific upload directory path
-            String userUploadDir = user.getId() + "/" + System.currentTimeMillis() + "/";
-            String absolutePath = projectRoot + File.separator + UPLOAD_BASE_DIR + userUploadDir;
-
-            // Normalize for Windows
-            absolutePath = absolutePath.replace("/", "\\");
+            System.out.println("=== handleFileUploads START ===");
             System.out.println("Upload directory: " + absolutePath);
 
-            // Create directory if it doesn't exist
-            File dir = new File(absolutePath);
-            System.out.println("Directory exists before creation: " + dir.exists());
-
-            if (!dir.exists()) {
-                boolean created = dir.mkdirs();
-                System.out.println("Directory created: " + created);
-                System.out.println("Directory exists after creation: " + dir.exists());
-                System.out.println("Directory path: " + dir.getAbsolutePath());
-                System.out.println("Can write to directory: " + dir.canWrite());
-            }
-
-            // Check if directory is writable
-            if (!dir.canWrite()) {
-                throw new IOException("Cannot write to directory: " + absolutePath);
-            }
-
-            // Handle description files
             List<String> descriptionFilePaths = new ArrayList<>();
             if (assignment.getDescriptionFileList() != null && !assignment.getDescriptionFileList().isEmpty()) {
                 System.out.println("Processing " + assignment.getDescriptionFileList().size() + " description files");
@@ -184,7 +176,6 @@ public class AssignmentController {
                     if (!file.isEmpty() && isValidFileType(file.getOriginalFilename())) {
                         String savedFileName = saveFile(file, absolutePath);
                         if (savedFileName != null) {
-                            // Store relative path from uploads base
                             String relativePath = "assignments/" + userUploadDir + savedFileName;
                             descriptionFilePaths.add(relativePath);
                             System.out.println("Description file saved: " + relativePath);
@@ -197,7 +188,6 @@ public class AssignmentController {
                 System.out.println("No description files to process");
             }
 
-            // Handle requirements files
             List<String> requirementsFilePaths = new ArrayList<>();
             if (assignment.getRequirementsFileList() != null && !assignment.getRequirementsFileList().isEmpty()) {
                 System.out.println("Processing " + assignment.getRequirementsFileList().size() + " requirements files");
@@ -211,7 +201,6 @@ public class AssignmentController {
                     if (!file.isEmpty() && isValidFileType(file.getOriginalFilename())) {
                         String savedFileName = saveFile(file, absolutePath);
                         if (savedFileName != null) {
-                            // Store relative path from uploads base
                             String relativePath = "assignments/" + userUploadDir + savedFileName;
                             requirementsFilePaths.add(relativePath);
                             System.out.println("Requirements file saved: " + relativePath);
@@ -224,7 +213,6 @@ public class AssignmentController {
                 System.out.println("No requirements files to process");
             }
 
-            // Set file paths in assignment
             if (!descriptionFilePaths.isEmpty()) {
                 String descFiles = String.join(",", descriptionFilePaths);
                 assignment.setDescriptionFiles(descFiles);
@@ -250,7 +238,6 @@ public class AssignmentController {
 
     private String saveFile(MultipartFile file, String uploadDir) throws IOException {
         try {
-            // Generate unique filename
             String originalFilename = file.getOriginalFilename();
             System.out.println("Original filename: " + originalFilename);
 
@@ -261,7 +248,7 @@ public class AssignmentController {
                 System.out.println("File extension: " + fileExtension);
             } else {
                 System.out.println("No file extension found");
-                fileExtension = ".txt"; // Default extension
+                fileExtension = ".txt";
             }
 
             String uniqueFilename = UUID.randomUUID().toString() + fileExtension;
@@ -270,7 +257,6 @@ public class AssignmentController {
             System.out.println("Saving file to: " + filePath);
             System.out.println("File size: " + file.getSize() + " bytes");
 
-            // Save file
             Path path = Paths.get(filePath);
             Files.copy(file.getInputStream(), path);
 
@@ -318,7 +304,6 @@ public class AssignmentController {
 
     @GetMapping("/my-assignments")
     public String viewMyAssignments(Model model) {
-        // Get authenticated user from Spring Security
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()
@@ -336,7 +321,6 @@ public class AssignmentController {
         User user = userOptional.get();
         List<Assignment> assignments = assignmentService.getUserAssignments(user);
 
-        // Calculate status counts for statistics
         long completedCount = assignments.stream()
                 .filter(a -> a.getStatus() == AssignmentStatus.COMPLETED)
                 .count();
@@ -353,5 +337,160 @@ public class AssignmentController {
         model.addAttribute("inProgressCount", inProgressCount);
         model.addAttribute("user", user);
         return "my-assignments";
+    }
+
+    // ============================================
+    // REVISION FEATURE METHODS
+    // ============================================
+
+    /**
+     * Request revision for a delivered assignment
+     */
+    @PostMapping("/{id}/request-revision")
+    public String requestRevision(
+            @PathVariable Long id,
+            @RequestParam String reason,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+            Optional<User> userOptional = userService.getUserByEmail(email);
+
+            if (userOptional.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "User not found.");
+                return "redirect:/login";
+            }
+
+            User user = userOptional.get();
+            Optional<Assignment> assignmentOpt = assignmentService.getAssignmentById(id);
+
+            if (assignmentOpt.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Assignment not found.");
+                return "redirect:/assignments/my-assignments";
+            }
+
+            Assignment assignment = assignmentOpt.get();
+
+            // Validate ownership
+            if (!assignment.getUser().getId().equals(user.getId())) {
+                redirectAttributes.addFlashAttribute("error",
+                        "You are not authorized to request revision for this assignment.");
+                return "redirect:/assignments/my-assignments";
+            }
+
+            // Validate revision availability
+            if (!assignment.canRequestRevision()) {
+                if (assignment.hasExhaustedRevisions()) {
+                    redirectAttributes.addFlashAttribute("error",
+                            "You have used all available revisions for this assignment.");
+                } else {
+                    redirectAttributes.addFlashAttribute("error",
+                            "Revision cannot be requested for assignments with status: " + assignment.getStatus());
+                }
+                return "redirect:/assignments/my-assignments";
+            }
+
+            // Validate reason
+            if (reason == null || reason.trim().isEmpty()) {
+                redirectAttributes.addFlashAttribute("error",
+                        "Please provide a reason for the revision request.");
+                return "redirect:/assignments/my-assignments";
+            }
+
+            // Create revision request
+            RevisionRequest revisionRequest = assignmentService.createRevisionRequest(id, reason);
+
+            // Update assignment
+            assignment.setStatus(Assignment.AssignmentStatus.REVISION_REQUESTED);
+            assignment.incrementRevisionsUsed();
+            assignmentService.saveAssignment(assignment);
+
+            // Send notifications
+            try {
+                emailService.sendRevisionRequestNotificationToAdmin(assignment, revisionRequest);
+                emailService.sendRevisionRequestConfirmationToUser(assignment, revisionRequest);
+            } catch (Exception e) {
+                System.err.println("Failed to send revision email notifications: " + e.getMessage());
+            }
+
+            redirectAttributes.addFlashAttribute("success",
+                    "Revision request submitted successfully! The admin will review your request and work on the changes.");
+
+        } catch (Exception e) {
+            System.err.println("Error submitting revision request: " + e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error",
+                    "Failed to submit revision request: " + e.getMessage());
+        }
+
+        return "redirect:/assignments/my-assignments";
+    }
+
+    /**
+     * Download solution file
+     */
+    @GetMapping("/{id}/download-solution")
+    public ResponseEntity<Resource> downloadSolution(@PathVariable Long id) {
+
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+            Optional<User> userOptional = userService.getUserByEmail(email);
+
+            if (userOptional.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+
+            User user = userOptional.get();
+            Optional<Assignment> assignmentOpt = assignmentService.getAssignmentById(id);
+
+            if (assignmentOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Assignment assignment = assignmentOpt.get();
+
+            // Validate ownership
+            if (!assignment.getUser().getId().equals(user.getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+
+            // Check if solution exists
+            if (assignment.getSolutionFiles() == null || assignment.getSolutionFiles().isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // Get first solution file
+            String solutionFilePath = assignment.getSolutionFiles().split(",")[0];
+
+            // Construct full path
+            Path filePath = Paths.get("uploads/" + solutionFilePath);
+            Resource resource = new UrlResource(filePath.toUri());
+
+            if (!resource.exists() || !resource.isReadable()) {
+                System.err.println("Solution file not found or not readable: " + filePath);
+                return ResponseEntity.notFound().build();
+            }
+
+            // Determine content type
+            String contentType = Files.probeContentType(filePath);
+            if (contentType == null) {
+                contentType = "application/octet-stream";
+            }
+
+            String filename = filePath.getFileName().toString();
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"" + filename + "\"")
+                    .body(resource);
+
+        } catch (Exception e) {
+            System.err.println("Error downloading solution: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

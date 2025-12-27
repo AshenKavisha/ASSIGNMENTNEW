@@ -1,1071 +1,339 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout}">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>My Assignments - Assignment Service</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Assignments</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
-        /* ========================================
-           SUPER ADVANCED CSS ENHANCEMENTS
-           ======================================== */
-
-        :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --warning-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-            --info-gradient: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
-            --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
-        }
-
-        /* Animated Gradient Background */
         body {
-            background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
-            background-size: 400% 400%;
-            animation: gradient-shift 20s ease infinite;
-            min-height: 100vh;
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        @keyframes gradient-shift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        /* Floating Particles Background */
-        .particles-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            z-index: -1;
-        }
-
-        .particle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.6);
-            border-radius: 50%;
-            animation: float-particle 20s infinite linear;
-        }
-
-        @keyframes float-particle {
-            0% {
-                transform: translateY(100vh) translateX(0);
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-            }
-            90% {
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(-100vh) translateX(100px);
-                opacity: 0;
-            }
-        }
-
-        .particle:nth-child(1) { left: 10%; animation-delay: 0s; width: 3px; height: 3px; }
-        .particle:nth-child(2) { left: 20%; animation-delay: 2s; width: 5px; height: 5px; }
-        .particle:nth-child(3) { left: 30%; animation-delay: 4s; width: 4px; height: 4px; }
-        .particle:nth-child(4) { left: 40%; animation-delay: 6s; width: 6px; height: 6px; }
-        .particle:nth-child(5) { left: 50%; animation-delay: 8s; width: 3px; height: 3px; }
-        .particle:nth-child(6) { left: 60%; animation-delay: 10s; width: 5px; height: 5px; }
-        .particle:nth-child(7) { left: 70%; animation-delay: 12s; width: 4px; height: 4px; }
-        .particle:nth-child(8) { left: 80%; animation-delay: 14s; width: 3px; height: 3px; }
-        .particle:nth-child(9) { left: 90%; animation-delay: 16s; width: 5px; height: 5px; }
-
-        /* Enhanced Assignment Cards with Glassmorphism */
         .assignment-card {
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border-radius: 25px;
-            overflow: hidden;
             border: none;
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            position: relative;
-            animation: card-entrance 0.8s ease-out;
-        }
-
-        @keyframes card-entrance {
-            from {
-                opacity: 0;
-                transform: translateY(50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Glowing border animation on hover */
-        .assignment-card::before {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
-            background-size: 400% 400%;
-            border-radius: 25px;
-            z-index: -1;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            animation: gradient-border 3s ease infinite;
-        }
-
-        @keyframes gradient-border {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        .assignment-card:hover::before {
-            opacity: 1;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+            border-left: 5px solid;
         }
 
         .assignment-card:hover {
-            transform: translateY(-15px) scale(1.03) rotateX(5deg);
-            box-shadow: 0 25px 60px rgba(102, 126, 234, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         }
 
-        /* Pulsing glow effect for status badges */
-        .status-badge {
-            font-size: 0.8rem;
+        .status-delivered {
+            border-left-color: #17a2b8;
+        }
+
+        .status-completed {
+            border-left-color: #28a745;
+        }
+
+        .status-in-progress {
+            border-left-color: #ffc107;
+        }
+
+        .status-pending {
+            border-left-color: #6c757d;
+        }
+
+        .revision-badge {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             padding: 0.5rem 1rem;
-            border-radius: 50px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            animation: pulse-glow 2s ease-in-out infinite;
-            position: relative;
-            overflow: hidden;
-        }
-
-        @keyframes pulse-glow {
-            0%, 100% {
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            }
-            50% {
-                box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5);
-            }
-        }
-
-        /* Shimmer effect for badges */
-        .status-badge::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
-            animation: badge-shimmer 3s infinite;
-        }
-
-        @keyframes badge-shimmer {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-
-        /* Enhanced Stats Cards with 3D effect */
-        .stats-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
             border-radius: 20px;
-            padding: 2rem;
-            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.15);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-            overflow: hidden;
+            font-size: 0.85rem;
+            font-weight: 600;
         }
 
-        .stats-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 5px;
-            background: var(--primary-gradient);
-            transform: scaleX(0);
-            transition: transform 0.5s ease;
+        .revision-counter {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-top: 1rem;
         }
 
-        .stats-card:hover::before {
-            transform: scaleX(1);
+        .modal-content {
+            border-radius: 15px;
         }
 
-        .stats-card:hover {
-            transform: translateY(-10px) scale(1.05);
-            box-shadow: 0 20px 50px rgba(102, 126, 234, 0.25);
-        }
-
-        /* Rotating icon animation */
-        .stats-card i {
-            transition: all 0.5s ease;
-        }
-
-        .stats-card:hover i {
-            transform: rotate(360deg) scale(1.2);
-        }
-
-        /* Enhanced Header with Neon Glow */
-        .gradient-bg {
-            background: var(--primary-gradient);
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 15px 50px rgba(102, 126, 234, 0.4);
-        }
-
-        .gradient-bg::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            animation: pattern-spin 30s linear infinite;
-        }
-
-        @keyframes pattern-spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        /* Enhanced Search Bar with Glow */
-        .enhanced-search {
-            position: relative;
-            width: 100%;
-        }
-
-        .enhanced-search-input {
-            width: 100%;
-            padding: 18px 25px 18px 60px;
-            border: 3px solid transparent;
-            border-radius: 50px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            font-size: 1.05rem;
-            transition: all 0.4s ease;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-        }
-
-        .enhanced-search-input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 5px rgba(102, 126, 234, 0.2),
-            0 10px 40px rgba(102, 126, 234, 0.3);
-            background: white;
-            transform: scale(1.02);
-        }
-
-        .enhanced-search-icon {
-            position: absolute;
-            left: 25px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #667eea;
-            font-size: 1.4rem;
-            z-index: 3;
-            animation: search-pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes search-pulse {
-            0%, 100% {
-                transform: translateY(-50%) scale(1);
-            }
-            50% {
-                transform: translateY(-50%) scale(1.1);
-            }
-        }
-
-        /* Enhanced Filter Buttons */
-        .filter-btn {
-            border-radius: 50px;
-            padding: 12px 25px;
-            font-weight: 700;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(102, 126, 234, 0.2);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .filter-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
-            transition: left 0.7s;
-        }
-
-        .filter-btn:hover::before {
-            left: 100%;
-        }
-
-        .filter-btn.active {
-            background: var(--primary-gradient);
-            color: white;
-            border-color: transparent;
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-            transform: scale(1.05);
-        }
-
-        /* Floating Action Buttons with Advanced Effects */
-        .enhanced-fab {
-            position: fixed;
-            bottom: 40px;
-            right: 40px;
+        .modal-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .btn-revision {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             border: none;
-            border-radius: 60px;
-            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
-            display: flex;
-            align-items: center;
-            padding: 18px 30px 18px 25px;
-            font-weight: 800;
-            font-size: 1.1rem;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 1000;
-            text-decoration: none;
-            overflow: hidden;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+            color: white;
+            font-weight: 600;
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
         }
 
-        .enhanced-fab::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
-        .enhanced-fab:hover::before {
-            width: 500px;
-            height: 500px;
-        }
-
-        .enhanced-fab:hover {
-            transform: translateY(-8px) scale(1.1) rotate(-3deg);
-            box-shadow: 0 25px 60px rgba(102, 126, 234, 0.6);
+        .btn-revision:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(240, 147, 251, 0.4);
             color: white;
         }
 
-        .enhanced-fab i {
-            font-size: 1.6rem;
-            margin-right: 12px;
-            animation: fab-icon-spin 3s linear infinite;
-        }
-
-        @keyframes fab-icon-spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Quick Stats Button */
-        .enhanced-quick-stats-btn {
-            width: 200px;
-            height: 70px;
-            border-radius: 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            box-shadow: 0 10px 35px rgba(102, 126, 234, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            font-weight: 800;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            cursor: pointer;
-            position: fixed;
-            top: 100px;
-            right: 40px;
-            z-index: 1000;
-            text-decoration: none;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .enhanced-quick-stats-btn:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 15px 45px rgba(102, 126, 234, 0.6);
-            color: white;
-        }
-
-        /* Back to Dashboard Button */
-        .back-dashboard-btn {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            padding: 15px 30px;
-            font-weight: 700;
-            font-size: 1rem;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 1000;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-        }
-
-        .back-dashboard-btn:hover {
-            transform: translateX(-8px) scale(1.05);
-            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
-            color: white;
-        }
-
-        /* Floating Stats Panel */
-        .floating-stats-right {
-            position: fixed;
-            top: 50%;
-            right: 20px;
-            transform: translateY(-50%) translateX(350px);
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-radius: 25px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-            z-index: 999;
-            width: 280px;
-            overflow: hidden;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            opacity: 0;
-        }
-
-        .floating-stats-right.show {
-            transform: translateY(-50%) translateX(0);
-            opacity: 1;
-        }
-
-        .stat-item {
-            display: flex;
-            align-items: center;
+        .revision-history {
+            background: #f8f9fa;
+            border-radius: 8px;
             padding: 1rem;
-            border-radius: 15px;
-            margin-bottom: 1rem;
-            transition: all 0.4s ease;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            margin-top: 1rem;
         }
 
-        .stat-item:hover {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            transform: translateX(-10px) scale(1.05);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-            color: white;
-        }
-
-        .stat-item:hover .stat-value,
-        .stat-item:hover .stat-label {
-            color: white;
-        }
-
-        .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 1rem;
-            font-size: 1.4rem;
-            color: white;
-            transition: transform 0.4s ease;
-        }
-
-        .stat-item:hover .stat-icon {
-            transform: rotate(360deg) scale(1.2);
-        }
-
-        /* Empty State Enhancement */
-        .empty-state {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 30px;
-            padding: 5rem 3rem;
-            color: white;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.4);
-        }
-
-        .empty-state::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 2px, transparent 2px);
-            background-size: 30px 30px;
-            animation: float-pattern 25s linear infinite;
-        }
-
-        @keyframes float-pattern {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            100% { transform: translate(-30px, -30px) rotate(360deg); }
-        }
-
-        /* Assignment Header */
-        .assignment-header {
-            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
-            color: white;
-            border-radius: 25px 25px 0 0;
-            padding: 2rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Type Badge */
-        .type-badge {
-            font-size: 0.75rem;
-            padding: 0.5rem 1rem;
-            border-radius: 12px;
-            font-weight: 700;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-        }
-
-        /* Timeline Enhancement */
-        .timeline {
-            position: relative;
-            padding-left: 40px;
-        }
-
-        .timeline::before {
-            content: '';
-            position: absolute;
-            left: 20px;
-            top: 0;
-            bottom: 0;
-            width: 3px;
-            background: var(--primary-gradient);
-            box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
-        }
-
-        .timeline-marker {
-            position: absolute;
-            left: -40px;
-            top: 5px;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
+        .revision-item {
+            padding: 0.75rem;
+            border-left: 3px solid #667eea;
             background: white;
-            border: 4px solid #667eea;
-            box-shadow: 0 0 20px rgba(102, 126, 234, 0.6);
-            animation: marker-pulse 2s ease-in-out infinite;
+            margin-bottom: 0.75rem;
+            border-radius: 5px;
         }
 
-        @keyframes marker-pulse {
-            0%, 100% {
-                transform: scale(1);
-                box-shadow: 0 0 20px rgba(102, 126, 234, 0.6);
-            }
-            50% {
-                transform: scale(1.2);
-                box-shadow: 0 0 30px rgba(102, 126, 234, 0.9);
-            }
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 14px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: linear-gradient(180deg, rgba(248,249,250,0.5) 0%, rgba(233,236,239,0.5) 100%);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
-            border-radius: 10px;
-            border: 3px solid rgba(255,255,255,0.3);
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(180deg, #764ba2 0%, #667eea 100%);
-            box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
-        }
-
-        /* Responsive Design */
-        @media (max-width: 992px) {
-            .enhanced-fab {
-                bottom: 30px;
-                right: 30px;
-                padding: 15px 25px;
-                font-size: 1rem;
-            }
-
-            .enhanced-quick-stats-btn {
-                width: 180px;
-                height: 60px;
-                right: 30px;
-            }
-
-            .back-dashboard-btn {
-                top: 15px;
-                left: 15px;
-                padding: 12px 25px;
-            }
-
-            .assignment-card {
-                margin-bottom: 2rem;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .enhanced-fab {
-                padding: 12px 20px;
-                font-size: 0.9rem;
-            }
-
-            .enhanced-fab i {
-                font-size: 1.3rem;
-            }
-
-            .enhanced-quick-stats-btn {
-                width: 60px;
-                height: 60px;
-                border-radius: 50%;
-            }
-
-            .enhanced-quick-stats-btn span {
-                display: none;
-            }
-
-            .back-dashboard-btn {
-                padding: 10px 20px;
-                font-size: 0.9rem;
-            }
-
-            .stats-card {
-                margin-bottom: 1.5rem;
-            }
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
         }
     </style>
 </head>
 <body>
-<div layout:fragment="content">
-    <!-- Particles Background -->
-    <div class="particles-bg">
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-    </div>
-
-    <!-- Back to Dashboard Button -->
-    <a th:href="@{/dashboard}" class="back-dashboard-btn">
-        <i class="bi bi-arrow-left me-2"></i> Dashboard
-    </a>
-
-    <!-- Quick Stats Button -->
-    <button class="enhanced-quick-stats-btn" id="quickStatsToggle" title="Quick Progress">
-        <i class="bi bi-bar-chart-fill me-2"></i>
-        <span>STATS</span>
-    </button>
-
-    <!-- Floating Stats Panel -->
-    <div class="floating-stats-right hidden" id="quickStatsPanel" th:if="${assignments != null and !assignments.empty}">
-        <button class="stats-close-btn btn-close position-absolute top-0 end-0 m-3" id="closeStatsBtn"></button>
-        <div class="stats-header p-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-            <i class="bi bi-graph-up-arrow me-2"></i>
-            <h6 class="fw-bold mb-0 d-inline">Quick Stats</h6>
-        </div>
-
-        <div class="stats-body p-3">
-            <div class="stat-item">
-                <div class="stat-icon bg-primary">
-                    <i class="bi bi-journal-text"></i>
-                </div>
-                <div class="stat-info">
-                    <div class="stat-value fw-bold fs-3" id="totalAssignmentsCount" th:text="${#lists.size(assignments)}">0</div>
-                    <div class="stat-label text-muted">Total</div>
-                </div>
-            </div>
-
-            <div class="stat-item">
-                <div class="stat-icon bg-success">
-                    <i class="bi bi-check-circle-fill"></i>
-                </div>
-                <div class="stat-info">
-                    <div class="stat-value fw-bold fs-3" id="completedCount">0</div>
-                    <div class="stat-label text-muted">Completed</div>
-                </div>
-            </div>
-
-            <div class="stat-item">
-                <div class="stat-icon bg-warning">
-                    <i class="bi bi-clock-fill"></i>
-                </div>
-                <div class="stat-info">
-                    <div class="stat-value fw-bold fs-3" id="pendingCount">0</div>
-                    <div class="stat-label text-muted">Pending</div>
-                </div>
-            </div>
-
-            <div class="stat-item">
-                <div class="stat-icon bg-info">
-                    <i class="bi bi-gear-fill"></i>
-                </div>
-                <div class="stat-info">
-                    <div class="stat-value fw-bold fs-3" id="inProgressCount">0</div>
-                    <div class="stat-label text-muted">In Progress</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="stats-footer p-3 bg-light text-center">
-            <small class="text-muted">
-                <i class="bi bi-clock-history me-1"></i>
-                Updated just now
-            </small>
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <i class="bi bi-journal-check"></i> Assignment Service
+        </a>
+        <div class="navbar-nav ms-auto">
+            <a class="btn btn-outline-light btn-sm me-2" th:href="@{/dashboard}">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            <a class="btn btn-outline-light btn-sm" th:href="@{/logout}">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
         </div>
     </div>
+</nav>
 
-    <!-- Create Assignment FAB -->
-    <a th:href="@{/assignments/create}" class="enhanced-fab" title="Create New Assignment">
-        <i class="bi bi-plus-lg"></i>
-        <span>CREATE</span>
-    </a>
+<div class="container mt-4">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1><i class="bi bi-list-task me-2"></i>My Assignments</h1>
+        <p class="lead mb-0">Track your assignments and request revisions if needed</p>
+    </div>
 
-    <div class="container mt-5 pt-4">
-        <!-- Enhanced Header Section -->
-        <div class="gradient-bg text-white rounded-4 p-5 mb-5 shadow-lg position-relative">
-            <div class="row align-items-center position-relative" style="z-index: 1;">
-                <div class="col-md-8">
-                    <h1 class="display-4 fw-bold mb-3">
-                        <i class="bi bi-journal-text me-3"></i>My Assignments
-                    </h1>
-                    <p class="lead mb-0 opacity-90">Track, manage, and excel in all your academic submissions</p>
-                </div>
-                <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                    <span class="badge bg-light text-dark fs-6 px-4 py-2">
-                        <i class="bi bi-trophy-fill text-warning me-2"></i>
-                        <span th:text="${#lists.size(assignments) != null ? #lists.size(assignments) : 0}">0</span> Total
-                    </span>
-                </div>
-            </div>
-        </div>
+    <!-- Success/Error Messages -->
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i><span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
 
-        <!-- Enhanced Search and Filter Bar -->
-        <div class="row mb-5">
-            <div class="col-md-8 mb-3 mb-md-0">
-                <div class="enhanced-search">
-                    <i class="bi bi-search enhanced-search-icon"></i>
-                    <input type="text" id="searchInput" class="enhanced-search-input"
-                           placeholder="Search assignments by title, subject, or description...">
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="btn-group w-100" role="group" id="filterButtons">
-                    <button type="button" class="filter-btn active" data-filter="all">All</button>
-                    <button type="button" class="filter-btn" data-filter="PENDING">Pending</button>
-                    <button type="button" class="filter-btn" data-filter="IN_PROGRESS">Active</button>
-                    <button type="button" class="filter-btn" data-filter="COMPLETED">Done</button>
-                </div>
-            </div>
-        </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i><span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
 
-        <!-- Enhanced Stats Overview -->
-        <div th:if="${assignments != null and !assignments.empty}" class="row mb-5">
-            <div class="col-md-3 mb-4">
-                <div class="stats-card h-100">
-                    <div class="d-flex align-items-center">
-                        <div class="me-3">
-                            <i class="bi bi-journal-text display-5 text-primary"></i>
-                        </div>
-                        <div>
-                            <h2 class="mb-0 fw-bold" id="totalStatsCount" th:text="${#lists.size(assignments)}">0</h2>
-                            <p class="text-muted mb-0 small">Total Assignments</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 mb-4">
-                <div class="stats-card h-100">
-                    <div class="d-flex align-items-center">
-                        <div class="me-3">
-                            <i class="bi bi-check-circle display-5 text-success"></i>
-                        </div>
-                        <div>
-                            <h2 class="mb-0 fw-bold text-success" id="completedStatsCount" th:text="${completedCount}">0</h2>
-                            <p class="text-muted mb-0 small">Completed</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 mb-4">
-                <div class="stats-card h-100">
-                    <div class="d-flex align-items-center">
-                        <div class="me-3">
-                            <i class="bi bi-clock display-5 text-warning"></i>
-                        </div>
-                        <div>
-                            <h2 class="mb-0 fw-bold text-warning" id="pendingStatsCount" th:text="${pendingCount}">0</h2>
-                            <p class="text-muted mb-0 small">Pending</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 mb-4">
-                <div class="stats-card h-100">
-                    <div class="d-flex align-items-center">
-                        <div class="me-3">
-                            <i class="bi bi-gear display-5 text-info"></i>
-                        </div>
-                        <div>
-                            <h2 class="mb-0 fw-bold text-info" id="inProgressStatsCount" th:text="${inProgressCount}">0</h2>
-                            <p class="text-muted mb-0 small">In Progress</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Assignments List -->
+    <div th:if="${assignments != null and !assignments.empty}">
+        <div th:each="assignment : ${assignments}">
+            <div class="card assignment-card"
+                 th:classappend="${assignment.status.name() == 'DELIVERED'} ? 'status-delivered' :
+                                    (${assignment.status.name() == 'COMPLETED'} ? 'status-completed' :
+                                    (${assignment.status.name() == 'IN_PROGRESS'} ? 'status-in-progress' : 'status-pending'))">
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Assignment Details -->
+                        <div class="col-md-8">
+                            <h4 class="card-title mb-3">
+                                <i class="bi bi-file-earmark-text me-2"></i>
+                                <span th:text="${assignment.title}"></span>
+                            </h4>
 
-        <!-- Empty State -->
-        <div th:if="${assignments == null or assignments.empty}">
-            <div class="empty-state text-center position-relative">
-                <div class="mb-5 position-relative" style="z-index: 1;">
-                    <i class="bi bi-journal-text display-1 mb-4" style="font-size: 8rem;"></i>
-                    <h2 class="display-6 fw-bold mb-4">No Assignments Yet</h2>
-                    <p class="mb-5 fs-4 opacity-90">Start your academic journey by creating your first assignment!</p>
-                    <a th:href="@{/assignments/create}" class="btn btn-light btn-lg px-5 py-3 rounded-pill fw-bold">
-                        <i class="bi bi-plus-circle me-2"></i> Submit Your First Assignment
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Assignment List -->
-        <div th:if="${assignments != null and !assignments.empty}">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h2 class="fw-bold">Assignment Portfolio</h2>
-                    <p class="text-white-50 mb-0">Your academic journey at a glance</p>
-                </div>
-            </div>
-
-            <!-- Assignment Cards -->
-            <div class="row" id="assignmentsContainer">
-                <div th:each="assignment, iterStat : ${assignments}"
-                     class="col-lg-6 mb-4 assignment-item"
-                     th:attr="data-status=${assignment.status},
-                              data-title=${assignment.title},
-                              data-subject=${assignment.subject},
-                              data-description=${assignment.description}"
-                     th:style="'animation-delay: ' + ${iterStat.index * 0.1} + 's'">
-                    <div class="assignment-card card h-100 position-relative">
-                        <div class="assignment-header">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h5 class="card-title mb-2 fw-bold" th:text="${assignment.title}">Assignment Title</h5>
-                                    <p class="card-text mb-0 opacity-90" th:text="${assignment.subject}">Subject</p>
-                                </div>
-                                <span th:switch="${assignment.type}" class="type-badge">
-                                    <span th:case="IT">
-                                        <i class="bi bi-laptop me-1"></i> IT
+                            <div class="mb-2">
+                                    <span th:if="${assignment.type.name()} == 'IT'" class="badge bg-primary">
+                                        <i class="bi bi-laptop me-1"></i>IT Assignment
                                     </span>
-                                    <span th:case="QUANTITY_SURVEYING">
-                                        <i class="bi bi-calculator me-1"></i> QS
+                                <span th:if="${assignment.type.name()} == 'QUANTITY_SURVEYING'" class="badge bg-success">
+                                        <i class="bi bi-calculator me-1"></i>QS Assignment
                                     </span>
-                                </span>
+
+                                <!-- Status Badge -->
+                                <span th:if="${assignment.status.name() == 'DELIVERED'}" class="badge bg-info ms-2">
+                                        <i class="bi bi-send-check"></i> DELIVERED
+                                    </span>
+                                <span th:if="${assignment.status.name() == 'COMPLETED'}" class="badge bg-success ms-2">
+                                        <i class="bi bi-check-circle"></i> COMPLETED
+                                    </span>
+                                <span th:if="${assignment.status.name() == 'IN_PROGRESS'}" class="badge bg-warning ms-2">
+                                        <i class="bi bi-gear"></i> IN PROGRESS
+                                    </span>
+                                <span th:if="${assignment.status.name() == 'REVISION_REQUESTED'}" class="badge revision-badge ms-2">
+                                        <i class="bi bi-arrow-repeat"></i> REVISION REQUESTED
+                                    </span>
                             </div>
-                        </div>
-                        <div class="card-body p-4">
-                            <div class="row mb-4">
-                                <div class="col-6">
-                                    <small class="text-muted d-block mb-1">Deadline</small>
-                                    <p class="mb-0 fw-bold" th:text="${assignment.deadline}">Date</p>
-                                </div>
-                                <div class="col-6">
-                                    <small class="text-muted d-block mb-1">Submitted</small>
-                                    <p class="mb-0 fw-bold" th:text="${#temporals.format(assignment.createdAt, 'MMM dd, yyyy')}">Date</p>
+
+                            <p class="text-muted mb-2">
+                                <strong>Subject:</strong> <span th:text="${assignment.subject}"></span>
+                            </p>
+                            <p class="text-muted mb-2">
+                                <strong>Submitted:</strong> <span th:text="${#temporals.format(assignment.createdAt, 'MMM dd, yyyy HH:mm')}"></span>
+                            </p>
+                            <p class="text-muted mb-0" th:if="${assignment.deadline != null}">
+                                <strong>Deadline:</strong> <span th:text="${assignment.deadline}"></span>
+                            </p>
+
+                            <!-- Revision Counter -->
+                            <div th:if="${assignment.status.name() == 'DELIVERED' or assignment.status.name() == 'REVISION_REQUESTED'}"
+                                 class="revision-counter">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <strong>Revisions:</strong>
+                                <span th:text="${assignment.revisionsUsed != null ? assignment.revisionsUsed : 0}"></span> used /
+                                <span th:text="${assignment.maxRevisions != null ? assignment.maxRevisions : 2}"></span> available
+
+                                <span th:if="${assignment.revisionsUsed >= assignment.maxRevisions}" class="text-danger ms-2">
+                                        <i class="bi bi-exclamation-circle"></i> No revisions remaining
+                                    </span>
+                                <span th:if="${assignment.revisionsUsed < assignment.maxRevisions}" class="text-success ms-2">
+                                        <i class="bi bi-check-circle"></i>
+                                        <span th:text="${assignment.maxRevisions - assignment.revisionsUsed}"></span> revisions remaining
+                                    </span>
+                            </div>
+
+                            <!-- Revision History -->
+                            <div th:if="${assignment.revisionRequests != null and !assignment.revisionRequests.empty}"
+                                 class="revision-history mt-3">
+                                <h6 class="mb-3"><i class="bi bi-clock-history me-2"></i>Revision History</h6>
+                                <div th:each="revision : ${assignment.revisionRequests}" class="revision-item">
+                                    <div class="d-flex justify-content-between">
+                                        <strong>Revision Request #<span th:text="${revisionStat.count}"></span></strong>
+                                        <small class="text-muted" th:text="${#temporals.format(revision.requestedAt, 'MMM dd, yyyy HH:mm')}"></small>
+                                    </div>
+                                    <p class="mb-1 mt-2"><strong>Reason:</strong></p>
+                                    <p class="text-muted mb-0" th:text="${revision.reason}"></p>
+                                    <span th:if="${revision.status == 'PENDING'}" class="badge bg-warning mt-2">Pending Review</span>
+                                    <span th:if="${revision.status == 'IN_PROGRESS'}" class="badge bg-info mt-2">Being Revised</span>
+                                    <span th:if="${revision.status == 'COMPLETED'}" class="badge bg-success mt-2">Completed</span>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <span th:switch="${assignment.status}" class="status-badge">
-                                    <span th:case="PENDING" class="bg-warning text-dark">
-                                        <i class="bi bi-clock me-1"></i> Pending
-                                    </span>
-                                    <span th:case="APPROVED" class="bg-success text-white">
-                                        <i class="bi bi-check-circle me-1"></i> Approved
-                                    </span>
-                                    <span th:case="IN_PROGRESS" class="bg-info text-white">
-                                        <i class="bi bi-gear me-1"></i> In Progress
-                                    </span>
-                                    <span th:case="COMPLETED" class="bg-primary text-white">
-                                        <i class="bi bi-check2-all me-1"></i> Completed
-                                    </span>
-                                    <span th:case="DELIVERED" class="bg-dark text-white">
-                                        <i class="bi bi-box-arrow-up me-1"></i> Delivered
-                                    </span>
-                                </span>
-                                <a th:href="@{/assignments/{id}(id=${assignment.id})}"
-                                   class="btn btn-sm btn-outline-primary rounded-pill px-4">
-                                    <i class="bi bi-eye me-1"></i> View Details
-                                </a>
+                        <!-- Action Buttons -->
+                        <div class="col-md-4 text-end">
+                            <!-- Download Solution (Only for DELIVERED status) -->
+                            <a th:if="${assignment.status.name() == 'DELIVERED' and assignment.solutionFiles != null}"
+                               th:href="@{/assignments/{id}/download-solution(id=${assignment.id})}"
+                               class="btn btn-success btn-sm w-100 mb-2">
+                                <i class="bi bi-download"></i> Download Solution
+                            </a>
+
+                            <!-- View Details -->
+                            <a th:href="@{/assignments/{id}(id=${assignment.id})}"
+                               class="btn btn-outline-primary btn-sm w-100 mb-2">
+                                <i class="bi bi-eye"></i> View Details
+                            </a>
+
+                            <!-- Request Revision Button (Only for DELIVERED status with available revisions) -->
+                            <button th:if="${assignment.status.name() == 'DELIVERED' and
+                                               (assignment.revisionsUsed == null or assignment.revisionsUsed < assignment.maxRevisions)}"
+                                    type="button"
+                                    class="btn btn-revision btn-sm w-100"
+                                    data-bs-toggle="modal"
+                                    th:data-bs-target="'#revisionModal' + ${assignment.id}">
+                                <i class="bi bi-arrow-repeat"></i> Request Revision
+                            </button>
+
+                            <!-- Revision Exhausted Message -->
+                            <div th:if="${assignment.status.name() == 'DELIVERED' and assignment.revisionsUsed >= assignment.maxRevisions}"
+                                 class="alert alert-warning p-2 mb-0 mt-2" role="alert">
+                                <small><i class="bi bi-exclamation-triangle"></i> No revisions remaining</small>
                             </div>
 
-                            <div th:if="${assignment.description}" class="mt-3">
-                                <small class="text-muted d-block mb-2">Description</small>
-                                <p class="mb-0 text-secondary" th:text="${#strings.abbreviate(assignment.description, 100)}">Description...</p>
+                            <!-- Revision in Progress Message -->
+                            <div th:if="${assignment.status.name() == 'REVISION_REQUESTED'}"
+                                 class="alert alert-info p-2 mb-0 mt-2" role="alert">
+                                <small><i class="bi bi-hourglass-split"></i> Revision in progress...</small>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Revision Request Modal -->
+            <div class="modal fade" th:id="'revisionModal' + ${assignment.id}" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <i class="bi bi-arrow-repeat me-2"></i>Request Revision
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form th:action="@{/assignments/{id}/request-revision(id=${assignment.id})}" method="post">
+                            <div class="modal-body">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    You have <strong th:text="${assignment.maxRevisions - (assignment.revisionsUsed != null ? assignment.revisionsUsed : 0)}"></strong>
+                                    revision(s) remaining for this assignment.
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="revisionReason" class="form-label">
+                                        <strong>What changes would you like?</strong>
+                                    </label>
+                                    <textarea class="form-control"
+                                              name="reason"
+                                              id="revisionReason"
+                                              rows="5"
+                                              required
+                                              placeholder="Please describe in detail what needs to be revised or corrected..."></textarea>
+                                    <div class="form-text">
+                                        Be specific about what needs to be changed for faster processing.
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    <strong>Note:</strong> Once submitted, the admin will review your request and work on the revisions.
+                                    You'll be notified via email when the revised solution is ready.
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    Cancel
+                                </button>
+                                <button type="submit" class="btn btn-revision">
+                                    <i class="bi bi-send"></i> Submit Request
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Quick Stats Toggle
-            const quickStatsToggle = document.getElementById('quickStatsToggle');
-            const quickStatsPanel = document.getElementById('quickStatsPanel');
-            const closeStatsBtn = document.getElementById('closeStatsBtn');
-
-            if (quickStatsToggle && quickStatsPanel) {
-                quickStatsToggle.addEventListener('click', function() {
-                    quickStatsPanel.classList.toggle('show');
-                    quickStatsPanel.classList.toggle('hidden');
-                });
-
-                if (closeStatsBtn) {
-                    closeStatsBtn.addEventListener('click', function() {
-                        quickStatsPanel.classList.add('hidden');
-                        quickStatsPanel.classList.remove('show');
-                    });
-                }
-
-                // Close on outside click
-                document.addEventListener('click', function(event) {
-                    if (!quickStatsPanel.contains(event.target) &&
-                        !quickStatsToggle.contains(event.target) &&
-                        quickStatsPanel.classList.contains('show')) {
-                        quickStatsPanel.classList.add('hidden');
-                        quickStatsPanel.classList.remove('show');
-                    }
-                });
-            }
-
-            // Search functionality
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput) {
-                searchInput.addEventListener('input', function() {
-                    const searchTerm = this.value.toLowerCase();
-                    const assignmentItems = document.querySelectorAll('.assignment-item');
-
-                    assignmentItems.forEach(item => {
-                        const title = item.getAttribute('data-title').toLowerCase();
-                        const subject = item.getAttribute('data-subject').toLowerCase();
-                        const description = item.getAttribute('data-description').toLowerCase();
-
-                        if (title.includes(searchTerm) || subject.includes(searchTerm) || description.includes(searchTerm)) {
-                            item.style.display = 'block';
-                        } else {
-                            item.style.display = 'none';
-                        }
-                    });
-                });
-            }
-
-            // Filter functionality
-            const filterButtons = document.querySelectorAll('.filter-btn');
-            filterButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    // Remove active class from all buttons
-                    filterButtons.forEach(btn => btn.classList.remove('active'));
-                    // Add active class to clicked button
-                    this.classList.add('active');
-
-                    const filter = this.getAttribute('data-filter');
-                    const assignmentItems = document.querySelectorAll('.assignment-item');
-
-                    assignmentItems.forEach(item => {
-                        if (filter === 'all') {
-                            item.style.display = 'block';
-                        } else {
-                            const status = item.getAttribute('data-status');
-                            item.style.display = status === filter ? 'block' : 'none';
-                        }
-                    });
-                });
-            });
-
-            // Update statistics
-            function updateStatistics() {
-                const assignments = document.querySelectorAll('.assignment-item');
-                let completed = 0, pending = 0, inProgress = 0;
-
-                assignments.forEach(item => {
-                    const status = item.getAttribute('data-status');
-                    if (status === 'COMPLETED' || status === 'DELIVERED') completed++;
-                    else if (status === 'PENDING') pending++;
-                    else if (status === 'IN_PROGRESS' || status === 'APPROVED') inProgress++;
-                });
-
-                // Update all stat displays
-                const completedElements = ['completedCount', 'completedStatsCount'];
-                const pendingElements = ['pendingCount', 'pendingStatsCount'];
-                const inProgressElements = ['inProgressCount', 'inProgressStatsCount'];
-
-                completedElements.forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.textContent = completed;
-                });
-
-                pendingElements.forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.textContent = pending;
-                });
-
-                inProgressElements.forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.textContent = inProgress;
-                });
-            }
-
-            updateStatistics();
-        });
-    </script>
+    <!-- Empty State -->
+    <div th:if="${assignments == null or assignments.empty}" class="text-center py-5">
+        <i class="bi bi-inbox display-1 text-muted mb-3"></i>
+        <h3>No Assignments Yet</h3>
+        <p class="text-muted">You haven't submitted any assignments yet.</p>
+        <a th:href="@{/assignments/create}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Submit New Assignment
+        </a>
+    </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

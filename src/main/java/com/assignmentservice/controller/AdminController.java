@@ -1,4 +1,5 @@
 package com.assignmentservice.controller;
+import com.assignmentservice.model.RevisionRequest;
 
 import com.assignmentservice.dto.AdminPerformanceDto;
 import com.assignmentservice.dto.AdminRegistrationDto;
@@ -28,6 +29,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import jakarta.mail.MessagingException;
 import java.util.Arrays;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Controller
 @RequestMapping("/admin")
@@ -267,10 +272,10 @@ public class AdminController {
                 return "redirect:/admin/assignments/completed?error=Access Denied: You don't have permission to view " + type + " assignments";
             }
 
-            assignmentPage = assignmentService.getCompletedAssignmentsByTypeForAdmin(assignmentType, currentAdmin, pageable);
+            assignmentPage = assignmentService.getCompletedAssignmentsByTypeForAdmin(assignmentType, pageable, currentAdmin);
         } else {
             // Get all completed assignments the admin has access to
-            assignmentPage = assignmentService.getCompletedAssignmentsForAdmin(currentAdmin, pageable);
+            assignmentPage = assignmentService.getCompletedAssignmentsForAdmin(pageable, currentAdmin);
         }
 
         // Calculate counts based on admin access
@@ -622,10 +627,7 @@ public class AdminController {
         return "admin/view-reports";
     }
 
-    @GetMapping("/assignments")
-    public String redirectToCompletedAssignments() {
-        return "redirect:/admin/assignments/completed";
-    }
+
 
     // ============ SOLUTION DELIVERY ============
     @GetMapping("/assignments/{id}/deliver")
@@ -793,6 +795,249 @@ public class AdminController {
         }
 
         return "redirect:/admin/assignments/completed";
+    }
+
+
+    // ============================================
+// ADD THESE METHODS TO YOUR EXISTING AdminController.java
+// Place them BEFORE the helper methods section (before isAdminUser())
+// ============================================
+
+    // Add this constant at the top with other constants
+    private static final String UPLOAD_BASE_DIR = "uploads/assignments/";
+
+    /**
+     * View assignments with filter for revision requests
+     */
+    @GetMapping("/assignments")
+    public String viewAllAssignments(
+            @RequestParam(required = false) String filter,
+            @RequestParam(defaultValue = "1") int page,
+            Model model) {
+
+        if (!isAdminUser()) {
+            return "redirect:/dashboard?error=Unauthorized";
+        }
+
+        Optional<User> currentAdminOpt = getCurrentAdmin();
+        if (!currentAdminOpt.isPresent()) {
+            return "redirect:/dashboard?error=User not found";
+        }
+
+        User currentAdmin = currentAdminOpt.get();
+        List<Assignment> assignments;
+
+        // Filter assignments
+        if ("revision_requested".equalsIgnoreCase(filter)) {
+            assignments = assignmentService.getAssignmentsByStatusForAdmin(
+                    Assignment.AssignmentStatus.REVISION_REQUESTED, currentAdmin);
+            model.addAttribute("pageTitle", "Revision Requests");
+        } else {
+            assignments = assignmentService.getAllAssignmentsByAdminSpecialization(currentAdmin);
+            model.addAttribute("pageTitle", "All Assignments");
+        }
+
+        // Get revision statistics
+        long revisionRequestsCount = assignmentService.getRevisionRequestedCountForAdmin(currentAdmin);
+        Map<String, Long> revisionStats = assignmentService.getRevisionStatistics();
+
+        model.addAttribute("assignments", assignments);
+        model.addAttribute("revisionRequestsCount", revisionRequestsCount);
+        model.addAttribute("revisionStats", revisionStats);
+        model.addAttribute("currentFilter", filter);
+        model.addAttribute("user", currentAdmin);
+
+        return "admin/total-assignments";
+    }
+
+    /**
+     * Update revision request status
+     */
+    @PostMapping("/revision-requests/{id}/update-status")
+    public String updateRevisionStatus(
+            @PathVariable Long id,
+            @RequestParam String status,
+            @RequestParam(required = false) String adminNotes,
+            RedirectAttributes redirectAttributes) {
+
+        if (!isAdminUser()) {
+            return "redirect:/dashboard?error=Unauthorized";
+        }
+
+        try {
+            RevisionRequest revisionRequest = assignmentService.getRevisionRequestById(id);
+            revisionRequest.setStatus(RevisionRequest.RevisionStatus.valueOf(status));
+
+            if (adminNotes != null && !adminNotes.trim().isEmpty()) {
+                revisionRequest.setAdminNotes(adminNotes);
+            }
+
+            // If IN_PROGRESS, update assignment status
+            if ("IN_PROGRESS".equals(status)) {
+                Assignment assignment = revisionRequest.getAssignment();
+                assignment.setStatus(Assignment.AssignmentStatus.IN_PROGRESS);
+                assignmentService.saveAssignment(assignment);
+            }
+
+            assignmentService.updateRevisionRequest(revisionRequest);
+
+            redirectAttributes.addFlashAttribute("success",
+                    "Revision request status updated successfully!");
+
+        } catch (Exception e) {
+            log.error("Failed to update revision status", e);
+            redirectAttributes.addFlashAttribute("error",
+                    "Failed to update revision status: " + e.getMessage());
+        }
+
+        return "redirect:/admin/assignments?filter=revision_requested";
+    }
+
+    /**
+     * Re-deliver solution after revision
+     */
+    @PostMapping("/assignments/{id}/re-deliver")
+    public String redeliverSolution(
+            @PathVariable Long id,
+            @RequestParam("solutionFiles") List<MultipartFile> solutionFiles,
+            @RequestParam(required = false) String notes,
+            RedirectAttributes redirectAttributes) {
+
+        if (!isAdminUser()) {
+            return "redirect:/dashboard?error=Unauthorized";
+        }
+
+        try {
+            Optional<User> currentAdminOpt = getCurrentAdmin();
+            if (!currentAdminOpt.isPresent()) {
+                redirectAttributes.addFlashAttribute("error", "Admin user not found");
+                return "redirect:/admin/assignments";
+            }
+
+            User currentAdmin = currentAdminOpt.get();
+            Optional<Assignment> assignmentOpt = assignmentService.getAssignmentByIdForAdmin(id, currentAdmin);
+
+            if (assignmentOpt.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Assignment not found or unauthorized");
+                return "redirect:/admin/assignments";
+            }
+
+            Assignment assignment = assignmentOpt.get();
+
+            // Save solution files
+            if (solutionFiles != null && !solutionFiles.isEmpty()) {
+                List<String> filePaths = saveSolutionFiles(solutionFiles, id);
+                assignment.setSolutionFiles(String.join(",", filePaths));
+            }
+
+            // Update assignment
+            assignment.setStatus(Assignment.AssignmentStatus.DELIVERED);
+            assignment.setDeliveredAt(LocalDateTime.now());
+            assignmentService.saveAssignment(assignment);
+
+            // Mark revision as completed
+            List<RevisionRequest> revisionRequests = assignment.getRevisionRequests();
+            if (!revisionRequests.isEmpty()) {
+                RevisionRequest latestRevision = revisionRequests.get(0);
+                latestRevision.setStatus(RevisionRequest.RevisionStatus.COMPLETED);
+                latestRevision.setCompletedAt(LocalDateTime.now());
+                if (notes != null && !notes.trim().isEmpty()) {
+                    latestRevision.setAdminNotes(notes);
+                }
+                assignmentService.updateRevisionRequest(latestRevision);
+            }
+
+            // Send email
+            try {
+                emailService.sendRevisedSolutionEmail(assignment);
+            } catch (Exception e) {
+                log.warn("Failed to send revised solution email", e);
+            }
+
+            redirectAttributes.addFlashAttribute("success",
+                    "Revised solution delivered successfully! User has been notified via email.");
+
+        } catch (Exception e) {
+            log.error("Failed to deliver revised solution", e);
+            redirectAttributes.addFlashAttribute("error",
+                    "Failed to deliver revised solution: " + e.getMessage());
+        }
+
+        return "redirect:/admin/assignments/" + id;
+    }
+
+    /**
+     * Reject revision request
+     */
+    @PostMapping("/revision-requests/{id}/reject")
+    public String rejectRevision(
+            @PathVariable Long id,
+            @RequestParam String rejectionReason,
+            RedirectAttributes redirectAttributes) {
+
+        if (!isAdminUser()) {
+            return "redirect:/dashboard?error=Unauthorized";
+        }
+
+        try {
+            RevisionRequest revisionRequest = assignmentService.getRevisionRequestById(id);
+            revisionRequest.setStatus(RevisionRequest.RevisionStatus.REJECTED);
+            revisionRequest.setAdminNotes(rejectionReason);
+            revisionRequest.setCompletedAt(LocalDateTime.now());
+            assignmentService.updateRevisionRequest(revisionRequest);
+
+            // Revert assignment status
+            Assignment assignment = revisionRequest.getAssignment();
+            assignment.setStatus(Assignment.AssignmentStatus.DELIVERED);
+            assignment.decrementRevisionsUsed();
+            assignmentService.saveAssignment(assignment);
+
+            // Send rejection email
+            try {
+                emailService.sendRevisionRejectionEmail(assignment, rejectionReason);
+            } catch (Exception e) {
+                log.warn("Failed to send revision rejection email", e);
+            }
+
+            redirectAttributes.addFlashAttribute("success",
+                    "Revision request rejected. User has been notified and revision count restored.");
+
+        } catch (Exception e) {
+            log.error("Failed to reject revision", e);
+            redirectAttributes.addFlashAttribute("error",
+                    "Failed to reject revision: " + e.getMessage());
+        }
+
+        return "redirect:/admin/assignments?filter=revision_requested";
+    }
+
+    /**
+     * Save solution files for revision re-delivery
+     */
+    private List<String> saveSolutionFiles(List<MultipartFile> files, Long assignmentId) throws IOException {
+        List<String> filePaths = new ArrayList<>();
+
+        String assignmentDir = UPLOAD_BASE_DIR + assignmentId + "/solutions/";
+        File directory = new File(assignmentDir);
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+
+        for (MultipartFile file : files) {
+            if (!file.isEmpty()) {
+                String originalFilename = file.getOriginalFilename();
+                String timestamp = String.valueOf(System.currentTimeMillis());
+                String uniqueFilename = timestamp + "_" + originalFilename;
+                String filePath = assignmentDir + uniqueFilename;
+
+                Path path = Paths.get(filePath);
+                Files.write(path, file.getBytes());
+
+                filePaths.add(filePath);
+            }
+        }
+
+        return filePaths;
     }
 
     // ============ HELPER METHODS ============

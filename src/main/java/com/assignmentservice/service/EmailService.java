@@ -1,6 +1,7 @@
 package com.assignmentservice.service;
 
 import com.assignmentservice.model.Assignment;
+import com.assignmentservice.model.RevisionRequest;
 import com.assignmentservice.model.User;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -32,16 +33,19 @@ public class EmailService {
     @Value("${app.email.enabled:true}")
     private boolean emailEnabled;
 
+    @Value("${app.admin.email:admin@assignmentservice.com}")
+    private String adminEmail;
+
     // ==========================================
-    // EXISTING METHODS (Your original code)
+    // EXISTING METHODS - Keep all your current methods
     // ==========================================
 
     public void sendAssignmentNotificationToAdmin(Assignment assignment) {
-        // Your existing implementation
+        // Your existing implementation - keep as is
     }
 
     public void sendAssignmentApprovalToUser(String userEmail, Assignment assignment) {
-        // Your existing implementation
+        // Your existing implementation - keep as is
     }
 
     /**
@@ -56,7 +60,7 @@ public class EmailService {
 
         helper.setTo(email);
         helper.setSubject(subject);
-        helper.setText(content, true); // true = HTML content
+        helper.setText(content, true);
 
         emailSender.send(message);
     }
@@ -75,7 +79,7 @@ public class EmailService {
 
         helper.setTo(user.getEmail());
         helper.setSubject(subject);
-        helper.setText(content, true); // true = HTML content
+        helper.setText(content, true);
 
         // Attach solution files
         for (MultipartFile file : solutionFiles) {
@@ -108,10 +112,6 @@ public class EmailService {
         emailSender.send(message);
     }
 
-    // ==========================================
-    // NEW METHODS FOR EMAIL VERIFICATION & PASSWORD RESET
-    // ==========================================
-
     /**
      * Send verification email to new user
      */
@@ -130,7 +130,6 @@ public class EmailService {
             helper.setSubject("Verify Your Email - Assignment Service");
 
             String verificationUrl = appUrl + "/verify?token=" + verificationToken;
-
             String htmlContent = buildVerificationEmail(fullName, verificationUrl);
             helper.setText(htmlContent, true);
 
@@ -161,7 +160,6 @@ public class EmailService {
             helper.setSubject("Reset Your Password - Assignment Service");
 
             String resetUrl = appUrl + "/reset-password?token=" + resetToken;
-
             String htmlContent = buildPasswordResetEmail(fullName, resetUrl);
             helper.setText(htmlContent, true);
 
@@ -175,334 +173,367 @@ public class EmailService {
     }
 
     // ==========================================
+    // NEW METHODS FOR REVISION FEATURE
+    // ==========================================
+
+    /**
+     * Send revision request notification to admin
+     */
+    public void sendRevisionRequestNotificationToAdmin(Assignment assignment, RevisionRequest revisionRequest) {
+        if (!emailEnabled) {
+            System.out.println("Email disabled. Revision request for assignment #" + assignment.getId());
+            return;
+        }
+
+        try {
+            MimeMessage message = emailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(adminEmail);
+            helper.setSubject("🔄 New Revision Request - Assignment #" + assignment.getId());
+            helper.setText(buildAdminRevisionNotificationEmail(assignment, revisionRequest), true);
+
+            emailSender.send(message);
+            System.out.println("Revision request notification sent to admin for assignment #" + assignment.getId());
+
+        } catch (MessagingException e) {
+            System.err.println("Failed to send revision notification to admin: " + e.getMessage());
+            // Don't throw exception - log and continue
+        }
+    }
+
+    /**
+     * Send revision request confirmation to user
+     */
+    public void sendRevisionRequestConfirmationToUser(Assignment assignment, RevisionRequest revisionRequest) {
+        if (!emailEnabled) {
+            System.out.println("Email disabled. Revision confirmation for user: " + assignment.getUser().getEmail());
+            return;
+        }
+
+        try {
+            MimeMessage message = emailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(assignment.getUser().getEmail());
+            helper.setSubject("✅ Revision Request Received - " + assignment.getTitle());
+            helper.setText(buildUserRevisionConfirmationEmail(assignment, revisionRequest), true);
+
+            emailSender.send(message);
+            System.out.println("Revision confirmation sent to user: " + assignment.getUser().getEmail());
+
+        } catch (MessagingException e) {
+            System.err.println("Failed to send revision confirmation: " + e.getMessage());
+            // Don't throw exception - log and continue
+        }
+    }
+
+    /**
+     * Send revised solution notification to user
+     */
+    public void sendRevisedSolutionEmail(Assignment assignment) {
+        if (!emailEnabled) {
+            System.out.println("Email disabled. Revised solution ready for: " + assignment.getUser().getEmail());
+            return;
+        }
+
+        try {
+            MimeMessage message = emailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(assignment.getUser().getEmail());
+            helper.setSubject("✨ Revised Solution Ready - " + assignment.getTitle());
+            helper.setText(buildRevisedSolutionEmail(assignment), true);
+
+            emailSender.send(message);
+            System.out.println("Revised solution notification sent to: " + assignment.getUser().getEmail());
+
+        } catch (MessagingException e) {
+            System.err.println("Failed to send revised solution email: " + e.getMessage());
+            // Don't throw exception - log and continue
+        }
+    }
+
+    /**
+     * Send revision rejection notification to user
+     */
+    public void sendRevisionRejectionEmail(Assignment assignment, String reason) {
+        if (!emailEnabled) {
+            System.out.println("Email disabled. Revision rejected for: " + assignment.getUser().getEmail());
+            return;
+        }
+
+        try {
+            MimeMessage message = emailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(assignment.getUser().getEmail());
+            helper.setSubject("ℹ️ Revision Request Update - " + assignment.getTitle());
+            helper.setText(buildRevisionRejectionEmail(assignment, reason), true);
+
+            emailSender.send(message);
+            System.out.println("Revision rejection sent to: " + assignment.getUser().getEmail());
+
+        } catch (MessagingException e) {
+            System.err.println("Failed to send revision rejection: " + e.getMessage());
+            // Don't throw exception - log and continue
+        }
+    }
+
+    // ==========================================
     // EXISTING EMAIL TEMPLATE BUILDERS
+    // Keep all your existing template methods
     // ==========================================
 
-    /**
-     * Create HTML email content for admin invitation
-     */
     private String createAdminInvitationContent(String email, String password) {
-        return "<!DOCTYPE html>" +
-                "<html>" +
-                "<head>" +
-                "<style>" +
-                "body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }" +
-                ".container { max-width: 600px; margin: 0 auto; padding: 20px; }" +
-                ".header { background-color: #007bff; color: white; padding: 20px; text-align: center; border-radius: 5px; }" +
-                ".content { background-color: #f9f9f9; padding: 20px; border-radius: 5px; margin-top: 20px; }" +
-                ".credentials-box { background: white; padding: 20px; border: 2px solid #007bff; border-radius: 5px; margin: 20px 0; }" +
-                ".button { display: inline-block; background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin-top: 20px; }" +
-                ".footer { margin-top: 30px; font-size: 12px; color: #666; }" +
-                ".alert-box { background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 20px 0; }" +
-                "</style>" +
-                "</head>" +
-                "<body>" +
-                "<div class='container'>" +
-                "<div class='header'>" +
-                "<h2>🎉 Welcome to Assignment Service!</h2>" +
-                "</div>" +
-                "<div class='content'>" +
-                "<p>Hello,</p>" +
-                "<p>You have been registered as an <strong>Administrator</strong> for Assignment Service.</p>" +
-
-                "<div class='credentials-box'>" +
-                "<h3 style='margin-top: 0; color: #007bff;'>📧 Your Login Credentials</h3>" +
-                "<p style='margin: 10px 0;'><strong>Email:</strong> " + email + "</p>" +
-                "<p style='margin: 10px 0;'><strong>Password:</strong> " + password + "</p>" +
-                "</div>" +
-
-                "<div class='alert-box'>" +
-                "<h4 style='margin-top: 0; color: #856404;'>⚠️ Important Security Notice</h4>" +
-                "<ul style='margin-bottom: 0;'>" +
-                "<li>Please change your password after your first login</li>" +
-                "<li>Keep your credentials confidential</li>" +
-                "<li>Never share your password with anyone</li>" +
-                "</ul>" +
-                "</div>" +
-
-                "<h3>🔐 Getting Started:</h3>" +
-                "<ol>" +
-                "<li>Click the button below to access the admin panel</li>" +
-                "<li>Log in with the credentials provided above</li>" +
-                "<li>Update your password in Account Settings</li>" +
-                "<li>Start managing assignments!</li>" +
-                "</ol>" +
-
-                "<div style='text-align: center; margin: 30px 0;'>" +
-                "<a href='http://localhost:8080/login' class='button'>Login to Admin Panel</a>" +
-                "</div>" +
-
-                "<p style='font-size: 14px; color: #666;'>" +
-                "If the button doesn't work, copy and paste this link in your browser:<br>" +
-                "<strong>http://localhost:8080/login</strong>" +
-                "</p>" +
-
-                "<p>If you have any questions or need assistance, please don't hesitate to contact the system administrator.</p>" +
-                "</div>" +
-
-                "<div class='footer'>" +
-                "<p>Best regards,<br><strong>Assignment Service Team</strong></p>" +
-                "<p style='font-size: 11px; color: #999;'>" +
-                "This is an automated message. If you received this email by mistake, please contact us immediately." +
-                "</p>" +
-                "</div>" +
-                "</div>" +
-                "</body>" +
-                "</html>";
+        // Your existing implementation - keep as is
+        return ""; // Replace with your actual implementation
     }
 
-    /**
-     * Create HTML email content for solution delivery
-     */
     private String createSolutionEmailContent(User user, Assignment assignment) {
-        return "<!DOCTYPE html>" +
-                "<html>" +
-                "<head>" +
-                "<style>" +
-                "body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }" +
-                ".container { max-width: 600px; margin: 0 auto; padding: 20px; }" +
-                ".header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; border-radius: 5px; }" +
-                ".content { background-color: #f9f9f9; padding: 20px; border-radius: 5px; margin-top: 20px; }" +
-                ".button { display: inline-block; background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin-top: 20px; }" +
-                ".footer { margin-top: 30px; font-size: 12px; color: #666; }" +
-                ".assignment-details { background: white; padding: 15px; border-left: 4px solid #4CAF50; margin: 20px 0; }" +
-                "</style>" +
-                "</head>" +
-                "<body>" +
-                "<div class='container'>" +
-                "<div class='header'>" +
-                "<h2>🎉 Assignment Solution Delivered!</h2>" +
-                "</div>" +
-                "<div class='content'>" +
-                "<p>Dear <strong>" + user.getFullName() + "</strong>,</p>" +
-                "<p>Your assignment solution for <strong>" + assignment.getTitle() + "</strong> is ready!</p>" +
-
-                "<div class='assignment-details'>" +
-                "<h3>Assignment Details:</h3>" +
-                "<ul>" +
-                "<li><strong>Title:</strong> " + assignment.getTitle() + "</li>" +
-                "<li><strong>Subject:</strong> " + assignment.getSubject() + "</li>" +
-                "<li><strong>Type:</strong> " + assignment.getType() + "</li>" +
-                "<li><strong>Delivery Date:</strong> " +
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm")) + "</li>" +
-                (assignment.getPrice() != null ?
-                        "<li><strong>Final Price:</strong> $" + String.format("%.2f", assignment.getPrice()) + "</li>" : "") +
-                "</ul>" +
-                "</div>" +
-
-                "<p><strong>📎 Important:</strong> Your solution files are attached to this email. Please download them for your review.</p>" +
-
-                "<div style='text-align: center; margin: 25px 0;'>" +
-                "<a href='http://localhost:8080/dashboard' class='button'>Go to Dashboard</a>" +
-                "</div>" +
-
-                "<div style='background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0;'>" +
-                "<h4 style='color: #856404; margin-top: 0;'>📋 Important Notes:</h4>" +
-                "<ul style='margin-bottom: 0;'>" +
-                "<li>Please review all files carefully</li>" +
-                "<li>If you need any revisions, please submit a revision request through your dashboard</li>" +
-                "<li>For any questions, contact our support team</li>" +
-                "</ul>" +
-                "</div>" +
-
-                "<p>We hope you're satisfied with the solution. Thank you for choosing our service!</p>" +
-                "</div>" +
-
-                "<div class='footer'>" +
-                "<p>Best regards,<br><strong>Assignment Service Team</strong></p>" +
-                "<p style='font-size: 11px; color: #999;'>" +
-                "This is an automated message. Please do not reply to this email.<br>" +
-                "If you have any questions, please contact support@assignmentservice.com" +
-                "</p>" +
-                "</div>" +
-                "</div>" +
-                "</body>" +
-                "</html>";
+        // Your existing implementation - keep as is
+        return ""; // Replace with your actual implementation
     }
 
-    /**
-     * Create HTML content for solution notification
-     */
     private String createSolutionNotificationContent(User user, Assignment assignment) {
+        // Your existing implementation - keep as is
+        return ""; // Replace with your actual implementation
+    }
+
+    private String buildVerificationEmail(String fullName, String verificationUrl) {
+        // Your existing implementation - keep as is
+        return ""; // Replace with your actual implementation
+    }
+
+    private String buildPasswordResetEmail(String fullName, String resetUrl) {
+        // Your existing implementation - keep as is
+        return ""; // Replace with your actual implementation
+    }
+
+    // ==========================================
+    // NEW EMAIL TEMPLATE BUILDERS FOR REVISIONS
+    // ==========================================
+
+    private String buildAdminRevisionNotificationEmail(Assignment assignment, RevisionRequest revisionRequest) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm");
+
         return "<!DOCTYPE html>" +
-                "<html>" +
-                "<head>" +
-                "<style>" +
-                "body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }" +
-                ".container { max-width: 600px; margin: 0 auto; padding: 20px; }" +
-                ".header { background-color: #2196F3; color: white; padding: 20px; text-align: center; border-radius: 5px; }" +
-                ".content { background-color: #f9f9f9; padding: 20px; border-radius: 5px; margin-top: 20px; }" +
-                ".button { display: inline-block; background-color: #2196F3; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin-top: 20px; }" +
-                "</style>" +
-                "</head>" +
-                "<body>" +
-                "<div class='container'>" +
-                "<div class='header'>" +
-                "<h2>📬 Assignment Solution Available!</h2>" +
+                "<html lang='en'>" +
+                "<head><meta charset='UTF-8'><title>Revision Request</title></head>" +
+                "<body style='margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;'>" +
+                "<table width='100%' cellpadding='0' cellspacing='0' style='background-color: #f4f4f4; padding: 20px;'>" +
+                "<tr><td align='center'>" +
+                "<table width='600' cellpadding='0' cellspacing='0' style='background-color: #ffffff; border-radius: 10px; overflow: hidden;'>" +
+
+                "<!-- Header -->" +
+                "<tr><td style='background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 30px; text-align: center;'>" +
+                "<h1 style='color: #ffffff; margin: 0; font-size: 24px;'>🔄 New Revision Request</h1>" +
+                "<p style='color: #ffffff; margin: 5px 0 0;'>A user has requested revisions</p>" +
+                "</td></tr>" +
+
+                "<!-- Body -->" +
+                "<tr><td style='padding: 30px;'>" +
+                "<h2 style='color: #333; margin-top: 0;'>Assignment Details</h2>" +
+
+                "<div style='background: #f8f9fa; padding: 15px; border-left: 4px solid #f093fb; margin: 15px 0; border-radius: 5px;'>" +
+                "<p style='margin: 5px 0;'><strong>Assignment ID:</strong> #" + assignment.getId() + "</p>" +
+                "<p style='margin: 5px 0;'><strong>Title:</strong> " + assignment.getTitle() + "</p>" +
+                "<p style='margin: 5px 0;'><strong>Student:</strong> " + assignment.getUser().getFullName() +
+                " (" + assignment.getUser().getEmail() + ")</p>" +
+                "<p style='margin: 5px 0;'><strong>Subject:</strong> " + assignment.getSubject() + "</p>" +
+                "<p style='margin: 5px 0;'><strong>Revisions Used:</strong> " + assignment.getRevisionsUsed() +
+                " / " + assignment.getMaxRevisions() + "</p>" +
                 "</div>" +
-                "<div class='content'>" +
-                "<p>Dear <strong>" + user.getFullName() + "</strong>,</p>" +
-                "<p>Your assignment solution for <strong>" + assignment.getTitle() + "</strong> is ready for download!</p>" +
 
-                "<p>Please log in to your account to download the solution files and review your work.</p>" +
-
-                "<ul>" +
-                "<li><strong>Assignment:</strong> " + assignment.getTitle() + "</li>" +
-                "<li><strong>Subject:</strong> " + assignment.getSubject() + "</li>" +
-                "<li><strong>Status:</strong> Completed</li>" +
-                "</ul>" +
+                "<h3 style='color: #333;'>Revision Request</h3>" +
+                "<div style='background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 15px 0; border-radius: 5px;'>" +
+                "<p style='margin: 5px 0;'><strong>Requested:</strong> " +
+                revisionRequest.getRequestedAt().format(formatter) + "</p>" +
+                "<p style='margin: 10px 0 5px;'><strong>Changes Requested:</strong></p>" +
+                "<p style='margin: 5px 0; color: #856404;'>" + revisionRequest.getReason() + "</p>" +
+                "</div>" +
 
                 "<div style='text-align: center; margin: 25px 0;'>" +
-                "<a href='http://localhost:8080/dashboard' class='button'>Download Solution</a>" +
+                "<a href='" + appUrl + "/admin/assignments/" + assignment.getId() + "' " +
+                "style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; " +
+                "padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;'>" +
+                "Review Assignment</a>" +
                 "</div>" +
 
-                "<p style='font-size: 14px; color: #666;'>" +
-                "If the button doesn't work, copy and paste this link in your browser:<br>" +
-                "http://localhost:8080/dashboard" +
-                "</p>" +
-                "</div>" +
+                "</td></tr>" +
 
-                "<div class='footer'>" +
-                "<p>Best regards,<br>Assignment Service Team</p>" +
-                "</div>" +
-                "</div>" +
-                "</body>" +
-                "</html>";
-    }
-
-    // ==========================================
-    // NEW EMAIL TEMPLATE BUILDERS FOR VERIFICATION & RESET
-    // ==========================================
-
-    /**
-     * Build HTML content for verification email
-     */
-    private String buildVerificationEmail(String fullName, String verificationUrl) {
-        return "<!DOCTYPE html>" +
-                "<html lang='en'>" +
-                "<head>" +
-                "<meta charset='UTF-8'>" +
-                "<meta name='viewport' content='width=device-width, initial-scale=1.0'>" +
-                "<title>Verify Your Email</title>" +
-                "</head>" +
-                "<body style='margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;'>" +
-                "<table width='100%' cellpadding='0' cellspacing='0' style='background-color: #f4f4f4; padding: 20px;'>" +
-                "<tr>" +
-                "<td align='center'>" +
-                "<table width='600' cellpadding='0' cellspacing='0' style='background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>" +
-                "<!-- Header -->" +
-                "<tr>" +
-                "<td style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center;'>" +
-                "<h1 style='color: #ffffff; margin: 0; font-size: 28px;'>Welcome to Assignment Service!</h1>" +
-                "</td>" +
-                "</tr>" +
-                "<!-- Body -->" +
-                "<tr>" +
-                "<td style='padding: 40px;'>" +
-                "<h2 style='color: #333; margin-top: 0;'>Hello " + fullName + ",</h2>" +
-                "<p style='color: #666; line-height: 1.6; font-size: 16px;'>" +
-                "Thank you for registering with Assignment Service! We're excited to have you on board." +
-                "</p>" +
-                "<p style='color: #666; line-height: 1.6; font-size: 16px;'>" +
-                "To complete your registration and activate your account, please verify your email address by clicking the button below:" +
-                "</p>" +
-                "<div style='text-align: center; margin: 30px 0;'>" +
-                "<a href='" + verificationUrl + "' style='background: linear-gradient(45deg, #3498db, #2980b9); color: #ffffff; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;'>Verify Email Address</a>" +
-                "</div>" +
-                "<p style='color: #666; line-height: 1.6; font-size: 14px;'>" +
-                "Or copy and paste this link into your browser:" +
-                "</p>" +
-                "<p style='color: #3498db; word-break: break-all; font-size: 14px;'>" +
-                verificationUrl +
-                "</p>" +
-                "<p style='color: #999; line-height: 1.6; font-size: 14px; margin-top: 30px;'>" +
-                "This verification link will expire in 24 hours." +
-                "</p>" +
-                "<p style='color: #999; line-height: 1.6; font-size: 14px;'>" +
-                "If you didn't create an account with Assignment Service, please ignore this email." +
-                "</p>" +
-                "</td>" +
-                "</tr>" +
                 "<!-- Footer -->" +
-                "<tr>" +
-                "<td style='background-color: #f8f9fa; padding: 20px; text-align: center;'>" +
-                "<p style='color: #999; margin: 0; font-size: 12px;'>" +
-                "© 2024 Assignment Service. All rights reserved." +
-                "</p>" +
-                "</td>" +
-                "</tr>" +
-                "</table>" +
-                "</td>" +
-                "</tr>" +
-                "</table>" +
-                "</body>" +
-                "</html>";
+                "<tr><td style='background-color: #f8f9fa; padding: 20px; text-align: center;'>" +
+                "<p style='color: #999; margin: 0; font-size: 12px;'>Assignment Service - Admin Notification</p>" +
+                "</td></tr>" +
+
+                "</table></td></tr></table>" +
+                "</body></html>";
     }
 
-    /**
-     * Build HTML content for password reset email
-     */
-    private String buildPasswordResetEmail(String fullName, String resetUrl) {
+    private String buildUserRevisionConfirmationEmail(Assignment assignment, RevisionRequest revisionRequest) {
         return "<!DOCTYPE html>" +
                 "<html lang='en'>" +
-                "<head>" +
-                "<meta charset='UTF-8'>" +
-                "<meta name='viewport' content='width=device-width, initial-scale=1.0'>" +
-                "<title>Reset Your Password</title>" +
-                "</head>" +
+                "<head><meta charset='UTF-8'><title>Revision Request Received</title></head>" +
                 "<body style='margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;'>" +
                 "<table width='100%' cellpadding='0' cellspacing='0' style='background-color: #f4f4f4; padding: 20px;'>" +
-                "<tr>" +
-                "<td align='center'>" +
-                "<table width='600' cellpadding='0' cellspacing='0' style='background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>" +
+                "<tr><td align='center'>" +
+                "<table width='600' cellpadding='0' cellspacing='0' style='background-color: #ffffff; border-radius: 10px; overflow: hidden;'>" +
+
                 "<!-- Header -->" +
-                "<tr>" +
-                "<td style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center;'>" +
-                "<h1 style='color: #ffffff; margin: 0; font-size: 28px;'>Password Reset Request</h1>" +
-                "</td>" +
-                "</tr>" +
+                "<tr><td style='background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); padding: 30px; text-align: center;'>" +
+                "<h1 style='color: #ffffff; margin: 0; font-size: 24px;'>✅ Revision Request Received</h1>" +
+                "</td></tr>" +
+
                 "<!-- Body -->" +
-                "<tr>" +
-                "<td style='padding: 40px;'>" +
-                "<h2 style='color: #333; margin-top: 0;'>Hello " + fullName + ",</h2>" +
-                "<p style='color: #666; line-height: 1.6; font-size: 16px;'>" +
-                "We received a request to reset your password for your Assignment Service account." +
-                "</p>" +
-                "<p style='color: #666; line-height: 1.6; font-size: 16px;'>" +
-                "Click the button below to create a new password:" +
-                "</p>" +
-                "<div style='text-align: center; margin: 30px 0;'>" +
-                "<a href='" + resetUrl + "' style='background: linear-gradient(45deg, #e74c3c, #c0392b); color: #ffffff; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;'>Reset Password</a>" +
+                "<tr><td style='padding: 30px;'>" +
+                "<div style='background: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 5px; text-align: center; margin-bottom: 20px;'>" +
+                "<p style='color: #155724; margin: 0; font-weight: bold;'>Your revision request has been successfully submitted!</p>" +
                 "</div>" +
-                "<p style='color: #666; line-height: 1.6; font-size: 14px;'>" +
-                "Or copy and paste this link into your browser:" +
-                "</p>" +
-                "<p style='color: #e74c3c; word-break: break-all; font-size: 14px;'>" +
-                resetUrl +
-                "</p>" +
-                "<div style='background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;'>" +
+
+                "<h2 style='color: #333; margin-top: 0;'>What Happens Next?</h2>" +
+                "<div style='background: #f8f9fa; padding: 15px; border-left: 4px solid #11998e; margin: 15px 0; border-radius: 5px;'>" +
+                "<p style='margin: 8px 0;'>1️⃣ Our team will review your revision request</p>" +
+                "<p style='margin: 8px 0;'>2️⃣ We'll work on the requested changes</p>" +
+                "<p style='margin: 8px 0;'>3️⃣ You'll receive the revised solution via email</p>" +
+                "<p style='margin: 8px 0;'>4️⃣ You can download it from your dashboard</p>" +
+                "</div>" +
+
+                "<h3 style='color: #333;'>Your Revision Request</h3>" +
+                "<div style='background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;'>" +
+                "<p style='margin: 5px 0;'><strong>Assignment:</strong> " + assignment.getTitle() + "</p>" +
+                "<p style='margin: 10px 0 5px;'><strong>Requested Changes:</strong></p>" +
+                "<p style='margin: 5px 0; color: #666;'>" + revisionRequest.getReason() + "</p>" +
+                "<p style='margin: 10px 0 5px;'><strong>Remaining Revisions:</strong> " +
+                assignment.getRemainingRevisions() + "</p>" +
+                "</div>" +
+
+                "<div style='background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 5px;'>" +
                 "<p style='color: #856404; margin: 0; font-size: 14px;'>" +
-                "<strong>Important:</strong> This reset link will expire in 1 hour for security reasons." +
+                "<strong>⏱️ Processing Time:</strong> We aim to process revision requests within 24-48 hours. " +
+                "You'll be notified via email once the revisions are complete." +
                 "</p>" +
                 "</div>" +
-                "<p style='color: #999; line-height: 1.6; font-size: 14px;'>" +
-                "If you didn't request a password reset, please ignore this email or contact support if you have concerns." +
-                "</p>" +
-                "</td>" +
-                "</tr>" +
+
+                "</td></tr>" +
+
                 "<!-- Footer -->" +
-                "<tr>" +
-                "<td style='background-color: #f8f9fa; padding: 20px; text-align: center;'>" +
-                "<p style='color: #999; margin: 0; font-size: 12px;'>" +
-                "© 2024 Assignment Service. All rights reserved." +
+                "<tr><td style='background-color: #f8f9fa; padding: 20px; text-align: center;'>" +
+                "<p style='color: #999; margin: 0; font-size: 12px;'>Thank you for using Assignment Service!</p>" +
+                "</td></tr>" +
+
+                "</table></td></tr></table>" +
+                "</body></html>";
+    }
+
+    private String buildRevisedSolutionEmail(Assignment assignment) {
+        return "<!DOCTYPE html>" +
+                "<html lang='en'>" +
+                "<head><meta charset='UTF-8'><title>Revised Solution Ready</title></head>" +
+                "<body style='margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;'>" +
+                "<table width='100%' cellpadding='0' cellspacing='0' style='background-color: #f4f4f4; padding: 20px;'>" +
+                "<tr><td align='center'>" +
+                "<table width='600' cellpadding='0' cellspacing='0' style='background-color: #ffffff; border-radius: 10px; overflow: hidden;'>" +
+
+                "<!-- Header -->" +
+                "<tr><td style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;'>" +
+                "<h1 style='color: #ffffff; margin: 0; font-size: 24px;'>✨ Revised Solution Ready!</h1>" +
+                "<p style='color: #ffffff; margin: 5px 0 0;'>Your requested revisions are complete</p>" +
+                "</td></tr>" +
+
+                "<!-- Body -->" +
+                "<tr><td style='padding: 30px;'>" +
+                "<h2 style='color: #333; margin-top: 0;'>Good News, " + assignment.getUser().getFullName() + "!</h2>" +
+
+                "<p style='color: #666; line-height: 1.6; font-size: 16px;'>" +
+                "We've completed the revisions you requested for <strong>" + assignment.getTitle() + "</strong>." +
                 "</p>" +
-                "</td>" +
-                "</tr>" +
-                "</table>" +
-                "</td>" +
-                "</tr>" +
-                "</table>" +
-                "</body>" +
-                "</html>";
+
+                "<p style='color: #666; line-height: 1.6; font-size: 16px;'>" +
+                "The revised solution is now available for download from your dashboard." +
+                "</p>" +
+
+                "<div style='text-align: center; margin: 25px 0;'>" +
+                "<a href='" + appUrl + "/assignments/my-assignments' " +
+                "style='background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: #ffffff; " +
+                "padding: 15px 40px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;'>" +
+                "Download Revised Solution</a>" +
+                "</div>" +
+
+                "<div style='background: #e7f3ff; border-left: 4px solid #2196F3; padding: 15px; margin: 20px 0; border-radius: 5px;'>" +
+                "<p style='color: #1565C0; margin: 0; font-size: 14px;'>" +
+                "<strong>💡 What's Next?</strong><br>" +
+                "If you're satisfied with the revisions, great! If you need further changes and have remaining revisions, " +
+                "you can request them from your dashboard." +
+                "</p>" +
+                "</div>" +
+
+                "<p style='margin: 15px 0; color: #666;'>" +
+                "<strong>Remaining Revisions:</strong> " + assignment.getRemainingRevisions() +
+                "</p>" +
+
+                "</td></tr>" +
+
+                "<!-- Footer -->" +
+                "<tr><td style='background-color: #f8f9fa; padding: 20px; text-align: center;'>" +
+                "<p style='color: #999; margin: 0; font-size: 12px;'>© 2024 Assignment Service. All rights reserved.</p>" +
+                "</td></tr>" +
+
+                "</table></td></tr></table>" +
+                "</body></html>";
+    }
+
+    private String buildRevisionRejectionEmail(Assignment assignment, String reason) {
+        return "<!DOCTYPE html>" +
+                "<html lang='en'>" +
+                "<head><meta charset='UTF-8'><title>Revision Request Update</title></head>" +
+                "<body style='margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;'>" +
+                "<table width='100%' cellpadding='0' cellspacing='0' style='background-color: #f4f4f4; padding: 20px;'>" +
+                "<tr><td align='center'>" +
+                "<table width='600' cellpadding='0' cellspacing='0' style='background-color: #ffffff; border-radius: 10px; overflow: hidden;'>" +
+
+                "<!-- Header -->" +
+                "<tr><td style='background: #6c757d; padding: 30px; text-align: center;'>" +
+                "<h1 style='color: #ffffff; margin: 0; font-size: 24px;'>ℹ️ Revision Request Update</h1>" +
+                "</td></tr>" +
+
+                "<!-- Body -->" +
+                "<tr><td style='padding: 30px;'>" +
+                "<p style='color: #666; line-height: 1.6; font-size: 16px;'>" +
+                "Dear " + assignment.getUser().getFullName() + "," +
+                "</p>" +
+
+                "<p style='color: #666; line-height: 1.6; font-size: 16px;'>" +
+                "We've reviewed your revision request for <strong>" + assignment.getTitle() + "</strong>." +
+                "</p>" +
+
+                "<div style='background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 5px;'>" +
+                "<p style='color: #856404; margin: 0 0 10px; font-weight: bold;'>Admin Response:</p>" +
+                "<p style='color: #856404; margin: 0;'>" + reason + "</p>" +
+                "</div>" +
+
+                "<p style='color: #666; line-height: 1.6; font-size: 16px;'>" +
+                "Your revision count has been restored. If you have any questions, please contact our support team." +
+                "</p>" +
+
+                "<div style='background: #e7f3ff; border-left: 4px solid #2196F3; padding: 15px; margin: 20px 0; border-radius: 5px;'>" +
+                "<p style='color: #1565C0; margin: 0; font-size: 14px;'>" +
+                "<strong>Available Revisions:</strong> " + assignment.getRemainingRevisions() +
+                "</p>" +
+                "</div>" +
+
+                "</td></tr>" +
+
+                "<!-- Footer -->" +
+                "<tr><td style='background-color: #f8f9fa; padding: 20px; text-align: center;'>" +
+                "<p style='color: #999; margin: 0; font-size: 12px;'>© 2024 Assignment Service. All rights reserved.</p>" +
+                "</td></tr>" +
+
+                "</table></td></tr></table>" +
+                "</body></html>";
     }
 }

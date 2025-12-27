@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -37,22 +38,21 @@ public class Assignment {
     @Column(columnDefinition = "TEXT")
     private String additionalRequirements;
 
-    // Add these fields for file uploads
+    // File upload fields
     @Column(name = "description_files", columnDefinition = "TEXT")
-    private String descriptionFiles; // Store file paths as comma-separated string
+    private String descriptionFiles;
 
     @Column(name = "requirements_files", columnDefinition = "TEXT")
-    private String requirementsFiles; // Store file paths as comma-separated string
+    private String requirementsFiles;
 
-    // NEW FIELDS FOR SOLUTION DELIVERY
+    // Solution delivery fields
     @Column(name = "solution_files", columnDefinition = "TEXT")
-    private String solutionFiles; // Store solution file paths as comma-separated string
+    private String solutionFiles;
 
     @Column(columnDefinition = "TEXT")
     private String adminNotes;
 
     private LocalDateTime deliveredAt;
-
     private Double finalPrice;
 
     @Enumerated(EnumType.STRING)
@@ -67,14 +67,30 @@ public class Assignment {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // Transient fields for file upload (won't be stored in database)
+    // ========================================
+    // NEW FIELDS FOR REVISION FEATURE
+    // ========================================
+
+    @Column(name = "max_revisions", nullable = false)
+    private Integer maxRevisions = 2; // Default: 2 free revisions
+
+    @Column(name = "revisions_used", nullable = false)
+    private Integer revisionsUsed = 0; // Counter for used revisions
+
+    @OneToMany(mappedBy = "assignment", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("requestedAt DESC")
+    private List<RevisionRequest> revisionRequests = new ArrayList<>();
+
+    // ========================================
+    // Transient fields for file upload
+    // ========================================
+
     @Transient
     private List<MultipartFile> descriptionFileList;
 
     @Transient
     private List<MultipartFile> requirementsFileList;
 
-    // NEW: Transient field for solution files
     @Transient
     private List<MultipartFile> solutionFileList;
 
@@ -93,13 +109,65 @@ public class Assignment {
         IT, QUANTITY_SURVEYING
     }
 
-    // UPDATED: Added new statuses for solution delivery
+    // UPDATED: Added REVISION_REQUESTED status
     public enum AssignmentStatus {
-        PENDING, APPROVED, REJECTED, IN_PROGRESS,
-        READY_FOR_DELIVERY, COMPLETED, DELIVERED, PAID
+        PENDING,
+        APPROVED,
+        REJECTED,
+        IN_PROGRESS,
+        READY_FOR_DELIVERY,
+        COMPLETED,
+        DELIVERED,
+        REVISION_REQUESTED,  // NEW STATUS for revision requests
+        PAID
     }
 
-    // Constructors
+    // ========================================
+    // REVISION HELPER METHODS
+    // ========================================
+
+    /**
+     * Check if user can request a revision for this assignment
+     */
+    public boolean canRequestRevision() {
+        return this.status == AssignmentStatus.DELIVERED
+                && this.revisionsUsed < this.maxRevisions;
+    }
+
+    /**
+     * Get remaining revision count
+     */
+    public int getRemainingRevisions() {
+        return this.maxRevisions - this.revisionsUsed;
+    }
+
+    /**
+     * Increment the revision counter
+     */
+    public void incrementRevisionsUsed() {
+        this.revisionsUsed++;
+    }
+
+    /**
+     * Decrement the revision counter (used when rejecting a revision request)
+     */
+    public void decrementRevisionsUsed() {
+        if (this.revisionsUsed > 0) {
+            this.revisionsUsed--;
+        }
+    }
+
+    /**
+     * Check if all revisions have been exhausted
+     */
+    public boolean hasExhaustedRevisions() {
+        return this.revisionsUsed >= this.maxRevisions;
+    }
+
+    // ========================================
+    // CONSTRUCTORS
+    // ========================================
+
     public Assignment() {}
 
     public Assignment(String title, String description, AssignmentType type, String subject, String deadline, User user) {
@@ -111,7 +179,10 @@ public class Assignment {
         this.user = user;
     }
 
-    // Getters and Setters
+    // ========================================
+    // GETTERS AND SETTERS
+    // ========================================
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -131,49 +202,93 @@ public class Assignment {
     public void setDeadline(String deadline) { this.deadline = deadline; }
 
     public String getAdditionalRequirements() { return additionalRequirements; }
-    public void setAdditionalRequirements(String additionalRequirements) { this.additionalRequirements = additionalRequirements; }
+    public void setAdditionalRequirements(String additionalRequirements) {
+        this.additionalRequirements = additionalRequirements;
+    }
 
-    // File upload getters and setters
     public String getDescriptionFiles() { return descriptionFiles; }
-    public void setDescriptionFiles(String descriptionFiles) { this.descriptionFiles = descriptionFiles; }
+    public void setDescriptionFiles(String descriptionFiles) {
+        this.descriptionFiles = descriptionFiles;
+    }
 
     public String getRequirementsFiles() { return requirementsFiles; }
-    public void setRequirementsFiles(String requirementsFiles) { this.requirementsFiles = requirementsFiles; }
+    public void setRequirementsFiles(String requirementsFiles) {
+        this.requirementsFiles = requirementsFiles;
+    }
 
-    // NEW: Solution delivery getters and setters
     public String getSolutionFiles() { return solutionFiles; }
-    public void setSolutionFiles(String solutionFiles) { this.solutionFiles = solutionFiles; }
+    public void setSolutionFiles(String solutionFiles) {
+        this.solutionFiles = solutionFiles;
+    }
 
     public String getAdminNotes() { return adminNotes; }
-    public void setAdminNotes(String adminNotes) { this.adminNotes = adminNotes; }
+    public void setAdminNotes(String adminNotes) {
+        this.adminNotes = adminNotes;
+    }
 
     public LocalDateTime getDeliveredAt() { return deliveredAt; }
-    public void setDeliveredAt(LocalDateTime deliveredAt) { this.deliveredAt = deliveredAt; }
+    public void setDeliveredAt(LocalDateTime deliveredAt) {
+        this.deliveredAt = deliveredAt;
+    }
 
     public Double getFinalPrice() { return finalPrice; }
-    public void setFinalPrice(Double finalPrice) { this.finalPrice = finalPrice; }
+    public void setFinalPrice(Double finalPrice) {
+        this.finalPrice = finalPrice;
+    }
 
     public List<MultipartFile> getSolutionFileList() { return solutionFileList; }
-    public void setSolutionFileList(List<MultipartFile> solutionFileList) { this.solutionFileList = solutionFileList; }
+    public void setSolutionFileList(List<MultipartFile> solutionFileList) {
+        this.solutionFileList = solutionFileList;
+    }
 
     public List<MultipartFile> getDescriptionFileList() { return descriptionFileList; }
-    public void setDescriptionFileList(List<MultipartFile> descriptionFileList) { this.descriptionFileList = descriptionFileList; }
+    public void setDescriptionFileList(List<MultipartFile> descriptionFileList) {
+        this.descriptionFileList = descriptionFileList;
+    }
 
     public List<MultipartFile> getRequirementsFileList() { return requirementsFileList; }
-    public void setRequirementsFileList(List<MultipartFile> requirementsFileList) { this.requirementsFileList = requirementsFileList; }
+    public void setRequirementsFileList(List<MultipartFile> requirementsFileList) {
+        this.requirementsFileList = requirementsFileList;
+    }
 
     public AssignmentStatus getStatus() { return status; }
-    public void setStatus(AssignmentStatus status) { this.status = status; }
+    public void setStatus(AssignmentStatus status) {
+        this.status = status;
+    }
 
     public Double getPrice() { return price; }
-    public void setPrice(Double price) { this.price = price; }
+    public void setPrice(Double price) {
+        this.price = price;
+    }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 
     public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    // NEW: Revision-related getters and setters
+    public Integer getMaxRevisions() { return maxRevisions; }
+    public void setMaxRevisions(Integer maxRevisions) {
+        this.maxRevisions = maxRevisions;
+    }
+
+    public Integer getRevisionsUsed() { return revisionsUsed; }
+    public void setRevisionsUsed(Integer revisionsUsed) {
+        this.revisionsUsed = revisionsUsed;
+    }
+
+    public List<RevisionRequest> getRevisionRequests() { return revisionRequests; }
+    public void setRevisionRequests(List<RevisionRequest> revisionRequests) {
+        this.revisionRequests = revisionRequests;
+    }
 }
