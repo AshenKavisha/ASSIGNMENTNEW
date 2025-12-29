@@ -330,9 +330,73 @@ public class EmailService {
         return ""; // Replace with your actual implementation
     }
 
+    // REPLACE THE EMPTY createSolutionEmailContent METHOD WITH THIS:
+
     private String createSolutionEmailContent(User user, Assignment assignment) {
-        // Your existing implementation - keep as is
-        return ""; // Replace with your actual implementation
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm");
+        String deliveryDate = assignment.getDeliveredAt() != null
+                ? assignment.getDeliveredAt().format(formatter)
+                : LocalDateTime.now().format(formatter);
+        String dashboardLink = appUrl + "/assignments/my-assignments";
+
+        return "<!DOCTYPE html>" +
+                "<html lang='en'>" +
+                "<head><meta charset='UTF-8'></head>" +
+                "<body style='margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;'>" +
+                "<table width='100%' cellpadding='0' cellspacing='0' style='background-color: #f4f4f4; padding: 20px;'>" +
+                "<tr><td align='center'>" +
+                "<table width='600' cellpadding='0' cellspacing='0' style='background-color: #ffffff; border-radius: 10px; overflow: hidden;'>" +
+
+                "<!-- Header -->" +
+                "<tr><td style='background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); padding: 40px 30px; text-align: center;'>" +
+                "<h1 style='color: #ffffff; margin: 0; font-size: 28px;'>🎉 Your Solution is Ready!</h1>" +
+                "</td></tr>" +
+
+                "<!-- Body -->" +
+                "<tr><td style='padding: 30px;'>" +
+                "<p style='color: #333; font-size: 16px;'>Dear <strong>" + user.getFullName() + "</strong>,</p>" +
+
+                "<p style='color: #333; font-size: 16px;'>We're pleased to inform you that your assignment solution for <strong>" + assignment.getTitle() + "</strong> is now complete!</p>" +
+
+                "<div style='background: #f8f9fa; padding: 20px; border-left: 4px solid #4CAF50; margin: 25px 0;'>" +
+                "<h3 style='color: #333; margin-top: 0;'>📋 Assignment Details:</h3>" +
+                "<p style='margin: 5px 0;'><strong>Title:</strong> " + assignment.getTitle() + "</p>" +
+                "<p style='margin: 5px 0;'><strong>Subject:</strong> " + assignment.getSubject() + "</p>" +
+                "<p style='margin: 5px 0;'><strong>Type:</strong> " + assignment.getType() + "</p>" +
+                "<p style='margin: 5px 0;'><strong>Delivery Date:</strong> " + deliveryDate + "</p>" +
+                (assignment.getPrice() != null ? "<p style='margin: 5px 0;'><strong>Price:</strong> $" + assignment.getPrice() + "</p>" : "") +
+                "</div>" +
+
+                "<div style='background: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0;'>" +
+                "<h4 style='color: #1976D2; margin-top: 0;'>📎 Attached Files:</h4>" +
+                "<p style='color: #333;'>Your solution files are attached to this email. Please download them for review.</p>" +
+                "</div>" +
+
+                "<div style='text-align: center; margin: 30px 0;'>" +
+                "<a href='" + dashboardLink + "' style='background: #4CAF50; color: #ffffff; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;'>View Dashboard</a>" +
+                "</div>" +
+
+                "<div style='background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 20px 0;'>" +
+                "<h4 style='color: #856404; margin-top: 0;'>📋 Important Notes:</h4>" +
+                "<ul style='color: #856404; margin: 10px 0; padding-left: 20px;'>" +
+                "<li>Please review all files carefully</li>" +
+                "<li>You have " + assignment.getRemainingRevisions() + " revision(s) remaining</li>" +
+                "<li>Submit revision requests through your dashboard if needed</li>" +
+                "<li>Contact support for any questions</li>" +
+                "</ul>" +
+                "</div>" +
+
+                "<p style='color: #333; font-size: 16px;'>Thank you for choosing our service!</p>" +
+                "</td></tr>" +
+
+                "<!-- Footer -->" +
+                "<tr><td style='background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #e9ecef;'>" +
+                "<p style='color: #666; margin: 0; font-size: 14px;'><strong>Best regards,</strong><br>Assignment Service Team</p>" +
+                "<p style='color: #999; font-size: 12px; margin: 10px 0 0;'>This is an automated message. Please do not reply to this email.<br>For questions, contact support@assignmentservice.com</p>" +
+                "</td></tr>" +
+
+                "</table></td></tr></table>" +
+                "</body></html>";
     }
 
     private String createSolutionNotificationContent(User user, Assignment assignment) {
