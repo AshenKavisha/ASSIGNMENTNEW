@@ -57,20 +57,20 @@
     }
 
     .started{
-        font-family: 'Poppins', sans-serif;
-        font-weight: 700;
-        letter-spacing: 2px;
-        background: #fbf9f9;
-        color: #212211;
-        padding: 14px 25px;
-        font-size: 16px;
-        border-radius: 30px;
-        cursor: pointer;
-        border: 0;
-        outline: 0;
-        display: inline-flex;
-        align-items:center;
-        justify-content: center;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 700;
+      letter-spacing: 2px;
+      background: #fbf9f9;
+      color: #212211;
+      padding: 14px 25px;
+      font-size: 16px;
+      border-radius: 30px;
+      cursor: pointer;
+      border: 0;
+      outline: 0;
+      display: inline-flex;
+      align-items:center;
+      justify-content: center;
 
     }
 
@@ -808,8 +808,8 @@
                   <div class="testimonial-info">
                     <h3 th:text="${feedback.user.fullName}">Student Name</h3>
                     <div class="rating">
-                      <span th:each="i : ${#numbers.sequence(1, feedback.rating)}">★</span>
-                      <span th:each="i : ${#numbers.sequence(feedback.rating + 1, 5)}">☆</span>
+                      <span th:each="i : ${#numbers.sequence(1, feedback.rating)}">Ã¢Ëœâ€¦</span>
+                      <span th:each="i : ${#numbers.sequence(feedback.rating + 1, 5)}">Ã¢Ëœâ€ </span>
                     </div>
                   </div>
                 </div>
@@ -833,7 +833,7 @@
                        class="testimonial-avatar">
                   <div class="testimonial-info">
                     <h3>Sarah Johnson</h3>
-                    <div class="rating">★★★★★</div>
+                    <div class="rating">Ã¢Ëœâ€¦Ã¢Ëœâ€¦Ã¢Ëœâ€¦Ã¢Ëœâ€¦Ã¢Ëœâ€¦</div>
                   </div>
                 </div>
                 <p class="testimonial-text">
@@ -852,7 +852,7 @@
                        class="testimonial-avatar">
                   <div class="testimonial-info">
                     <h3>Michael Chen</h3>
-                    <div class="rating">★★★★★</div>
+                    <div class="rating">Ã¢Ëœâ€¦Ã¢Ëœâ€¦Ã¢Ëœâ€¦Ã¢Ëœâ€¦Ã¢Ëœâ€¦</div>
                   </div>
                 </div>
                 <p class="testimonial-text">
@@ -871,7 +871,7 @@
                        class="testimonial-avatar">
                   <div class="testimonial-info">
                     <h3>Emma Williams</h3>
-                    <div class="rating">★★★★★</div>
+                    <div class="rating">Ã¢Ëœâ€¦Ã¢Ëœâ€¦Ã¢Ëœâ€¦Ã¢Ëœâ€¦Ã¢Ëœâ€¦</div>
                   </div>
                 </div>
                 <p class="testimonial-text">
@@ -1245,7 +1245,7 @@
   }
 
   .footer-links a::before {
-    content: '→';
+    content: 'Ã¢â€ â€™';
     position: absolute;
     left: -20px;
     opacity: 0;
