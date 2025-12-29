@@ -17,7 +17,7 @@
             </h1>
             <p class="lead text-muted">Send finalized assignment solution to student</p>
         </div>
-        <a th:href="@{/admin/assignments/completed}" class="btn btn-secondary">
+        <a th:href="@{/admin/assignments}" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Back to Assignments
         </a>
     </div>
@@ -62,6 +62,905 @@
         <div class="card-header bg-primary text-white">
             <h4 class="mb-0"><i class="bi bi-paperclip me-2"></i>Upload Solution Files</h4>
         </div>
+        <!DOCTYPE html>
+        <html lang="en" xmlns:th="http://www.thymeleaf.org">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Assignment Management - Admin Dashboard</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+            <style>
+                :root {
+                    --primary: #667eea;
+                    --secondary: #764ba2;
+                    --accent: #4cc9f0;
+                    --success: #28a745;
+                    --warning: #ffc107;
+                    --danger: #ef4444;
+                    --light: #f8f9fa;
+                    --dark: #212529;
+                    --gray: #6c757d;
+                }
+
+                body {
+                    background-color: #f8f9fa;
+                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                }
+
+                /* Page Header Styling */
+                .page-header {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 2rem;
+                    border-radius: 12px;
+                    margin-bottom: 2rem;
+                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+                }
+
+                .page-header h1 {
+                    margin: 0;
+                    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+                }
+
+                .page-header .lead {
+                    color: rgba(255,255,255,0.9);
+                    margin: 0;
+                }
+
+                /* Tab Navigation */
+                .nav-tabs {
+                    border-bottom: 2px solid #e9ecef;
+                    margin-bottom: 2rem;
+                }
+
+                .nav-tabs .nav-link {
+                    border: none;
+                    border-bottom: 3px solid transparent;
+                    color: #6c757d;
+                    font-weight: 600;
+                    padding: 1rem 1.5rem;
+                    transition: all 0.3s ease;
+                    position: relative;
+                }
+
+                .nav-tabs .nav-link:hover {
+                    border-color: transparent;
+                    color: var(--primary);
+                }
+
+                .nav-tabs .nav-link.active {
+                    color: var(--primary);
+                    background-color: transparent;
+                    border-color: transparent transparent var(--primary);
+                }
+
+                .nav-tabs .nav-link .badge {
+                    margin-left: 0.5rem;
+                    padding: 0.25rem 0.5rem;
+                    font-size: 0.75rem;
+                }
+
+                /* Notification Badge for new revisions */
+                .notification-badge {
+                    position: absolute;
+                    top: 0.5rem;
+                    right: 0.5rem;
+                    background: #ef4444;
+                    color: white;
+                    border-radius: 50%;
+                    width: 20px;
+                    height: 20px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 0.75rem;
+                    font-weight: bold;
+                    animation: pulse-red 2s ease-in-out infinite;
+                }
+
+                @keyframes pulse-red {
+                    0%, 100% { transform: scale(1); opacity: 1; }
+                    50% { transform: scale(1.1); opacity: 0.8; }
+                }
+
+                /* Search Bar */
+                .search-section {
+                    margin-bottom: 2rem;
+                }
+
+                .input-group {
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                    border-radius: 8px;
+                    overflow: hidden;
+                }
+
+                .input-group-text {
+                    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                    border: none;
+                }
+
+                .input-group .form-control {
+                    border: none;
+                    padding: 0.75rem 1rem;
+                }
+
+                .input-group .form-control:focus {
+                    box-shadow: none;
+                }
+
+                /* Assignment Cards */
+                .assignment-card {
+                    border: none;
+                    border-radius: 12px;
+                    transition: all 0.3s ease;
+                    border-left: 5px solid;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+                    background: white;
+                    margin-bottom: 1rem;
+                }
+
+                .assignment-card:hover {
+                    transform: translateX(5px);
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                }
+
+                .it-card {
+                    border-left-color: #0d6efd;
+                }
+
+                .qs-card {
+                    border-left-color: #198754;
+                }
+
+                .assignment-card .card-body {
+                    padding: 1.5rem;
+                }
+
+                .assignment-card h5 {
+                    color: #212529;
+                    font-weight: 700;
+                    margin-bottom: 0.5rem;
+                }
+
+                .assignment-card .badge {
+                    padding: 0.5rem 1rem;
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    border-radius: 20px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+
+                .assignment-card .badge.revision {
+                    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+                    color: #991b1b;
+                    animation: pulse 2s ease-in-out infinite;
+                }
+
+                @keyframes pulse {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.7; }
+                }
+
+                .assignment-card small.text-muted {
+                    color: #6c757d;
+                    font-size: 0.8rem;
+                    display: block;
+                    margin-bottom: 0.25rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+
+                .assignment-card .fw-bold {
+                    color: #212529;
+                    font-size: 0.95rem;
+                }
+
+                /* Buttons */
+                .btn {
+                    border-radius: 8px;
+                    padding: 0.5rem 1rem;
+                    font-weight: 600;
+                    transition: all 0.3s ease;
+                    border: none;
+                }
+
+                .btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                }
+
+                .btn-success {
+                    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+                }
+
+                .btn-outline-info {
+                    border: 2px solid #17a2b8;
+                    color: #17a2b8;
+                    background: transparent;
+                }
+
+                .btn-outline-info:hover {
+                    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+                    color: white;
+                    border-color: #17a2b8;
+                }
+
+                .btn-danger {
+                    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+                }
+
+                .btn-sm {
+                    padding: 0.4rem 0.8rem;
+                    font-size: 0.85rem;
+                }
+
+                .btn-group {
+                    display: flex;
+                    gap: 0.5rem;
+                }
+
+                /* Modal Enhancements */
+                .modal-content {
+                    border-radius: 16px;
+                    border: none;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                }
+
+                .modal-header {
+                    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+                    color: white;
+                    border-radius: 16px 16px 0 0;
+                    padding: 1.5rem;
+                    border: none;
+                }
+
+                .modal-header.success {
+                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                }
+
+                .modal-header.danger {
+                    background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+                }
+
+                .modal-title {
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                }
+
+                .modal-body {
+                    padding: 1.5rem;
+                }
+
+                .modal-footer {
+                    padding: 1rem 1.5rem;
+                    border-top: 1px solid #e2e8f0;
+                }
+
+                .form-label {
+                    font-weight: 600;
+                    color: var(--dark);
+                    margin-bottom: 0.5rem;
+                }
+
+                .form-control, .form-select {
+                    border-radius: 8px;
+                    border: 1px solid #e2e8f0;
+                    padding: 0.625rem 1rem;
+                }
+
+                .form-control:focus, .form-select:focus {
+                    border-color: var(--primary);
+                    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                }
+
+                /* Empty State */
+                .empty-state {
+                    text-align: center;
+                    padding: 4rem 2rem;
+                    background: white;
+                    border-radius: 12px;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+                }
+
+                .empty-state i {
+                    opacity: 0.3;
+                }
+
+                .empty-state h2 {
+                    color: #212529;
+                    margin-top: 1rem;
+                    margin-bottom: 0.5rem;
+                }
+
+                /* Animation */
+                @keyframes fadeIn {
+                    from {
+                        opacity: 0;
+                        transform: translateY(20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
+                .assignment-item {
+                    animation: fadeIn 0.5s ease-out;
+                }
+
+                /* Tab content */
+                .tab-content {
+                    min-height: 400px;
+                }
+            </style>
+        </head>
+        <body>
+        <div class="container mt-4">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="display-5 fw-bold">
+                            <i class="bi bi-list-check me-3"></i>Assignment Management Center
+                        </h1>
+                        <p class="lead">Monitor and manage all assignments across different stages</p>
+                    </div>
+                    <a th:href="@{/admin/dashboard}" class="btn btn-light">
+                        <i class="bi bi-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Search Section -->
+            <div class="search-section">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" id="searchInput" class="form-control"
+                           placeholder="Search by student name, subject, or title...">
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <ul class="nav nav-tabs" id="assignmentTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="completed-tab" data-bs-toggle="tab"
+                            data-bs-target="#completed" type="button" role="tab">
+                        <i class="bi bi-check-circle me-2"></i>Completed Assignments
+                        <span class="badge bg-success" th:text="${completedCount ?: 0}">0</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="delivered-tab" data-bs-toggle="tab"
+                            data-bs-target="#delivered" type="button" role="tab">
+                        <i class="bi bi-send-check me-2"></i>Delivered Assignments
+                        <span class="badge bg-info" th:text="${deliveredCount ?: 0}">0</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pending-tab" data-bs-toggle="tab"
+                            data-bs-target="#pending" type="button" role="tab">
+                        <i class="bi bi-clock-history me-2"></i>Pending Assignments
+                        <span class="badge bg-warning" th:text="${pendingCount ?: 0}">0</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link position-relative" id="revisions-tab" data-bs-toggle="tab"
+                            data-bs-target="#revisions" type="button" role="tab">
+                        <i class="bi bi-arrow-repeat me-2"></i>Revision Requests
+                        <span class="badge bg-danger" th:text="${revisionCount ?: 0}">0</span>
+                        <span class="notification-badge" th:if="${hasNewRevisions}">!</span>
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content" id="assignmentTabContent">
+                <!-- Completed Tab -->
+                <div class="tab-pane fade show active" id="completed" role="tabpanel">
+                    <div th:if="${completedAssignments != null and !completedAssignments.empty}">
+                        <div class="row" id="completedContainer">
+                            <div th:each="assignment : ${completedAssignments}"
+                                 class="col-12 assignment-item"
+                                 th:data-student="${assignment.user.fullName}"
+                                 th:data-subject="${assignment.subject}"
+                                 th:data-title="${assignment.title}">
+                                <div class="card assignment-card"
+                                     th:classappend="${assignment.type.name()} == 'IT' ? 'it-card' : 'qs-card'">
+                                    <div class="card-body">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-3">
+                                                <h5 th:text="${assignment.title}" class="card-title"></h5>
+                                                <div class="mb-2">
+                                            <span th:if="${assignment.type.name()} == 'IT'"
+                                                  class="badge bg-primary">
+                                                <i class="bi bi-code-slash me-1"></i>IT
+                                            </span>
+                                                    <span th:if="${assignment.type.name()} == 'QUANTITY_SURVEYING'"
+                                                          class="badge bg-success">
+                                                <i class="bi bi-calculator me-1"></i>QS
+                                            </span>
+                                                </div>
+                                                <small class="text-muted">Subject</small>
+                                                <p class="fw-bold mb-0" th:text="${assignment.subject}"></p>
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <small class="text-muted">Student</small>
+                                                <p class="mb-1 fw-bold" th:text="${assignment.user.fullName}"></p>
+                                                <small class="text-muted" style="text-transform: none;"
+                                                       th:text="${assignment.user.email}"></small>
+                                            </div>
+
+                                            <div class="col-md-4">
+                                                <small class="text-muted">Completed At</small>
+                                                <p class="mb-1">
+                                                    <i class="bi bi-calendar-check me-1"></i>
+                                                    <span th:text="${#temporals.format(assignment.updatedAt, 'MMM dd, yyyy HH:mm')}">
+                                                Dec 20, 2024 10:30
+                                            </span>
+                                                </p>
+                                                <small class="text-muted">Deadline</small>
+                                                <p class="mb-0" th:text="${assignment.deadline}">Dec 25, 2024</p>
+                                            </div>
+
+                                            <div class="col-md-2 text-end">
+                                                <a th:href="@{/admin/assignments/{id}/deliver-solution(id=${assignment.id})}"
+                                                   class="btn btn-success btn-sm w-100">
+                                                    <i class="bi bi-send-fill"></i> Deliver Solution
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:if="${completedAssignments == null or completedAssignments.empty}" class="empty-state">
+                        <i class="bi bi-inbox display-1 text-muted"></i>
+                        <h2>No Completed Assignments</h2>
+                        <p class="text-muted">Completed assignments ready for delivery will appear here</p>
+                    </div>
+                </div>
+
+                <!-- Delivered Tab -->
+                <div class="tab-pane fade" id="delivered" role="tabpanel">
+                    <div th:if="${deliveredAssignments != null and !deliveredAssignments.empty}">
+                        <div class="row" id="deliveredContainer">
+                            <div th:each="assignment : ${deliveredAssignments}"
+                                 class="col-12 assignment-item"
+                                 th:data-student="${assignment.user.fullName}"
+                                 th:data-subject="${assignment.subject}"
+                                 th:data-title="${assignment.title}">
+                                <div class="card assignment-card"
+                                     th:classappend="${assignment.type.name()} == 'IT' ? 'it-card' : 'qs-card'">
+                                    <div class="card-body">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-3">
+                                                <h5 th:text="${assignment.title}" class="card-title"></h5>
+                                                <div class="mb-2">
+                                            <span th:if="${assignment.type.name()} == 'IT'"
+                                                  class="badge bg-primary">
+                                                <i class="bi bi-code-slash me-1"></i>IT
+                                            </span>
+                                                    <span th:if="${assignment.type.name()} == 'QUANTITY_SURVEYING'"
+                                                          class="badge bg-success">
+                                                <i class="bi bi-calculator me-1"></i>QS
+                                            </span>
+                                                    <span class="badge bg-info">
+                                                <i class="bi bi-check-circle me-1"></i>Delivered
+                                            </span>
+                                                </div>
+                                                <small class="text-muted">Subject</small>
+                                                <p class="fw-bold mb-0" th:text="${assignment.subject}"></p>
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <small class="text-muted">Student</small>
+                                                <p class="mb-1 fw-bold" th:text="${assignment.user.fullName}"></p>
+                                                <small class="text-muted" style="text-transform: none;"
+                                                       th:text="${assignment.user.email}"></small>
+                                                <div class="mt-2">
+                                                    <small class="text-muted">Revisions: </small>
+                                                    <span class="fw-bold" th:text="${assignment.revisionsUsed}">0</span>
+                                                    <span class="text-muted">/</span>
+                                                    <span class="fw-bold" th:text="${assignment.maxRevisions}">2</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-4">
+                                                <small class="text-muted">Delivered At</small>
+                                                <p class="mb-1">
+                                                    <i class="bi bi-send-check me-1"></i>
+                                                    <span th:text="${#temporals.format(assignment.deliveredAt, 'MMM dd, yyyy HH:mm')}">
+                                                Dec 20, 2024 10:30
+                                            </span>
+                                                </p>
+                                                <small class="text-muted">Status</small>
+                                                <p class="mb-0 text-success fw-bold">Successfully Delivered</p>
+                                            </div>
+
+                                            <div class="col-md-2 text-end">
+                                                <a th:href="@{/admin/assignments/{id}(id=${assignment.id})}"
+                                                   class="btn btn-outline-info btn-sm w-100">
+                                                    <i class="bi bi-eye"></i> View Details
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:if="${deliveredAssignments == null or deliveredAssignments.empty}" class="empty-state">
+                        <i class="bi bi-send-check display-1 text-muted"></i>
+                        <h2>No Delivered Assignments</h2>
+                        <p class="text-muted">Delivered assignments will appear here</p>
+                    </div>
+                </div>
+
+                <!-- Pending Tab -->
+                <div class="tab-pane fade" id="pending" role="tabpanel">
+                    <div th:if="${pendingAssignments != null and !pendingAssignments.empty}">
+                        <div class="row" id="pendingContainer">
+                            <div th:each="assignment : ${pendingAssignments}"
+                                 class="col-12 assignment-item"
+                                 th:data-student="${assignment.user.fullName}"
+                                 th:data-subject="${assignment.subject}"
+                                 th:data-title="${assignment.title}">
+                                <div class="card assignment-card"
+                                     th:classappend="${assignment.type.name()} == 'IT' ? 'it-card' : 'qs-card'">
+                                    <div class="card-body">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-3">
+                                                <h5 th:text="${assignment.title}" class="card-title"></h5>
+                                                <div class="mb-2">
+                                            <span th:if="${assignment.type.name()} == 'IT'"
+                                                  class="badge bg-primary">
+                                                <i class="bi bi-code-slash me-1"></i>IT
+                                            </span>
+                                                    <span th:if="${assignment.type.name()} == 'QUANTITY_SURVEYING'"
+                                                          class="badge bg-success">
+                                                <i class="bi bi-calculator me-1"></i>QS
+                                            </span>
+                                                    <span class="badge bg-warning">
+                                                <i class="bi bi-clock me-1"></i>Pending
+                                            </span>
+                                                </div>
+                                                <small class="text-muted">Subject</small>
+                                                <p class="fw-bold mb-0" th:text="${assignment.subject}"></p>
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <small class="text-muted">Student</small>
+                                                <p class="mb-1 fw-bold" th:text="${assignment.user.fullName}"></p>
+                                                <small class="text-muted" style="text-transform: none;"
+                                                       th:text="${assignment.user.email}"></small>
+                                            </div>
+
+                                            <div class="col-md-4">
+                                                <small class="text-muted">Submitted At</small>
+                                                <p class="mb-1">
+                                                    <i class="bi bi-calendar-plus me-1"></i>
+                                                    <span th:text="${#temporals.format(assignment.createdAt, 'MMM dd, yyyy HH:mm')}">
+                                                Dec 20, 2024 10:30
+                                            </span>
+                                                </p>
+                                                <small class="text-muted">Deadline</small>
+                                                <p class="mb-0" th:text="${assignment.deadline}">Dec 25, 2024</p>
+                                            </div>
+
+                                            <div class="col-md-2 text-end">
+                                                <a th:href="@{/admin/assignments/{id}(id=${assignment.id})}"
+                                                   class="btn btn-outline-info btn-sm w-100 mb-2">
+                                                    <i class="bi bi-eye"></i> View Details
+                                                </a>
+                                                <button class="btn btn-success btn-sm w-100"
+                                                        data-bs-toggle="modal"
+                                                        th:data-bs-target="'#approveModal' + ${assignment.id}">
+                                                    <i class="bi bi-check-circle"></i> Approve
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:if="${pendingAssignments == null or pendingAssignments.empty}" class="empty-state">
+                        <i class="bi bi-clock-history display-1 text-muted"></i>
+                        <h2>No Pending Assignments</h2>
+                        <p class="text-muted">New assignment requests will appear here</p>
+                    </div>
+                </div>
+
+                <!-- Revisions Tab -->
+                <div class="tab-pane fade" id="revisions" role="tabpanel">
+                    <div th:if="${revisionAssignments != null and !revisionAssignments.empty}">
+                        <div class="row" id="revisionsContainer">
+                            <div th:each="assignment : ${revisionAssignments}"
+                                 class="col-12 assignment-item"
+                                 th:data-student="${assignment.user.fullName}"
+                                 th:data-subject="${assignment.subject}"
+                                 th:data-title="${assignment.title}">
+                                <div class="card assignment-card"
+                                     th:classappend="${assignment.type.name()} == 'IT' ? 'it-card' : 'qs-card'">
+                                    <div class="card-body">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-3">
+                                                <h5 th:text="${assignment.title}" class="card-title"></h5>
+                                                <div class="mb-2">
+                                            <span th:if="${assignment.type.name()} == 'IT'"
+                                                  class="badge bg-primary">
+                                                <i class="bi bi-code-slash me-1"></i>IT
+                                            </span>
+                                                    <span th:if="${assignment.type.name()} == 'QUANTITY_SURVEYING'"
+                                                          class="badge bg-success">
+                                                <i class="bi bi-calculator me-1"></i>QS
+                                            </span>
+                                                    <span class="badge revision">
+                                                <i class="bi bi-arrow-repeat me-1"></i>Revision Requested
+                                            </span>
+                                                </div>
+                                                <small class="text-muted">Subject</small>
+                                                <p class="fw-bold mb-0" th:text="${assignment.subject}"></p>
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <small class="text-muted">Student</small>
+                                                <p class="mb-1 fw-bold" th:text="${assignment.user.fullName}"></p>
+                                                <small class="text-muted" style="text-transform: none;"
+                                                       th:text="${assignment.user.email}"></small>
+                                                <div class="mt-2">
+                                                    <small class="text-muted">Revisions: </small>
+                                                    <span class="fw-bold" th:text="${assignment.revisionsUsed}">0</span>
+                                                    <span class="text-muted">/</span>
+                                                    <span class="fw-bold" th:text="${assignment.maxRevisions}">2</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-4">
+                                                <div th:if="${!assignment.revisionRequests.empty}">
+                                                    <small class="text-muted">Revision Requested</small>
+                                                    <p class="mb-1">
+                                                        <i class="bi bi-clock me-1"></i>
+                                                        <span th:text="${#temporals.format(assignment.revisionRequests[0].requestedAt, 'MMM dd, yyyy HH:mm')}">
+                                                    Dec 20, 2024 10:30
+                                                </span>
+                                                    </p>
+                                                    <small class="text-muted">Reason:</small>
+                                                    <p class="mb-0 small" th:text="${assignment.revisionRequests[0].reason}">
+                                                        Please update the calculations...
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-2 text-end">
+                                                <div class="btn-group d-flex flex-column gap-2">
+                                                    <a th:href="@{/admin/assignments/{id}(id=${assignment.id})}"
+                                                       class="btn btn-outline-info btn-sm">
+                                                        <i class="bi bi-eye"></i> View Details
+                                                    </a>
+                                                    <button class="btn btn-success btn-sm"
+                                                            data-bs-toggle="modal"
+                                                            th:data-bs-target="'#deliverRevisionModal' + ${assignment.id}">
+                                                        <i class="bi bi-check-circle-fill"></i> Accept & Deliver
+                                                    </button>
+                                                    <button class="btn btn-danger btn-sm"
+                                                            data-bs-toggle="modal"
+                                                            th:data-bs-target="'#rejectModal' + ${assignment.id}">
+                                                        <i class="bi bi-x-circle"></i> Reject
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:if="${revisionAssignments == null or revisionAssignments.empty}" class="empty-state">
+                        <i class="bi bi-arrow-repeat display-1 text-muted"></i>
+                        <h2>No Revision Requests</h2>
+                        <p class="text-muted">Customer revision requests will appear here</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modals -->
+        <!-- Approve Modal for Pending Assignments -->
+        <div th:each="assignment : ${pendingAssignments}"
+             class="modal fade" th:id="'approveModal' + ${assignment.id}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header success">
+                        <h5 class="modal-title">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            Approve Assignment
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form th:action="@{/admin/assignments/{id}/approve(id=${assignment.id})}" method="post">
+                        <div class="modal-body">
+                            <div class="form-group mb-3">
+                                <label class="form-label">Price (Optional)</label>
+                                <input type="number" class="form-control" name="price" step="0.01" min="0"
+                                       placeholder="Enter price if applicable">
+                            </div>
+                            <div class="alert alert-success mb-0">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                The student will receive an approval notification
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle me-1"></i> Approve Assignment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Deliver Revision Modal -->
+        <div th:each="assignment : ${revisionAssignments}"
+             class="modal fade" th:id="'deliverRevisionModal' + ${assignment.id}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header success">
+                        <h5 class="modal-title">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            Accept & Deliver Revision
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form th:action="@{/admin/assignments/{id}/deliver-revision(id=${assignment.id})}"
+                          method="post">
+                        <div class="modal-body">
+                            <div class="alert alert-info mb-3">
+                                <i class="bi bi-info-circle-fill me-2"></i>
+                                <strong>Action:</strong> This will mark the revision as accepted and redirect you
+                                to upload the revised solution files.
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label class="form-label">Message to Student (Optional)</label>
+                                <textarea class="form-control" name="completionMessage" rows="4"
+                                          placeholder="Add a message about the revisions made..."></textarea>
+                            </div>
+
+                            <div class="alert alert-success mb-0">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                You'll be redirected to upload the revised solution files
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-upload me-1"></i> Continue to Upload
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reject Revision Modal -->
+        <div th:each="assignment : ${revisionAssignments}"
+             th:if="${!assignment.revisionRequests.empty}"
+             class="modal fade" th:id="'rejectModal' + ${assignment.id}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header danger">
+                        <h5 class="modal-title">
+                            <i class="bi bi-x-circle-fill me-2"></i>
+                            Reject Revision Request
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form th:action="@{/admin/revision-requests/{id}/reject(id=${assignment.revisionRequests[0].id})}"
+                          method="post">
+                        <div class="modal-body">
+                            <div class="alert alert-warning mb-3">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <strong>Warning:</strong> This will reject the revision request and notify the student.
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label class="form-label">Reason for Rejection <span class="text-danger">*</span></label>
+                                <textarea class="form-control" name="rejectionReason" rows="4" required
+                                          placeholder="Explain why this revision request is being rejected..."></textarea>
+                            </div>
+
+                            <div class="alert alert-danger mb-0">
+                                <i class="bi bi-info-circle-fill me-2"></i>
+                                The student will be notified and their revision count will be restored
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-x-circle me-1"></i> Reject Request
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const searchInput = document.getElementById('searchInput');
+
+                // Search functionality
+                function performSearch() {
+                    const searchTerm = searchInput.value.toLowerCase();
+
+                    // Get all assignment items across all tabs
+                    const allItems = document.querySelectorAll('.assignment-item');
+
+                    allItems.forEach(item => {
+                        const student = item.getAttribute('data-student').toLowerCase();
+                        const subject = item.getAttribute('data-subject').toLowerCase();
+                        const title = item.getAttribute('data-title').toLowerCase();
+
+                        const matches = student.includes(searchTerm) ||
+                            subject.includes(searchTerm) ||
+                            title.includes(searchTerm);
+
+                        item.style.display = matches ? 'block' : 'none';
+                    });
+
+                    // Update empty states for each tab
+                    updateEmptyStates();
+                }
+
+                function updateEmptyStates() {
+                    const tabs = ['completed', 'delivered', 'pending', 'revisions'];
+
+                    tabs.forEach(tabName => {
+                        const container = document.getElementById(tabName + 'Container');
+                        if (!container) return;
+
+                        const visibleItems = Array.from(container.querySelectorAll('.assignment-item'))
+                            .filter(item => item.style.display !== 'none');
+
+                        const emptyState = container.parentElement.querySelector('.empty-state');
+                        if (emptyState) {
+                            if (visibleItems.length === 0 && searchInput.value.trim() !== '') {
+                                emptyState.style.display = 'block';
+                                emptyState.querySelector('h2').textContent = 'No Results Found';
+                                emptyState.querySelector('p').textContent = 'No assignments match your search criteria.';
+                            } else if (visibleItems.length === 0) {
+                                emptyState.style.display = 'block';
+                            } else {
+                                emptyState.style.display = 'none';
+                            }
+                        }
+                    });
+                }
+
+                // Real-time search
+                searchInput.addEventListener('input', performSearch);
+
+                // Clear search when switching tabs
+                const tabButtons = document.querySelectorAll('[data-bs-toggle="tab"]');
+                tabButtons.forEach(button => {
+                    button.addEventListener('shown.bs.tab', function() {
+                        // Optionally clear search when switching tabs
+                        // searchInput.value = '';
+                        // performSearch();
+                    });
+                });
+            });
+        </script>
+        </body>
+        </html>
         <div class="card-body">
             <form th:action="@{/admin/assignments/{id}/deliver-solution(id=${assignment.id})}"
                   method="post"

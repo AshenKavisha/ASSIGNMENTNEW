@@ -237,12 +237,6 @@
                                 <i class="bi bi-download"></i> Download Solution
                             </a>
 
-                            <!-- View Details -->
-                            <a th:href="@{/assignments/{id}(id=${assignment.id})}"
-                               class="btn btn-outline-primary btn-sm w-100 mb-2">
-                                <i class="bi bi-eye"></i> View Details
-                            </a>
-
                             <!-- Request Revision Button (Only for DELIVERED status with available revisions) -->
                             <button th:if="${assignment.status.name() == 'DELIVERED' and
                                                (assignment.revisionsUsed == null or assignment.revisionsUsed < assignment.maxRevisions)}"

@@ -427,6 +427,58 @@ public class AssignmentController {
         return "redirect:/assignments/my-assignments";
     }
 
+
+    /**
+     * Show delivery solution page (GET request)
+     * This displays the form for uploading solution files
+     */
+    @GetMapping("/{id}/deliver-solution")
+    public String showDeliverSolutionPage(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+            Optional<User> userOptional = userService.getUserByEmail(email);
+
+            if (userOptional.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "User not found.");
+                return "redirect:/login";
+            }
+
+            User admin = userOptional.get();
+
+            // Check if user is admin (role is stored as String: "ADMIN" or "SUPER_ADMIN")
+            if (!admin.getRole().equals("ADMIN") && !admin.getRole().equals("SUPER_ADMIN")) {
+                redirectAttributes.addFlashAttribute("error", "Access denied. Admin privileges required.");
+                return "redirect:/dashboard";
+            }
+
+            Optional<Assignment> assignmentOpt = assignmentService.getAssignmentById(id);
+
+            if (assignmentOpt.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Assignment not found.");
+                return "redirect:/admin/assignments";
+            }
+
+            Assignment assignment = assignmentOpt.get();
+
+            // Check if admin can access this assignment based on specialization
+            if (!assignmentService.canAdminAccessAssignment(admin, assignment)) {
+                redirectAttributes.addFlashAttribute("error",
+                        "You don't have permission to access this assignment. Check your specialization.");
+                return "redirect:/admin/assignments";
+            }
+
+            model.addAttribute("assignment", assignment);
+            return "admin/assignment-solution-delivery";
+
+        } catch (Exception e) {
+            System.err.println("Error loading delivery solution page: " + e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error",
+                    "Failed to load delivery page: " + e.getMessage());
+            return "redirect:/admin/assignments";
+        }
+    }
     /**
      * Download solution file
      */

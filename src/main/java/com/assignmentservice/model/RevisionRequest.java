@@ -108,4 +108,5 @@ public class RevisionRequest {
     public void setAdminNotes(String adminNotes) {
         this.adminNotes = adminNotes;
     }
+
 }

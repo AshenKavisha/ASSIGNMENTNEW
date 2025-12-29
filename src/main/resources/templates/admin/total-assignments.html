@@ -105,129 +105,111 @@
             font-size: 1.125rem;
         }
 
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-item {
+        /* Horizontal Tabs */
+        .assignment-tabs {
             background: white;
             border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
             border: 1px solid #e2e8f0;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .stat-item:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        }
-
-        .stat-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .stat-icon.pending {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            color: #d97706;
-        }
-
-        .stat-icon.in-progress {
-            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-            color: var(--primary);
-        }
-
-        .stat-icon.completed {
-            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-            color: #16a34a;
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--dark);
-            margin-bottom: 0.25rem;
-        }
-
-        .stat-label {
-            color: var(--gray);
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-
-        /* Filter Tabs */
-        .filter-tabs {
+        .tab-container {
             display: flex;
             gap: 0.5rem;
-            background: white;
-            padding: 0.5rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            margin-bottom: 2rem;
-            border: 1px solid #e2e8f0;
+            overflow-x: auto;
         }
 
-        .filter-tab {
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            color: var(--gray);
+        .assignment-tab {
+            flex: 1;
+            min-width: 200px;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
             text-decoration: none;
+            color: var(--gray);
             font-weight: 500;
             transition: all 0.3s ease;
             display: flex;
+            flex-direction: column;
             align-items: center;
             gap: 0.5rem;
+            background: #f8fafc;
+            border: 2px solid transparent;
+            position: relative;
         }
 
-        .filter-tab:hover {
-            background: #f1f5f9;
+        .assignment-tab:hover {
+            background: #e2e8f0;
             color: var(--primary);
+            transform: translateY(-2px);
         }
 
-        .filter-tab.active {
-            background: var(--primary);
+        .assignment-tab.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white;
-            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
+            border-color: var(--primary);
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
         }
 
-        .badge-count {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 6px;
-            font-size: 0.75rem;
+        .tab-icon {
+            font-size: 1.5rem;
+        }
+
+        .tab-label {
+            font-size: 0.875rem;
+            text-align: center;
+        }
+
+        .tab-count {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
             font-weight: 600;
         }
 
-        /* Revision Cards */
-        .revision-container {
-            display: grid;
-            gap: 1.5rem;
+        .assignment-tab.active .tab-count {
+            background: rgba(255, 255, 255, 0.2);
         }
 
-        .revision-item {
+        /* New Revision Indicator */
+        .new-indicator {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 20px;
+            height: 20px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+            animation: pulse-indicator 2s infinite;
+        }
+
+        @keyframes pulse-indicator {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Assignment Cards */
+        .revision-card {
             background: white;
             border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
             border: 1px solid #e2e8f0;
-            transition: all 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
         }
 
-        .revision-item:hover {
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            border-color: var(--primary);
+        .revision-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
         }
 
         .revision-header {
@@ -235,8 +217,8 @@
             border-bottom: 1px solid #e2e8f0;
             display: flex;
             justify-content: space-between;
-            align-items: start;
-            gap: 1rem;
+            align-items: flex-start;
+            background: linear-gradient(135deg, #f8fafc 0%, white 100%);
         }
 
         .revision-title {
@@ -246,10 +228,12 @@
             margin-bottom: 0.5rem;
         }
 
-        .revision-subtitle {
+        .revision-meta {
             color: var(--gray);
             font-size: 0.875rem;
-            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .revision-badges {
@@ -259,26 +243,33 @@
         }
 
         .badge {
-            padding: 0.5rem 1rem;
+            padding: 0.375rem 0.875rem;
             border-radius: 8px;
             font-size: 0.75rem;
             font-weight: 600;
-            border: none;
+            display: inline-flex;
+            align-items: center;
         }
 
         .badge.it {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            color: white;
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            color: #1e40af;
         }
 
         .badge.qs {
-            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-            color: white;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
         }
 
         .badge.revision {
-            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-            color: white;
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            color: #991b1b;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
         }
 
         .revision-content {
@@ -289,32 +280,34 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
         }
 
         .info-item {
             display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--gray);
+            flex-direction: column;
         }
 
         .info-label {
+            color: var(--gray);
+            font-size: 0.75rem;
             font-weight: 600;
-            color: var(--dark);
-            min-width: 80px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
         }
 
         .revision-alert {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border: 1px solid #fbbf24;
-            border-radius: 12px;
+            background: linear-gradient(135deg, #fef3c7 0%, #fef08a 100%);
+            border-left: 4px solid var(--warning);
             padding: 1rem;
+            border-radius: 8px;
             margin-top: 1rem;
         }
 
         .revision-actions {
-            padding: 1.5rem;
+            padding: 1rem 1.5rem;
+            background: #f8fafc;
             border-top: 1px solid #e2e8f0;
             display: flex;
             gap: 0.75rem;
@@ -323,11 +316,9 @@
 
         /* Buttons */
         .btn {
-            padding: 0.75rem 1.5rem;
-            border-radius: 10px;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
+            padding: 0.625rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 500;
             transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
@@ -336,141 +327,96 @@
 
         .btn-primary {
             background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border: none;
             color: white;
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.3);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
         }
 
         .btn-secondary {
-            background: #f1f5f9;
-            color: var(--gray);
-        }
-
-        .btn-secondary:hover {
-            background: #e2e8f0;
-            color: var(--dark);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            background: var(--gray);
+            border: none;
             color: white;
-        }
-
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
         }
 
         .btn-warning {
-            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+            background: var(--warning);
+            border: none;
             color: white;
-        }
-
-        .btn-warning:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3);
         }
 
         .btn-danger {
-            background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+            background: var(--danger);
+            border: none;
             color: white;
-        }
-
-        .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
         }
 
         .btn-info {
-            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            background: var(--accent);
+            border: none;
             color: white;
         }
 
-        .btn-info:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.3);
+        .btn-success {
+            background: var(--success);
+            border: none;
+            color: white;
         }
 
-        /* Modals */
-        .modal {
-            pointer-events: none;
-        }
-
-        .modal.show {
-            pointer-events: auto;
-        }
-
-        .modal-backdrop {
-            pointer-events: auto;
-        }
-
-        .modal-dialog {
-            pointer-events: auto;
-        }
-
+        /* Modal Enhancements */
         .modal-content {
             border-radius: 16px;
             border: none;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
 
         .modal-header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white;
-            border: none;
             border-radius: 16px 16px 0 0;
-            padding: 1.5rem 2rem;
-        }
-
-        .modal-header.danger {
-            background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+            padding: 1.5rem;
+            border: none;
         }
 
         .modal-header.success {
-            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .modal-header.danger {
+            background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
         }
 
         .modal-title {
             font-weight: 600;
-            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
         }
 
         .modal-body {
-            padding: 2rem;
+            padding: 1.5rem;
         }
 
         .modal-footer {
-            border: none;
-            padding: 1.5rem 2rem;
-            border-radius: 0 0 16px 16px;
-        }
-
-        /* Form Elements */
-        .form-group {
-            margin-bottom: 1.5rem;
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #e2e8f0;
         }
 
         .form-label {
             font-weight: 600;
             color: var(--dark);
             margin-bottom: 0.5rem;
-            display: block;
         }
 
         .form-control, .form-select {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-            background: white;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            padding: 0.625rem 1rem;
         }
 
         .form-control:focus, .form-select:focus {
-            outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
         }
@@ -481,67 +427,40 @@
             padding: 4rem 2rem;
             background: white;
             border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
         }
 
         .empty-icon {
             font-size: 4rem;
-            color: #cbd5e1;
+            color: var(--gray);
             margin-bottom: 1.5rem;
         }
 
         .empty-title {
             font-size: 1.5rem;
-            font-weight: 600;
+            font-weight: 700;
             color: var(--dark);
             margin-bottom: 0.5rem;
         }
 
         .empty-description {
             color: var(--gray);
-            font-size: 1rem;
-        }
-
-        /* Animations */
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .revision-item {
-            animation: slideIn 0.4s ease-out;
+            font-size: 1.125rem;
         }
 
         /* Responsive */
-        @media (max-width: 1024px) {
-            .sidebar {
-                width: 240px;
-            }
-            .main-content {
-                margin-left: 240px;
-            }
-        }
-
         @media (max-width: 768px) {
             .sidebar {
-                position: fixed;
-                left: -280px;
-                transition: left 0.3s ease;
-            }
-            .sidebar.active {
-                left: 0;
+                transform: translateX(-100%);
             }
             .main-content {
                 margin-left: 0;
             }
-            .stats-grid {
-                grid-template-columns: 1fr;
+            .tab-container {
+                flex-direction: column;
+            }
+            .assignment-tab {
+                min-width: auto;
             }
         }
     </style>
@@ -567,18 +486,6 @@
                 Revision Management
             </a>
         </div>
-        <div class="nav-item">
-            <a class="nav-link" href="#">
-                <i class="bi bi-people nav-icon"></i>
-                Students
-            </a>
-        </div>
-        <div class="nav-item">
-            <a class="nav-link" href="#">
-                <i class="bi bi-bar-chart nav-icon"></i>
-                Analytics
-            </a>
-        </div>
     </nav>
 </div>
 
@@ -595,59 +502,62 @@
         </p>
     </div>
 
-    <!-- Statistics -->
-    <div class="stats-grid">
-        <div class="stat-item">
-            <div class="stat-icon pending">
-                <i class="bi bi-hourglass-split"></i>
-            </div>
-            <div class="stat-number" th:text="${revisionStats.pending ?: 0}">0</div>
-            <div class="stat-label">Pending Requests</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-icon in-progress">
-                <i class="bi bi-gear"></i>
-            </div>
-            <div class="stat-number" th:text="${revisionStats.in_progress ?: 0}">0</div>
-            <div class="stat-label">In Progress</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-icon completed">
-                <i class="bi bi-check-circle"></i>
-            </div>
-            <div class="stat-number" th:text="${revisionStats.completed ?: 0}">0</div>
-            <div class="stat-label">Completed</div>
+    <!-- Horizontal Tabs -->
+    <div class="assignment-tabs">
+        <div class="tab-container">
+            <!-- Completed Tab -->
+            <a th:href="@{/admin/assignments(status=APPROVED)}"
+               class="assignment-tab"
+               th:classappend="${param.status != null and param.status[0] == 'APPROVED'} ? 'active' : ''">
+                <i class="bi bi-check-circle tab-icon"></i>
+                <span class="tab-label">Approved Assignments</span>
+                <span class="tab-count" th:text="${revisionStats['APPROVED'] ?: 0}">0</span>
+            </a>
+
+            <!-- Delivered Tab -->
+            <a th:href="@{/admin/assignments(status=DELIVERED)}"
+               class="assignment-tab"
+               th:classappend="${param.status != null and param.status[0] == 'DELIVERED'} ? 'active' : ''">
+                <i class="bi bi-send-check tab-icon"></i>
+                <span class="tab-label">Delivered Assignments</span>
+                <span class="tab-count" th:text="${revisionStats['DELIVERED'] ?: 0}">0</span>
+            </a>
+
+            <!-- Pending Tab -->
+            <a th:href="@{/admin/assignments(status=PENDING)}"
+               class="assignment-tab"
+               th:classappend="${param.status != null and param.status[0] == 'PENDING'} ? 'active' : ''">
+                <i class="bi bi-hourglass-split tab-icon"></i>
+                <span class="tab-label">Pending Assignments</span>
+                <span class="tab-count" th:text="${revisionStats['PENDING'] ?: 0}">0</span>
+            </a>
+
+            <!-- Revision Requests Tab with ! indicator -->
+            <a th:href="@{/admin/assignments(status=REVISION_REQUESTED)}"
+               class="assignment-tab"
+               th:classappend="${param.status != null and param.status[0] == 'REVISION_REQUESTED'} ? 'active' : ''">
+                <span th:if="${revisionStats['REVISION_REQUESTED'] != null and revisionStats['REVISION_REQUESTED'] > 0}"
+                      class="new-indicator">!</span>
+                <i class="bi bi-arrow-repeat tab-icon"></i>
+                <span class="tab-label">Revision Requests</span>
+                <span class="tab-count" th:text="${revisionStats['REVISION_REQUESTED'] ?: 0}">0</span>
+            </a>
         </div>
     </div>
 
-    <!-- Filter Tabs -->
-    <div class="filter-tabs">
-        <a class="filter-tab" th:classappend="${currentFilter == null} ? 'active'"
-           th:href="@{/admin/assignments}">
-            <i class="bi bi-grid-3x3-gap"></i>
-            All Assignments
-        </a>
-        <a class="filter-tab" th:classappend="${currentFilter == 'revision_requested'} ? 'active'"
-           th:href="@{/admin/assignments(filter='revision_requested')}">
-            <i class="bi bi-exclamation-triangle"></i>
-            Revision Requests
-            <span class="badge-count" th:text="${revisionRequestsCount}">0</span>
-        </a>
-    </div>
-
-    <!-- Revision Requests -->
+    <!-- Assignment Cards -->
     <div th:if="${assignments != null and !assignments.empty}">
-        <div class="revision-container">
-            <div th:each="assignment : ${assignments}" class="revision-item">
+        <div th:each="assignment : ${assignments}" class="revision-card">
+            <div class="card">
                 <div class="revision-header">
                     <div>
                         <h3 class="revision-title" th:text="${assignment.title}">Assignment Title</h3>
-                        <p class="revision-subtitle">
+                        <p class="revision-meta">
                             <i class="bi bi-person me-1"></i>
                             <span th:text="${assignment.user.fullName}">Student Name</span>
                             •
                             <i class="bi bi-envelope me-1"></i>
-                            <span th:text="${assignment.user.email}">email@example.com</span>
+                            <span th:text="${assignment.user.email}">student@email.com</span>
                         </p>
                         <div class="revision-badges">
                             <span th:if="${assignment.type.name()} == 'IT'" class="badge it">
@@ -684,7 +594,7 @@
                         </div>
                         <div class="info-item">
                             <span class="info-label">Email:</span>
-                            <span th:text="${assignment.user.email}">john@example.com</span>
+                            <span th:text="${assignment.user.email}">student@email.com</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Subject:</span>
@@ -692,7 +602,7 @@
                         </div>
                     </div>
 
-                    <!-- Revision Request -->
+                    <!-- Revision Request Info (Only for Revision Requests Tab) -->
                     <div th:if="${!assignment.revisionRequests.empty}" class="revision-alert">
                         <div class="d-flex align-items-center mb-2">
                             <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
@@ -714,34 +624,39 @@
 
                 <!-- Action Buttons -->
                 <div class="revision-actions">
+                    <!-- View Details Button -->
                     <a th:href="@{/admin/assignments/{id}(id=${assignment.id})}"
                        class="btn btn-secondary">
                         <i class="bi bi-eye"></i> View Details
                     </a>
 
-                    <!-- NEW: Deliver Revision Button (Primary action for revision_requested status) -->
-                    <button th:if="${assignment.status.name() == 'REVISION_REQUESTED'}"
-                            class="btn btn-primary"
-                            data-bs-toggle="modal"
-                            th:data-bs-target="'#deliverRevisionModal' + ${assignment.id}">
-                        <i class="bi bi-send-check-fill"></i> Deliver Revision
-                    </button>
+                    <!-- Approve Button (for PENDING status) -->
+                    <a th:if="${assignment.status.name() == 'PENDING'}"
+                       th:href="@{/admin/assignments/pending}"
+                       class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Approve
+                    </a>
 
-                    <button th:if="${!assignment.revisionRequests.empty}"
-                            class="btn btn-warning"
-                            data-bs-toggle="modal"
-                            th:data-bs-target="'#updateStatusModal' + ${assignment.id}">
-                        <i class="bi bi-pencil-square"></i> Update Status
-                    </button>
+                    <!-- Deliver Solution Button (for COMPLETED status) -->
+                    <a th:if="${assignment.status.name() == 'APPROVED'}"
+                       th:href="@{/admin/assignments/{id}/deliver-solution(id=${assignment.id})}"
+                       class="btn btn-success">
+                        <i class="bi bi-send-check"></i> Deliver Solution
+                    </a>
 
-                    <button th:if="${assignment.status.name() == 'REVISION_REQUESTED' or assignment.status.name() == 'IN_PROGRESS'}"
-                            class="btn btn-info"
-                            data-bs-toggle="modal"
-                            th:data-bs-target="'#uploadFilesModal' + ${assignment.id}">
+                    <!-- Upload Files Button (for REVISION_REQUESTED) -->
+                    <a th:if="${assignment.status.name() == 'REVISION_REQUESTED' and
+           !assignment.revisionRequests.empty and
+           assignment.revisionRequests[0].status.name() == 'PENDING'}"
+                       th:href="@{/admin/assignments/{id}/deliver-solution(id=${assignment.id})}"
+                       class="btn btn-info">
                         <i class="bi bi-cloud-upload"></i> Upload Files
-                    </button>
+                    </a>
 
-                    <button th:if="${!assignment.revisionRequests.empty}"
+                    <!-- Reject Button (only show if there's a PENDING revision request) -->
+                    <button th:if="${assignment.status.name() == 'REVISION_REQUESTED' and
+                 !assignment.revisionRequests.empty and
+                 assignment.revisionRequests[0].status.name() == 'PENDING'}"
                             class="btn btn-danger"
                             data-bs-toggle="modal"
                             th:data-bs-target="'#rejectModal' + ${assignment.id}">
@@ -755,57 +670,56 @@
     <!-- Empty State -->
     <div th:if="${assignments == null or assignments.empty}" class="empty-state">
         <div class="empty-icon">
-            <i class="bi bi-check-circle"></i>
+            <i class="bi bi-inbox"></i>
         </div>
-        <h3 class="empty-title">All Caught Up!</h3>
+        <h3 class="empty-title">No Assignments Found</h3>
         <p class="empty-description">
-            No pending revision requests at the moment. Everything is up to date.
+            There are no assignments in this category at the moment.
         </p>
     </div>
 </div>
 
-<!-- Modals -->
-<!-- NEW: Deliver Revision Modal -->
+<!-- Reject Modal -->
 <div th:each="assignment : ${assignments}"
-     th:if="${assignment.status.name() == 'REVISION_REQUESTED'}"
-     class="modal fade" th:id="'deliverRevisionModal' + ${assignment.id}" tabindex="-1">
+     th:if="${!assignment.revisionRequests.empty}"
+     class="modal fade" th:id="'rejectModal' + ${assignment.id}" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header success">
+            <div class="modal-header danger">
                 <h5 class="modal-title">
-                    <i class="bi bi-send-check-fill me-2"></i>
-                    Deliver Completed Revision
+                    <i class="bi bi-x-circle-fill me-2"></i>
+                    Reject Revision Request
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form th:action="@{/admin/assignments/{id}/deliver-revision(id=${assignment.id})}"
+            <form th:action="@{/admin/revision-requests/{id}/reject(id=${assignment.revisionRequests[0].id})}"
                   method="post">
                 <div class="modal-body">
-                    <div class="alert alert-info mb-3">
-                        <i class="bi bi-info-circle-fill me-2"></i>
-                        <strong>Action:</strong> This will mark the revision as completed and notify the student that their revised assignment is ready for download.
+                    <div class="alert alert-warning mb-3">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Warning:</strong> This will reject the revision request and notify the student.
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Completion Message (Optional)</label>
-                        <textarea class="form-control" name="completionMessage" rows="4"
-                                  placeholder="Add a message to the student about what was revised (optional)..."></textarea>
+                    <div class="form-group mb-3">
+                        <label class="form-label">Reason for Rejection <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="rejectionReason" rows="4" required
+                                  placeholder="Explain why this revision request is being rejected..."></textarea>
                         <small class="text-muted mt-1 d-block">
-                            This message will be included in the email notification to the student
+                            This reason will be sent to the student
                         </small>
                     </div>
 
-                    <div class="alert alert-success mb-0">
-                        <i class="bi bi-check-circle-fill me-2"></i>
-                        The student will receive an email notification immediately
+                    <div class="alert alert-danger mb-0">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        The student will be notified via email about this rejection
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         Cancel
                     </button>
-                    <button type="submit" class="btn btn-success">
-                        <i class="bi bi-send-fill me-1"></i> Deliver to Student
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-x-circle me-1"></i> Reject Request
                     </button>
                 </div>
             </form>
@@ -813,31 +727,6 @@
     </div>
 </div>
 
-<!-- Status Update Modal -->
-<div th:each="assignment : ${assignments}"
-     th:if="${!assignment.revisionRequests.empty}"
-     class="modal fade" th:id="'updateStatusModal' + ${assignment.id}" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-pencil-square me-2"></i>
-                    Update Revision Status
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form th:action="@{/admin/revision-requests/{id}/update-status(id=${assignment.revisionRequests[0].id})}"
-                  method="post">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label class="form-label">Status</label>
-                        <select class="form-select" name="status" required>
-                            <option value="PENDING">Pending</option>
-                            <option value="IN_PROGRESS">In Progress</option>
-                            <option value="COMPLETED">Completed</option>
-                        </select>
-                    </div>
-                    <div class="form-group mb-0">
-                        <label class="form-label">Admin Notes (Internal)</label>
-                        <textarea class="form-control" name="adminNotes" rows="3"
-                                  placeholder
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

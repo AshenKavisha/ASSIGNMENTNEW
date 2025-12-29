@@ -66,10 +66,30 @@ public class EmailService {
     }
 
     /**
+     /**
      * Send solution files to user via email with attachments
      */
     public void sendSolutionToUser(User user, Assignment assignment, List<MultipartFile> solutionFiles)
             throws MessagingException, IOException {
+
+        System.out.println("========================================");
+        System.out.println("SENDING EMAIL WITH ATTACHMENTS");
+        System.out.println("========================================");
+        System.out.println("Recipient: " + user.getEmail());
+        System.out.println("Assignment: " + assignment.getTitle());
+        System.out.println("Number of files: " + solutionFiles.size());
+
+        long totalSize = 0;
+        for (MultipartFile file : solutionFiles) {
+            if (!file.isEmpty()) {
+                long fileSize = file.getSize();
+                totalSize += fileSize;
+                System.out.println("File: " + file.getOriginalFilename() +
+                        " | Size: " + (fileSize / 1024) + " KB" +
+                        " | Type: " + file.getContentType());
+            }
+        }
+        System.out.println("Total attachment size: " + (totalSize / 1024) + " KB (" + (totalSize / (1024 * 1024)) + " MB)");
 
         MimeMessage message = emailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -82,17 +102,33 @@ public class EmailService {
         helper.setText(content, true);
 
         // Attach solution files
+        int attachmentCount = 0;
         for (MultipartFile file : solutionFiles) {
             if (!file.isEmpty()) {
-                helper.addAttachment(
-                        file.getOriginalFilename(),
-                        new ByteArrayResource(file.getBytes()),
-                        file.getContentType()
-                );
+                try {
+                    System.out.println("Attaching file: " + file.getOriginalFilename());
+                    helper.addAttachment(
+                            file.getOriginalFilename(),
+                            new ByteArrayResource(file.getBytes()),
+                            file.getContentType()
+                    );
+                    attachmentCount++;
+                    System.out.println("✓ Successfully attached: " + file.getOriginalFilename());
+                } catch (Exception e) {
+                    System.err.println("✗ Failed to attach file: " + file.getOriginalFilename());
+                    System.err.println("Error: " + e.getMessage());
+                    throw e;
+                }
             }
         }
 
+        System.out.println("Total attachments added: " + attachmentCount);
+        System.out.println("Sending email...");
+
         emailSender.send(message);
+
+        System.out.println("✓ EMAIL SENT SUCCESSFULLY!");
+        System.out.println("========================================");
     }
 
     /**
