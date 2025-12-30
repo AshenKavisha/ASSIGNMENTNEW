@@ -1,7 +1,9 @@
 package com.assignmentservice.controller;
 
+import com.assignmentservice.model.Notification;
 import com.assignmentservice.model.User;
 import com.assignmentservice.service.AssignmentService;
+import com.assignmentservice.service.NotificationService;
 import com.assignmentservice.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -29,6 +32,9 @@ public class AuthController {
 
     @Autowired
     private AssignmentService assignmentService;
+
+    @Autowired
+    private NotificationService notificationService; // ADDED
 
     // ==========================================
     // REGISTRATION ENDPOINTS (Updated with Email Verification)
@@ -73,20 +79,14 @@ public class AuthController {
     }
 
     // ==========================================
-    // EMAIL VERIFICATION ENDPOINTS (NEW)
+    // EMAIL VERIFICATION ENDPOINTS
     // ==========================================
 
-    /**
-     * Show verification sent page
-     */
     @GetMapping("/verification-sent")
     public String showVerificationSent(Model model) {
         return "verification-sent";
     }
 
-    /**
-     * Handle email verification
-     */
     @GetMapping("/verify")
     public String verifyEmail(@RequestParam("token") String token,
                               RedirectAttributes redirectAttributes) {
@@ -110,17 +110,11 @@ public class AuthController {
         }
     }
 
-    /**
-     * Show resend verification page
-     */
     @GetMapping("/resend-verification")
     public String showResendVerification() {
         return "resend-verification";
     }
 
-    /**
-     * Handle resend verification email
-     */
     @PostMapping("/resend-verification")
     public String resendVerification(@RequestParam("email") String email,
                                      RedirectAttributes redirectAttributes) {
@@ -146,27 +140,20 @@ public class AuthController {
     }
 
     // ==========================================
-    // PASSWORD RESET ENDPOINTS (NEW)
+    // PASSWORD RESET ENDPOINTS
     // ==========================================
 
-    /**
-     * Show forgot password page
-     */
     @GetMapping("/forgot-password")
     public String showForgotPasswordForm() {
         return "forgot-password";
     }
 
-    /**
-     * Handle forgot password form submission
-     */
     @PostMapping("/forgot-password")
     public String processForgotPassword(@RequestParam("email") String email,
                                         RedirectAttributes redirectAttributes) {
         try {
             userService.createPasswordResetToken(email);
 
-            // Always show success message (security best practice - don't reveal if email exists)
             redirectAttributes.addFlashAttribute("message",
                     "If an account exists with that email, you will receive password reset instructions.");
 
@@ -179,15 +166,11 @@ public class AuthController {
         }
     }
 
-    /**
-     * Show reset password page
-     */
     @GetMapping("/reset-password")
     public String showResetPasswordForm(@RequestParam("token") String token,
                                         Model model,
                                         RedirectAttributes redirectAttributes) {
         try {
-            // Validate token
             boolean isValid = userService.validatePasswordResetToken(token);
 
             if (!isValid) {
@@ -206,23 +189,18 @@ public class AuthController {
         }
     }
 
-    /**
-     * Handle reset password form submission
-     */
     @PostMapping("/reset-password")
     public String processResetPassword(@RequestParam("token") String token,
                                        @RequestParam("password") String password,
                                        @RequestParam("confirmPassword") String confirmPassword,
                                        RedirectAttributes redirectAttributes) {
         try {
-            // Validate passwords match
             if (!password.equals(confirmPassword)) {
                 redirectAttributes.addFlashAttribute("error", "Passwords do not match");
                 redirectAttributes.addFlashAttribute("token", token);
                 return "redirect:/reset-password?token=" + token;
             }
 
-            // Validate password length
             if (password.length() < 6) {
                 redirectAttributes.addFlashAttribute("error",
                         "Password must be at least 6 characters long");
@@ -230,7 +208,6 @@ public class AuthController {
                 return "redirect:/reset-password?token=" + token;
             }
 
-            // Reset password
             boolean success = userService.resetPassword(token, password);
 
             if (success) {
@@ -251,7 +228,7 @@ public class AuthController {
     }
 
     // ==========================================
-    // LOGIN & LOGOUT ENDPOINTS (Your Original Code)
+    // LOGIN & LOGOUT ENDPOINTS
     // ==========================================
 
     @GetMapping("/login")
@@ -300,8 +277,11 @@ public class AuthController {
                     return "redirect:/login?unverified=true";
                 }
 
+                // *** FIXED: Load notifications explicitly ***
+                List<Notification> notifications = notificationService.getUserNotifications(user);
+                user.setNotifications(notifications);
+
                 model.addAttribute("user", user);
-                // Also set user in session for compatibility
                 session.setAttribute("user", user);
 
                 // Add admin statistics if user is admin
@@ -313,7 +293,6 @@ public class AuthController {
                         model.addAttribute("pendingAssignmentsCount", pendingAssignmentsCount);
                         model.addAttribute("totalAssignments", totalAssignments);
                     } catch (Exception e) {
-                        // If assignment service methods are not available yet, set default values
                         model.addAttribute("pendingAssignmentsCount", 0);
                         model.addAttribute("totalAssignments", 0);
                     }
@@ -334,7 +313,6 @@ public class AuthController {
 
     @GetMapping("/logout")
     public String logout(HttpServletRequest request) {
-        // Spring Security logout
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null) {
             new SecurityContextLogoutHandler().logout(request, null, auth);

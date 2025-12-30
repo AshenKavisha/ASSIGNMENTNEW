@@ -52,6 +52,11 @@ public class AdminController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private NotificationService notificationService;
+
+
+
     // ============ DASHBOARD ============
     @GetMapping("/dashboard")
     public String adminDashboard(Model model) {
@@ -337,6 +342,9 @@ public class AdminController {
     public String approveAssignment(@PathVariable Long id,
                                     @RequestParam(required = false) @Min(0) Double price,
                                     RedirectAttributes redirectAttributes) {
+
+
+
         if (!isAdminUser()) {
             return "redirect:/dashboard?error=Unauthorized";
         }
@@ -362,6 +370,9 @@ public class AdminController {
 
                 emailService.sendAssignmentApprovalToUser(assignment.getUser().getEmail(), assignment);
 
+                // After approving assignment
+                notificationService.notifyUserAssignmentApproved(assignment);
+
                 redirectAttributes.addFlashAttribute("success", "Assignment approved successfully!");
             } else {
                 redirectAttributes.addFlashAttribute("error", "Assignment not found or you don't have permission to approve it!");
@@ -378,6 +389,8 @@ public class AdminController {
             return "redirect:/dashboard?error=Unauthorized";
         }
 
+
+
         // Get current admin
         Optional<User> currentAdminOpt = getCurrentAdmin();
         if (!currentAdminOpt.isPresent()) {
@@ -393,6 +406,8 @@ public class AdminController {
                 Assignment assignment = assignmentOpt.get();
                 assignment.setStatus(Assignment.AssignmentStatus.REJECTED);
                 assignmentService.saveAssignment(assignment);
+                // After rejecting assignment
+                notificationService.notifyUserAssignmentRejected(assignment);
                 redirectAttributes.addFlashAttribute("success", "Assignment rejected successfully!");
             } else {
                 redirectAttributes.addFlashAttribute("error", "Assignment not found or you don't have permission to reject it!");
@@ -401,6 +416,8 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("error", "Failed to reject assignment: " + e.getMessage());
         }
         return "redirect:/admin/assignments/pending";
+
+
     }
 
     @GetMapping("/assignments/{id}")
@@ -627,42 +644,6 @@ public class AdminController {
         return "admin/view-reports";
     }
 
-
-
-    // ============ SOLUTION DELIVERY ============
-    @GetMapping("/assignments/{id}/deliver")
-    public String showDeliverSolutionForm(@PathVariable Long id, Model model) {
-        if (!isAdminUser()) {
-            return "redirect:/dashboard?error=Unauthorized";
-        }
-
-        // Get current admin
-        Optional<User> currentAdminOpt = getCurrentAdmin();
-        if (!currentAdminOpt.isPresent()) {
-            return "redirect:/dashboard?error=User not found";
-        }
-
-        User currentAdmin = currentAdminOpt.get();
-
-        // *** NEW: Check if admin has access to this assignment ***
-        Optional<Assignment> assignmentOpt = assignmentService.getAssignmentByIdForAdmin(id, currentAdmin);
-        if (assignmentOpt.isEmpty()) {
-            return "redirect:/admin/assignments/completed?error=Access Denied: You don't have permission to access this assignment";
-        }
-
-        Assignment assignment = assignmentOpt.get();
-
-        // Only allow delivery for approved, completed or in-progress assignments
-        if (assignment.getStatus() != Assignment.AssignmentStatus.APPROVED &&
-                assignment.getStatus() != Assignment.AssignmentStatus.APPROVED &&
-                assignment.getStatus() != Assignment.AssignmentStatus.IN_PROGRESS) {
-            return "redirect:/admin/assignments/" + id + "?error=Cannot deliver solution at this stage";
-        }
-
-        model.addAttribute("assignment", assignment);
-        model.addAttribute("currentAdmin", currentAdmin);
-        return "admin/assignment-solution-delivery";
-    }
 
     @PostMapping("/assignments/{id}/deliver-solution")
     public String deliverSolution(@PathVariable Long id,

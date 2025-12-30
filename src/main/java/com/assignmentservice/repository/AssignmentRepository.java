@@ -27,6 +27,9 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     // Find assignments by type
     List<Assignment> findByType(Assignment.AssignmentType type);
 
+    // Find assignments by type with pagination
+    Page<Assignment> findByType(Assignment.AssignmentType type, Pageable pageable);
+
     // Find assignments by type and status with pagination
     Page<Assignment> findByTypeAndStatus(Assignment.AssignmentType type,
                                          Assignment.AssignmentStatus status,

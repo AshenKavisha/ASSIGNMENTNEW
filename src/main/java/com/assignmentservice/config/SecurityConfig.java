@@ -17,7 +17,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -102,6 +101,12 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/feedback/submit",
                                 "/feedback/my-feedback"
+                        ).authenticated()
+
+                        // Notification endpoints - require authentication (FIXED - moved before anyRequest)
+                        .requestMatchers(
+                                "/notifications/**",
+                                "/api/notifications/**"
                         ).authenticated()
 
                         // Dashboard - require authentication
@@ -258,14 +263,4 @@ public class SecurityConfig {
             }
         };
     }
-
-    // Custom access denied handler (optional)
-    /*
-    @Bean
-    public AccessDeniedHandler accessDeniedHandler() {
-        return (request, response, accessDeniedException) -> {
-            response.sendRedirect("/access-denied");
-        };
-    }
-    */
 }

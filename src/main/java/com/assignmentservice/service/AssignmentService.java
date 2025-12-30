@@ -30,17 +30,23 @@ public class AssignmentService {
     @Autowired
     private EmailService emailService;
 
-    // NEW: Revision repository
     @Autowired
     private RevisionRequestRepository revisionRequestRepository;
 
+    @Autowired
+    private NotificationService notificationService;
+
     // ============================================
-    // EXISTING METHODS (Your original code)
+    // EXISTING METHODS WITH NOTIFICATION INTEGRATION
     // ============================================
 
     public Assignment createAssignment(Assignment assignment) {
         Assignment savedAssignment = assignmentRepository.save(assignment);
         emailService.sendAssignmentNotificationToAdmin(savedAssignment);
+
+        // ADDED: Send in-app notification to admin
+        notificationService.notifyAdminAssignmentSubmitted(savedAssignment);
+
         return savedAssignment;
     }
 
@@ -81,7 +87,39 @@ public class AssignmentService {
         return Optional.empty();
     }
 
+    /**
+     * Update assignment status with notifications
+     * UPDATED: Added User admin parameter for notification tracking
+     */
+    public Assignment updateAssignmentStatus(Long id, Assignment.AssignmentStatus status, User admin) {
+        Optional<Assignment> assignmentOpt = assignmentRepository.findById(id);
+        if (assignmentOpt.isPresent()) {
+            Assignment assignment = assignmentOpt.get();
+            Assignment.AssignmentStatus oldStatus = assignment.getStatus();
+            assignment.setStatus(status);
+            Assignment savedAssignment = assignmentRepository.save(assignment);
+
+            // ADDED: Send notifications based on status change
+            if (status == Assignment.AssignmentStatus.APPROVED && oldStatus != status) {
+                notificationService.notifyUserAssignmentApproved(savedAssignment);
+            } else if (status == Assignment.AssignmentStatus.REJECTED && oldStatus != status) {
+                notificationService.notifyUserAssignmentRejected(savedAssignment);
+            } else if (status == Assignment.AssignmentStatus.DELIVERED && oldStatus != status) {
+                notificationService.notifyUserSolutionDelivered(savedAssignment, admin);
+            }
+
+            return savedAssignment;
+        }
+        return null;
+    }
+
+    /**
+     * Overloaded method for backward compatibility
+     * @deprecated Use updateAssignmentStatus(Long, AssignmentStatus, User) instead
+     */
+    @Deprecated
     public Assignment updateAssignmentStatus(Long id, Assignment.AssignmentStatus status) {
+        // For backward compatibility, call without notification
         Optional<Assignment> assignmentOpt = assignmentRepository.findById(id);
         if (assignmentOpt.isPresent()) {
             Assignment assignment = assignmentOpt.get();
@@ -95,8 +133,20 @@ public class AssignmentService {
         Optional<Assignment> assignmentOpt = getAssignmentByIdForAdmin(id, admin);
         if (assignmentOpt.isPresent()) {
             Assignment assignment = assignmentOpt.get();
+            Assignment.AssignmentStatus oldStatus = assignment.getStatus();
             assignment.setStatus(status);
-            return assignmentRepository.save(assignment);
+            Assignment savedAssignment = assignmentRepository.save(assignment);
+
+            // ADDED: Send notifications based on status change
+            if (status == Assignment.AssignmentStatus.APPROVED && oldStatus != status) {
+                notificationService.notifyUserAssignmentApproved(savedAssignment);
+            } else if (status == Assignment.AssignmentStatus.REJECTED && oldStatus != status) {
+                notificationService.notifyUserAssignmentRejected(savedAssignment);
+            } else if (status == Assignment.AssignmentStatus.DELIVERED && oldStatus != status) {
+                notificationService.notifyUserSolutionDelivered(savedAssignment, admin);
+            }
+
+            return savedAssignment;
         }
         return null;
     }
@@ -197,77 +247,74 @@ public class AssignmentService {
         return getCompletedAssignmentsByType(adminType, pageable);
     }
 
-    public Page<Assignment> getCompletedAssignmentsByTypeForAdmin(
-            Assignment.AssignmentType type, Pageable pageable, User admin) {
+    public Page<Assignment> getAssignmentsPaginated(Pageable pageable) {
+        return assignmentRepository.findAll(pageable);
+    }
 
-        if (!canAdminAccessAssignmentType(admin, type)) {
-            return Page.empty(pageable);
+    public Page<Assignment> getAssignmentsPaginatedForAdmin(Pageable pageable, User admin) {
+        if (admin.getSpecialization() == User.Specialization.BOTH) {
+            return assignmentRepository.findAll(pageable);
         }
 
-        return getCompletedAssignmentsByType(type, pageable);
+        Assignment.AssignmentType adminType = getAdminAssignmentType(admin);
+        if (adminType != null) {
+            return assignmentRepository.findByType(adminType, pageable);
+        }
+
+        return Page.empty(pageable);
     }
 
-    public long countCompletedAssignmentsByType(Assignment.AssignmentType type) {
-        List<Assignment.AssignmentStatus> excludedStatuses = new ArrayList<>();
-        excludedStatuses.add(Assignment.AssignmentStatus.PENDING);
-        excludedStatuses.add(Assignment.AssignmentStatus.REJECTED);
-        return assignmentRepository.countByTypeAndStatusNotIn(type, excludedStatuses);
-    }
-
-    public Map<String, Object> getAssignmentStatistics(LocalDateTime startDate) {
-        Map<String, Object> stats = new HashMap<>();
-
-        long totalAssignments = assignmentRepository.countByCreatedAtAfter(startDate);
-
-        long completedCount = assignmentRepository.countByStatusAndCreatedAtAfter(
-                Assignment.AssignmentStatus.COMPLETED, startDate);
-        long deliveredCount = assignmentRepository.countByStatusAndCreatedAtAfter(
-                Assignment.AssignmentStatus.DELIVERED, startDate);
-        long completed = completedCount + deliveredCount;
-
-        long pending = assignmentRepository.countByStatusAndCreatedAtAfter(
-                Assignment.AssignmentStatus.PENDING, startDate);
-        long inProgress = assignmentRepository.countByStatusAndCreatedAtAfter(
-                Assignment.AssignmentStatus.IN_PROGRESS, startDate);
-
-        stats.put("totalAssignments", totalAssignments);
-        stats.put("completed", completed);
-        stats.put("pending", pending);
-        stats.put("inProgress", inProgress);
-
-        double completionRate = totalAssignments > 0 ? (completed * 100.0) / totalAssignments : 0;
-        stats.put("completionRate", String.format("%.1f%%", completionRate));
-
-        double avgResponseTime = 24.0;
-        stats.put("avgResponseTime", String.format("%.1f hours", avgResponseTime));
-
+    public Map<String, Long> getAssignmentStatistics() {
+        Map<String, Long> stats = new HashMap<>();
+        stats.put("total", assignmentRepository.count());
+        stats.put("pending", assignmentRepository.countByStatus(Assignment.AssignmentStatus.PENDING));
+        stats.put("approved", assignmentRepository.countByStatus(Assignment.AssignmentStatus.APPROVED));
+        stats.put("inProgress", assignmentRepository.countByStatus(Assignment.AssignmentStatus.IN_PROGRESS));
+        stats.put("delivered", assignmentRepository.countByStatus(Assignment.AssignmentStatus.DELIVERED));
+        stats.put("rejected", assignmentRepository.countByStatus(Assignment.AssignmentStatus.REJECTED));
         return stats;
     }
 
-    public Map<String, Object> getAssignmentStatisticsForAdmin(LocalDateTime startDate, User admin) {
-        if (admin.getSpecialization() == User.Specialization.BOTH) {
-            return getAssignmentStatistics(startDate);
-        }
+    public Map<String, Long> getAssignmentStatisticsByType(Assignment.AssignmentType type) {
+        Map<String, Long> stats = new HashMap<>();
+        stats.put("total", assignmentRepository.countByType(type));
+        stats.put("pending", assignmentRepository.countByTypeAndStatus(type, Assignment.AssignmentStatus.PENDING));
+        stats.put("approved", assignmentRepository.countByTypeAndStatus(type, Assignment.AssignmentStatus.APPROVED));
+        stats.put("inProgress", assignmentRepository.countByTypeAndStatus(type, Assignment.AssignmentStatus.IN_PROGRESS));
+        stats.put("delivered", assignmentRepository.countByTypeAndStatus(type, Assignment.AssignmentStatus.DELIVERED));
+        stats.put("rejected", assignmentRepository.countByTypeAndStatus(type, Assignment.AssignmentStatus.REJECTED));
+        return stats;
+    }
 
+    public Map<String, Object> getPerformanceMetrics(LocalDateTime startDate, User admin) {
         Map<String, Object> stats = new HashMap<>();
-        Assignment.AssignmentType adminType = getAdminAssignmentType(admin);
 
-        if (adminType == null) {
+        Assignment.AssignmentType adminType = getAdminAssignmentType(admin);
+        if (adminType == null && admin.getSpecialization() != User.Specialization.BOTH) {
             return stats;
         }
 
-        long totalAssignments = assignmentRepository.countByTypeAndCreatedAtAfter(adminType, startDate);
+        long totalAssignments = adminType != null ?
+                assignmentRepository.countByTypeAndCreatedAtAfter(adminType, startDate) :
+                assignmentRepository.countByCreatedAtAfter(startDate);
 
-        long completedCount = assignmentRepository.countByTypeAndStatusAndCreatedAtAfter(
-                adminType, Assignment.AssignmentStatus.COMPLETED, startDate);
-        long deliveredCount = assignmentRepository.countByTypeAndStatusAndCreatedAtAfter(
-                adminType, Assignment.AssignmentStatus.DELIVERED, startDate);
-        long completed = completedCount + deliveredCount;
+        long completed = adminType != null ?
+                assignmentRepository.countByTypeAndStatusAndCreatedAtAfter(
+                        adminType, Assignment.AssignmentStatus.APPROVED, startDate) :
+                assignmentRepository.countByStatusAndCreatedAtAfter(
+                        Assignment.AssignmentStatus.APPROVED, startDate);
 
-        long pending = assignmentRepository.countByTypeAndStatusAndCreatedAtAfter(
-                adminType, Assignment.AssignmentStatus.PENDING, startDate);
-        long inProgress = assignmentRepository.countByTypeAndStatusAndCreatedAtAfter(
-                adminType, Assignment.AssignmentStatus.IN_PROGRESS, startDate);
+        long pending = adminType != null ?
+                assignmentRepository.countByTypeAndStatusAndCreatedAtAfter(
+                        adminType, Assignment.AssignmentStatus.PENDING, startDate) :
+                assignmentRepository.countByStatusAndCreatedAtAfter(
+                        Assignment.AssignmentStatus.PENDING, startDate);
+
+        long inProgress = adminType != null ?
+                assignmentRepository.countByTypeAndStatusAndCreatedAtAfter(
+                        adminType, Assignment.AssignmentStatus.IN_PROGRESS, startDate) :
+                assignmentRepository.countByStatusAndCreatedAtAfter(
+                        Assignment.AssignmentStatus.IN_PROGRESS, startDate);
 
         stats.put("totalAssignments", totalAssignments);
         stats.put("completed", completed);
@@ -285,7 +332,7 @@ public class AssignmentService {
         Map<String, Object> revenue = new HashMap<>();
 
         Double totalRevenue = assignmentRepository.sumPriceByStatusAndCreatedAtAfter(
-                Assignment.AssignmentStatus.COMPLETED, startDate);
+                Assignment.AssignmentStatus.APPROVED, startDate);
         Double itRevenue = assignmentRepository.sumPriceByTypeStatusAndCreatedAtAfter(
                 Assignment.AssignmentType.IT,
                 Assignment.AssignmentStatus.COMPLETED,
@@ -310,11 +357,12 @@ public class AssignmentService {
     }
 
     // ============================================
-    // NEW METHODS FOR REVISION FEATURE
+    // REVISION METHODS WITH NOTIFICATION INTEGRATION
     // ============================================
 
     /**
      * Create a revision request for an assignment
+     * UPDATED: Added notification to admin
      */
     public RevisionRequest createRevisionRequest(Long assignmentId, String reason) {
         Assignment assignment = getAssignmentById(assignmentId)
@@ -327,7 +375,16 @@ public class AssignmentService {
         }
 
         RevisionRequest revisionRequest = new RevisionRequest(assignment, reason);
-        return revisionRequestRepository.save(revisionRequest);
+        RevisionRequest savedRequest = revisionRequestRepository.save(revisionRequest);
+
+        // ADDED: Update assignment status
+        assignment.setStatus(Assignment.AssignmentStatus.REVISION_REQUESTED);
+        assignmentRepository.save(assignment);
+
+        // ADDED: Send notification to admin
+        notificationService.notifyAdminRevisionRequested(assignment, savedRequest);
+
+        return savedRequest;
     }
 
     /**
@@ -340,9 +397,35 @@ public class AssignmentService {
 
     /**
      * Update revision request
+     * UPDATED: Added notification logic for status changes
      */
     public RevisionRequest updateRevisionRequest(RevisionRequest revisionRequest) {
-        return revisionRequestRepository.save(revisionRequest);
+        RevisionRequest.RevisionStatus oldStatus = null;
+
+        // Get old status if exists
+        if (revisionRequest.getId() != null) {
+            Optional<RevisionRequest> existing = revisionRequestRepository.findById(revisionRequest.getId());
+            if (existing.isPresent()) {
+                oldStatus = existing.get().getStatus();
+            }
+        }
+
+        RevisionRequest savedRequest = revisionRequestRepository.save(revisionRequest);
+
+        // ADDED: Send notifications based on status change
+        if (oldStatus != null && oldStatus != savedRequest.getStatus()) {
+            Assignment assignment = savedRequest.getAssignment();
+
+            if (savedRequest.getStatus() == RevisionRequest.RevisionStatus.COMPLETED) {
+                notificationService.notifyUserRevisionCompleted(assignment);
+            } else if (savedRequest.getStatus() == RevisionRequest.RevisionStatus.REJECTED) {
+                String reason = savedRequest.getAdminNotes() != null ?
+                        savedRequest.getAdminNotes() : "No reason provided";
+                notificationService.notifyUserRevisionRejected(assignment, reason);
+            }
+        }
+
+        return savedRequest;
     }
 
     /**
@@ -453,4 +536,26 @@ public class AssignmentService {
     public boolean isSuperAdmin(User admin) {
         return admin.getSpecialization() == User.Specialization.BOTH;
     }
+
+    public long countCompletedAssignmentsByType(Assignment.AssignmentType type) {
+        List<Assignment.AssignmentStatus> excludedStatuses = new ArrayList<>();
+        excludedStatuses.add(Assignment.AssignmentStatus.PENDING);
+        excludedStatuses.add(Assignment.AssignmentStatus.REJECTED);
+        return assignmentRepository.countByTypeAndStatusNotIn(type, excludedStatuses);
+    }
+
+    public Page<Assignment> getCompletedAssignmentsByTypeForAdmin(
+            Assignment.AssignmentType type, Pageable pageable, User admin) {
+
+        if (!canAdminAccessAssignmentType(admin, type)) {
+            return Page.empty(pageable);
+        }
+
+        return getCompletedAssignmentsByType(type, pageable);
+    }
+
+    public Map<String, Object> getAssignmentStatisticsForAdmin(LocalDateTime startDate, User admin) {
+        return getPerformanceMetrics(startDate, admin);
+    }
+
 }

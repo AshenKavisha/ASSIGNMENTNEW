@@ -278,6 +278,14 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    /**
+     * Get all users (both USER and ADMIN roles)
+     * FIXED: Added missing method required by NotificationService
+     */
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
     public List<User> getAllAdmins() {
         return userRepository.findByRole("ADMIN");
     }

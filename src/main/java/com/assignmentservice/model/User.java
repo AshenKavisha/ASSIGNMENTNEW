@@ -230,6 +230,14 @@ public class User {
         this.feedbacks = feedbacks;
     }
 
+    public List<Notification> getNotifications() { return notifications; }
+    public void setNotifications(List<Notification> notifications) {
+        this.notifications = notifications;
+    }
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Notification> notifications = new ArrayList<>();
+
     // toString method for debugging
     @Override
     public String toString() {
