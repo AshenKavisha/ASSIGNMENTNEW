@@ -704,6 +704,10 @@ public class AdminController {
             // Send solution via email
             emailService.sendSolutionToUser(user, assignment, solutionFiles);
 
+            // ⭐ Send in-app notification to user
+            notificationService.notifyUserSolutionDelivered(assignment, currentAdmin);
+            log.info("In-app notification sent to user: {}", user.getEmail());
+
             // Update assignment status and details
             assignment.setStatus(Assignment.AssignmentStatus.DELIVERED);
             assignment.setAdminNotes(adminNotes);
@@ -1005,6 +1009,11 @@ public class AdminController {
             // Send email
             try {
                 emailService.sendRevisedSolutionEmail(assignment);
+
+                // ⭐ Send in-app notification for revised solution
+                notificationService.notifyUserRevisionCompleted(assignment);
+                log.info("Revision completion notification sent to user: {}", assignment.getUser().getEmail());
+
             } catch (Exception e) {
                 log.warn("Failed to send revised solution email", e);
             }

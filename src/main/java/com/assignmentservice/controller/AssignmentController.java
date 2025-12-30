@@ -6,6 +6,7 @@ import com.assignmentservice.model.RevisionRequest;
 import com.assignmentservice.model.User;
 import com.assignmentservice.service.AssignmentService;
 import com.assignmentservice.service.EmailService;
+import com.assignmentservice.service.NotificationService;
 import com.assignmentservice.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -48,6 +49,9 @@ public class AssignmentController {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     // Define upload directory
     private static final String UPLOAD_BASE_DIR = "uploads/assignments/";
@@ -410,6 +414,7 @@ public class AssignmentController {
             try {
                 emailService.sendRevisionRequestNotificationToAdmin(assignment, revisionRequest);
                 emailService.sendRevisionRequestConfirmationToUser(assignment, revisionRequest);
+                notificationService.notifyAdminRevisionRequested(assignment, revisionRequest);
             } catch (Exception e) {
                 System.err.println("Failed to send revision email notifications: " + e.getMessage());
             }
@@ -477,6 +482,139 @@ public class AssignmentController {
             redirectAttributes.addFlashAttribute("error",
                     "Failed to load delivery page: " + e.getMessage());
             return "redirect:/admin/assignments";
+        }
+    }
+
+    /**
+     * Deliver solution to user (POST request)
+     * This handles the actual solution file upload and email delivery
+     */
+    @PostMapping("/{id}/deliver-solution")
+    public String deliverSolution(@PathVariable Long id,
+                                  @RequestParam("solutionFiles") List<MultipartFile> solutionFiles,
+                                  @RequestParam(value = "adminNotes", required = false) String adminNotes,
+                                  @RequestParam(value = "finalPrice", required = false) Double finalPrice,
+                                  RedirectAttributes redirectAttributes) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+            Optional<User> userOptional = userService.getUserByEmail(email);
+
+            if (userOptional.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "User not found.");
+                return "redirect:/login";
+            }
+
+            User admin = userOptional.get();
+
+            // Check if user is admin
+            if (!admin.getRole().equals("ADMIN") && !admin.getRole().equals("SUPER_ADMIN")) {
+                redirectAttributes.addFlashAttribute("error", "Access denied. Admin privileges required.");
+                return "redirect:/dashboard";
+            }
+
+            Optional<Assignment> assignmentOpt = assignmentService.getAssignmentById(id);
+
+            if (assignmentOpt.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Assignment not found.");
+                return "redirect:/admin/assignments";
+            }
+
+            Assignment assignment = assignmentOpt.get();
+
+            // Check if admin can access this assignment based on specialization
+            if (!assignmentService.canAdminAccessAssignment(admin, assignment)) {
+                redirectAttributes.addFlashAttribute("error",
+                        "You don't have permission to access this assignment. Check your specialization.");
+                return "redirect:/admin/assignments";
+            }
+
+            // Validate solution files
+            if (solutionFiles == null || solutionFiles.isEmpty() ||
+                    solutionFiles.stream().allMatch(MultipartFile::isEmpty)) {
+                redirectAttributes.addFlashAttribute("error", "Please upload at least one solution file.");
+                return "redirect:/assignments/" + id + "/deliver-solution";
+            }
+
+            // Create solution upload directory
+            String userUploadDir = assignment.getUser().getId() + "/solutions/";
+            String absolutePath = UPLOAD_BASE_DIR + userUploadDir;
+
+            System.out.println("=== Solution Delivery: Creating directory ===");
+            System.out.println("Path: " + absolutePath);
+
+            File directory = new File(absolutePath);
+            if (!directory.exists()) {
+                if (directory.mkdirs()) {
+                    System.out.println("Directory created successfully");
+                } else {
+                    throw new IOException("Could not create solution directory: " + absolutePath);
+                }
+            }
+
+            // Save solution files
+            List<String> solutionFilePaths = new ArrayList<>();
+            System.out.println("=== Saving solution files ===");
+
+            for (MultipartFile file : solutionFiles) {
+                if (!file.isEmpty()) {
+                    System.out.println("Processing file: " + file.getOriginalFilename() +
+                            " | Size: " + (file.getSize() / 1024) + " KB");
+
+                    String savedFileName = saveFile(file, absolutePath);
+                    if (savedFileName != null) {
+                        String relativePath = "assignments/" + userUploadDir + savedFileName;
+                        solutionFilePaths.add(relativePath);
+                        System.out.println("✓ File saved: " + relativePath);
+                    }
+                }
+            }
+
+            if (solutionFilePaths.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Failed to save solution files.");
+                return "redirect:/assignments/" + id + "/deliver-solution";
+            }
+
+            // Update assignment with solution details
+            assignment.setSolutionFiles(String.join(",", solutionFilePaths));
+            assignment.setAdminNotes(adminNotes);
+            assignment.setFinalPrice(finalPrice);
+            assignment.setStatus(AssignmentStatus.DELIVERED);
+            assignment.setDeliveredAt(java.time.LocalDateTime.now());
+            assignmentService.saveAssignment(assignment);
+
+            System.out.println("=== Assignment updated with solution ===");
+            System.out.println("Assignment ID: " + assignment.getId());
+            System.out.println("Status: " + assignment.getStatus());
+            System.out.println("Files: " + assignment.getSolutionFiles());
+
+            // Send notifications
+            try {
+                // Send email with solution files attached
+                emailService.sendSolutionToUser(assignment.getUser(), assignment, solutionFiles);
+                System.out.println("✓ Email sent to user with attachments");
+
+                // ⭐ NEW: Send in-app notification to user
+                notificationService.notifyUserSolutionDelivered(assignment, admin);
+                System.out.println("✓ In-app notification created for user");
+
+            } catch (Exception e) {
+                System.err.println("Failed to send notifications: " + e.getMessage());
+                e.printStackTrace();
+                // Don't fail the entire operation if notifications fail
+            }
+
+            redirectAttributes.addFlashAttribute("success",
+                    "Solution delivered successfully! The user has been notified via email and in-app notification.");
+            return "redirect:/admin/assignments";
+
+        } catch (Exception e) {
+            System.err.println("=== ERROR: Solution delivery failed ===");
+            System.err.println("Error: " + e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error",
+                    "Failed to deliver solution: " + e.getMessage());
+            return "redirect:/assignments/" + id + "/deliver-solution";
         }
     }
     /**
