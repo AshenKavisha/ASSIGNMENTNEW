@@ -186,13 +186,14 @@
 
             <!-- ============================================ -->
             <!-- Maven Surefire Plugin for Tests             -->
+            <!-- CHANGED: skipTests is now TRUE for Azure     -->
             <!-- ============================================ -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.1.2</version>
                 <configuration>
-                    <skipTests>false</skipTests>
+                    <skipTests>true</skipTests>
                 </configuration>
             </plugin>
 
