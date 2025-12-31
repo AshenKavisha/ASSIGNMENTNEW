@@ -326,8 +326,98 @@ public class EmailService {
     // ==========================================
 
     private String createAdminInvitationContent(String email, String password) {
-        // Your existing implementation - keep as is
-        return ""; // Replace with your actual implementation
+        String loginUrl = appUrl + "/login";
+
+        return "<!DOCTYPE html>" +
+                "<html lang='en'>" +
+                "<head><meta charset='UTF-8'><title>Admin Invitation</title></head>" +
+                "<body style='margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;'>" +
+                "<table width='100%' cellpadding='0' cellspacing='0' style='background-color: #f4f4f4; padding: 20px;'>" +
+                "<tr><td align='center'>" +
+                "<table width='600' cellpadding='0' cellspacing='0' style='background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>" +
+
+                "<!-- Header -->" +
+                "<tr><td style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;'>" +
+                "<h1 style='color: #ffffff; margin: 0; font-size: 28px;'>🎉 Welcome to the Admin Team!</h1>" +
+                "<p style='color: #ffffff; margin: 10px 0 0; font-size: 16px;'>Your administrator account has been created</p>" +
+                "</td></tr>" +
+
+                "<!-- Body -->" +
+                "<tr><td style='padding: 40px 30px;'>" +
+                "<h2 style='color: #333; margin-top: 0; font-size: 24px;'>Welcome Aboard!</h2>" +
+
+                "<p style='color: #666; line-height: 1.6; font-size: 16px;'>" +
+                "You have been granted administrator access to the Assignment Service platform. " +
+                "Use the credentials below to log in and start managing assignments." +
+                "</p>" +
+
+                "<!-- Credentials Box -->" +
+                "<div style='background: #f8f9fa; padding: 25px; border-radius: 8px; margin: 30px 0; border-left: 4px solid #667eea;'>" +
+                "<h3 style='color: #333; margin-top: 0; font-size: 18px;'>🔐 Your Login Credentials</h3>" +
+                "<p style='margin: 10px 0;'><strong style='color: #555;'>Email:</strong> <span style='color: #667eea;'>" + email + "</span></p>" +
+                "<p style='margin: 10px 0;'><strong style='color: #555;'>Temporary Password:</strong> <span style='color: #667eea; font-family: monospace;'>" + password + "</span></p>" +
+                "</div>" +
+
+                "<!-- Login Button -->" +
+                "<div style='text-align: center; margin: 35px 0;'>" +
+                "<a href='" + loginUrl + "' " +
+                "style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; " +
+                "padding: 15px 40px; text-decoration: none; border-radius: 5px; font-weight: bold; " +
+                "font-size: 16px; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>" +
+                "🚀 Access Admin Portal" +
+                "</a>" +
+                "</div>" +
+
+                "<!-- Important Security Notice -->" +
+                "<div style='background: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; margin: 25px 0; border-radius: 5px;'>" +
+                "<h4 style='color: #856404; margin-top: 0; font-size: 16px;'>🔒 Important Security Notice</h4>" +
+                "<ul style='color: #856404; margin: 10px 0; padding-left: 20px; line-height: 1.8;'>" +
+                "<li>Please change your password immediately after your first login</li>" +
+                "<li>Keep your credentials confidential</li>" +
+                "<li>Never share your admin access with anyone</li>" +
+                "<li>Log out when you're done working</li>" +
+                "</ul>" +
+                "</div>" +
+
+                "<!-- Admin Responsibilities -->" +
+                "<div style='background: #e3f2fd; padding: 20px; border-radius: 5px; margin: 25px 0;'>" +
+                "<h4 style='color: #1976D2; margin-top: 0; font-size: 16px;'>📋 Your Admin Responsibilities</h4>" +
+                "<ul style='color: #1565C0; margin: 10px 0; padding-left: 20px; line-height: 1.8;'>" +
+                "<li>Review and approve assignment submissions</li>" +
+                "<li>Manage user requests and inquiries</li>" +
+                "<li>Upload and deliver assignment solutions</li>" +
+                "<li>Monitor system performance and reports</li>" +
+                "</ul>" +
+                "</div>" +
+
+                "<!-- Alternative Link -->" +
+                "<div style='background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 25px 0;'>" +
+                "<p style='color: #666; margin: 0 0 10px; font-size: 14px;'>" +
+                "<strong>Button not working?</strong> Copy and paste this link:" +
+                "</p>" +
+                "<p style='color: #667eea; margin: 0; font-size: 14px; word-break: break-all;'>" +
+                loginUrl +
+                "</p>" +
+                "</div>" +
+
+                "<p style='color: #999; font-size: 14px; line-height: 1.6; margin: 25px 0 0;'>" +
+                "If you have any questions or need assistance, please contact the system administrator." +
+                "</p>" +
+
+                "</td></tr>" +
+
+                "<!-- Footer -->" +
+                "<tr><td style='background-color: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e9ecef;'>" +
+                "<p style='color: #666; margin: 0 0 10px; font-size: 14px;'><strong>Best regards,</strong></p>" +
+                "<p style='color: #666; margin: 0 0 15px; font-size: 14px;'>Assignment Service Team</p>" +
+                "<p style='color: #999; font-size: 12px; margin: 15px 0 0;'>" +
+                "This is an automated message containing sensitive information.<br>" +
+                "© 2024 Assignment Service. All rights reserved." +
+                "</p>" +
+                "</td></tr>" +
+
+                "</table></td></tr></table>" +
+                "</body></html>";
     }
 
     // REPLACE THE EMPTY createSolutionEmailContent METHOD WITH THIS:
@@ -400,20 +490,205 @@ public class EmailService {
     }
 
     private String createSolutionNotificationContent(User user, Assignment assignment) {
-        // Your existing implementation - keep as is
-        return ""; // Replace with your actual implementation
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm");
+        String deliveryDate = assignment.getDeliveredAt() != null
+                ? assignment.getDeliveredAt().format(formatter)
+                : LocalDateTime.now().format(formatter);
+        String dashboardLink = appUrl + "/assignments/my-assignments";
+
+        return "<!DOCTYPE html>" +
+                "<html lang='en'>" +
+                "<head><meta charset='UTF-8'></head>" +
+                "<body style='margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;'>" +
+                "<table width='100%' cellpadding='0' cellspacing='0' style='background-color: #f4f4f4; padding: 20px;'>" +
+                "<tr><td align='center'>" +
+                "<table width='600' cellpadding='0' cellspacing='0' style='background-color: #ffffff; border-radius: 10px; overflow: hidden;'>" +
+
+                "<!-- Header -->" +
+                "<tr><td style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;'>" +
+                "<h1 style='color: #ffffff; margin: 0; font-size: 28px;'>🎉 Solution Ready for Download!</h1>" +
+                "</td></tr>" +
+
+                "<!-- Body -->" +
+                "<tr><td style='padding: 30px;'>" +
+                "<p style='color: #333; font-size: 16px;'>Dear <strong>" + user.getFullName() + "</strong>,</p>" +
+
+                "<p style='color: #333; font-size: 16px;'>Great news! Your assignment solution for <strong>" + assignment.getTitle() + "</strong> is now ready and available for download!</p>" +
+
+                "<div style='background: #f8f9fa; padding: 20px; border-left: 4px solid #667eea; margin: 25px 0;'>" +
+                "<h3 style='color: #333; margin-top: 0;'>📋 Assignment Details:</h3>" +
+                "<p style='margin: 5px 0;'><strong>Title:</strong> " + assignment.getTitle() + "</p>" +
+                "<p style='margin: 5px 0;'><strong>Subject:</strong> " + assignment.getSubject() + "</p>" +
+                "<p style='margin: 5px 0;'><strong>Type:</strong> " + assignment.getType() + "</p>" +
+                "<p style='margin: 5px 0;'><strong>Delivery Date:</strong> " + deliveryDate + "</p>" +
+                (assignment.getPrice() != null ? "<p style='margin: 5px 0;'><strong>Price:</strong> $" + assignment.getPrice() + "</p>" : "") +
+                "</div>" +
+
+                "<div style='text-align: center; margin: 30px 0;'>" +
+                "<a href='" + dashboardLink + "' style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>Download Solution</a>" +
+                "</div>" +
+
+                "<div style='background: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0;'>" +
+                "<h4 style='color: #1976D2; margin-top: 0;'>📥 How to Download:</h4>" +
+                "<ol style='color: #333; margin: 10px 0; padding-left: 20px;'>" +
+                "<li>Click the button above to go to your dashboard</li>" +
+                "<li>Find your assignment in 'My Assignments'</li>" +
+                "<li>Click the download button to get your files</li>" +
+                "</ol>" +
+                "</div>" +
+
+                "<div style='background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 20px 0;'>" +
+                "<h4 style='color: #856404; margin-top: 0;'>📝 Important Notes:</h4>" +
+                "<ul style='color: #856404; margin: 10px 0; padding-left: 20px;'>" +
+                "<li>Please review all files carefully</li>" +
+                "<li>You have " + assignment.getRemainingRevisions() + " revision(s) remaining</li>" +
+                "<li>Submit revision requests through your dashboard if needed</li>" +
+                "<li>Contact support for any questions</li>" +
+                "</ul>" +
+                "</div>" +
+
+                "<p style='color: #333; font-size: 16px;'>Thank you for choosing our service!</p>" +
+                "</td></tr>" +
+
+                "<!-- Footer -->" +
+                "<tr><td style='background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #e9ecef;'>" +
+                "<p style='color: #666; margin: 0; font-size: 14px;'><strong>Best regards,</strong><br>Assignment Service Team</p>" +
+                "<p style='color: #999; font-size: 12px; margin: 10px 0 0;'>This is an automated message. Please do not reply to this email.<br>For questions, contact support@assignmentservice.com</p>" +
+                "</td></tr>" +
+
+                "</table></td></tr></table>" +
+                "</body></html>";
     }
 
     private String buildVerificationEmail(String fullName, String verificationUrl) {
-        // Your existing implementation - keep as is
-        return ""; // Replace with your actual implementation
+        return "<!DOCTYPE html>" +
+                "<html lang='en'>" +
+                "<head><meta charset='UTF-8'><title>Verify Your Email</title></head>" +
+                "<body style='margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;'>" +
+                "<table width='100%' cellpadding='0' cellspacing='0' style='background-color: #f4f4f4; padding: 20px;'>" +
+                "<tr><td align='center'>" +
+                "<table width='600' cellpadding='0' cellspacing='0' style='background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>" +
+
+                "<!-- Header -->" +
+                "<tr><td style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;'>" +
+                "<h1 style='color: #ffffff; margin: 0; font-size: 28px;'>Welcome to Assignment Service!</h1>" +
+                "<p style='color: #ffffff; margin: 10px 0 0; font-size: 16px;'>Just one more step to get started</p>" +
+                "</td></tr>" +
+
+                "<!-- Body -->" +
+                "<tr><td style='padding: 40px 30px;'>" +
+                "<h2 style='color: #333; margin-top: 0; font-size: 24px;'>Hello " + fullName + "!</h2>" +
+
+                "<p style='color: #666; line-height: 1.6; font-size: 16px;'>" +
+                "Thank you for registering with Assignment Service. We're excited to have you on board!" +
+                "</p>" +
+
+                "<p style='color: #666; line-height: 1.6; font-size: 16px;'>" +
+                "To complete your registration and activate your account, please verify your email address by clicking the button below:" +
+                "</p>" +
+
+                "<!-- Verification Button -->" +
+                "<div style='text-align: center; margin: 35px 0;'>" +
+                "<a href='" + verificationUrl + "' " +
+                "style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; " +
+                "padding: 15px 40px; text-decoration: none; border-radius: 5px; font-weight: bold; " +
+                "font-size: 16px; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>" +
+                "✅ Verify Email Address" +
+                "</a>" +
+                "</div>" +
+
+                "<!-- Alternative Link -->" +
+                "<div style='background: #f8f9fa; padding: 20px; border-radius: 5px; margin: 25px 0;'>" +
+                "<p style='color: #666; margin: 0 0 10px; font-size: 14px;'>" +
+                "<strong>Button not working?</strong> Copy and paste this link into your browser:" +
+                "</p>" +
+                "<p style='color: #667eea; margin: 0; font-size: 14px; word-break: break-all;'>" +
+                verificationUrl +
+                "</p>" +
+                "</div>" +
+
+                "<!-- Important Info -->" +
+                "<div style='background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 25px 0; border-radius: 5px;'>" +
+                "<p style='color: #856404; margin: 0; font-size: 14px;'>" +
+                "<strong>⏰ Important:</strong> This verification link will expire in 24 hours for security reasons." +
+                "</p>" +
+                "</div>" +
+
+                "<p style='color: #999; font-size: 14px; line-height: 1.6; margin: 25px 0 0;'>" +
+                "If you didn't create an account with Assignment Service, please ignore this email." +
+                "</p>" +
+
+                "</td></tr>" +
+
+                "<!-- Footer -->" +
+                "<tr><td style='background-color: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e9ecef;'>" +
+                "<p style='color: #666; margin: 0 0 10px; font-size: 14px;'><strong>Best regards,</strong></p>" +
+                "<p style='color: #666; margin: 0 0 15px; font-size: 14px;'>Assignment Service Team</p>" +
+                "<p style='color: #999; font-size: 12px; margin: 15px 0 0;'>" +
+                "This is an automated message. Please do not reply to this email.<br>" +
+                "For questions, contact support@assignmentservice.com" +
+                "</p>" +
+                "</td></tr>" +
+
+                "</table></td></tr></table>" +
+                "</body></html>";
     }
 
     private String buildPasswordResetEmail(String fullName, String resetUrl) {
-        // Your existing implementation - keep as is
-        return ""; // Replace with your actual implementation
-    }
+        return "<!DOCTYPE html>" +
+                "<html lang='en'>" +
+                "<head><meta charset='UTF-8'><title>Reset Your Password</title></head>" +
+                "<body style='margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;'>" +
+                "<table width='100%' cellpadding='0' cellspacing='0' style='background-color: #f4f4f4; padding: 20px;'>" +
+                "<tr><td align='center'>" +
+                "<table width='600' cellpadding='0' cellspacing='0' style='background-color: #ffffff; border-radius: 10px; overflow: hidden;'>" +
 
+                "<!-- Header -->" +
+                "<tr><td style='background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 40px 30px; text-align: center;'>" +
+                "<h1 style='color: #ffffff; margin: 0; font-size: 28px;'>🔒 Reset Your Password</h1>" +
+                "</td></tr>" +
+
+                "<!-- Body -->" +
+                "<tr><td style='padding: 40px 30px;'>" +
+                "<h2 style='color: #333; margin-top: 0;'>Hello " + fullName + ",</h2>" +
+
+                "<p style='color: #666; line-height: 1.6; font-size: 16px;'>" +
+                "We received a request to reset your password. Click the button below to create a new password:" +
+                "</p>" +
+
+                "<div style='text-align: center; margin: 35px 0;'>" +
+                "<a href='" + resetUrl + "' " +
+                "style='background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: #ffffff; " +
+                "padding: 15px 40px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;'>" +
+                "Reset Password" +
+                "</a>" +
+                "</div>" +
+
+                "<div style='background: #f8f9fa; padding: 20px; border-radius: 5px; margin: 25px 0;'>" +
+                "<p style='color: #666; margin: 0 0 10px; font-size: 14px;'><strong>Link not working?</strong></p>" +
+                "<p style='color: #667eea; margin: 0; font-size: 14px; word-break: break-all;'>" + resetUrl + "</p>" +
+                "</div>" +
+
+                "<div style='background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 25px 0; border-radius: 5px;'>" +
+                "<p style='color: #856404; margin: 0; font-size: 14px;'>" +
+                "<strong>⏰ This link expires in 1 hour</strong> for security reasons." +
+                "</p>" +
+                "</div>" +
+
+                "<p style='color: #999; font-size: 14px;'>" +
+                "If you didn't request a password reset, please ignore this email or contact support if you have concerns." +
+                "</p>" +
+
+                "</td></tr>" +
+
+                "<!-- Footer -->" +
+                "<tr><td style='background-color: #f8f9fa; padding: 20px; text-align: center;'>" +
+                "<p style='color: #999; margin: 0; font-size: 12px;'>© 2024 Assignment Service. All rights reserved.</p>" +
+                "</td></tr>" +
+
+                "</table></td></tr></table>" +
+                "</body></html>";
+    }
     // ==========================================
     // NEW EMAIL TEMPLATE BUILDERS FOR REVISIONS
     // ==========================================
