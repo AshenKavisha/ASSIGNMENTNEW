@@ -80,6 +80,49 @@
       color: #212529;
     }
 
+    .fancy-btn {
+      position: relative;
+      gap: 10px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+      transition: all 0.4s ease;
+      overflow: hidden;
+    }
+
+    .fancy-btn i {
+      font-size: 18px;
+      transition: transform 0.4s ease;
+    }
+
+    .fancy-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+              120deg,
+              transparent,
+              rgba(255, 255, 255, 0.3),
+              transparent
+      );
+      transform: translateX(-100%);
+      transition: transform 0.6s ease;
+    }
+
+    .fancy-btn:hover::before {
+      transform: translateX(100%);
+    }
+
+    .fancy-btn:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 15px 35px rgba(102, 126, 234, 0.6);
+    }
+
+    .fancy-btn:hover i {
+      transform: translateX(6px);
+    }
+
+
     .btn-auth {
       background: #fff;
       color: #212529;
@@ -285,7 +328,7 @@
       position: relative;
       max-width: 1200px;
       margin: 0 auto;
-      padding: 0 60px;
+      padding: 0 80px;
     }
 
     .testimonial-slider {
@@ -365,20 +408,22 @@
       align-items: center;
       justify-content: center;
       transition: all 0.3s ease;
-      z-index: 10;
+      z-index: 100;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
     }
 
     .slider-btn:hover {
       background: #764ba2;
       transform: translateY(-50%) scale(1.1);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
     }
 
     .slider-btn.prev {
-      left: 0;
+      left: 10px;
     }
 
     .slider-btn.next {
-      right: 0;
+      right: 10px;
     }
 
     .average-rating {
@@ -587,6 +632,14 @@
         font-size: 16px;
       }
 
+      .slider-btn.prev {
+        left: 10px;
+      }
+
+      .slider-btn.next {
+        right: 10px;
+      }
+
       .title h2 {
         font-size: 26px;
       }
@@ -638,7 +691,11 @@
   <div class="hero-text">
     <h1>Professional Assignment Help for IT & QS Students</h1>
     <p>We are committed to providing top-quality assignment assistance and helping students achieve academic excellence. Our experienced team specializes in IT programming and Quantity Surveying projects, ensuring timely delivery and exceptional results.</p>
-    <a href="/register" class="started">Get Started Today <i class="fas fa-arrow-right"></i></a>
+    <a href="/register" class="started fancy-btn">
+      Get Started Today
+      <i class="bi bi-chevron-right"></i>
+    </a>
+
   </div>
 </section>
 
@@ -788,10 +845,10 @@
 
     <div class="testimonials-container">
       <button class="slider-btn prev" id="prevBtn">
-        <i class="fas fa-chevron-left"></i>
+        <i class="bi bi-chevron-left"></i>
       </button>
       <button class="slider-btn next" id="nextBtn">
-        <i class="fas fa-chevron-right"></i>
+        <i class="bi bi-chevron-right"></i>
       </button>
 
       <div class="testimonial-slider">
@@ -808,8 +865,8 @@
                   <div class="testimonial-info">
                     <h3 th:text="${feedback.user.fullName}">Student Name</h3>
                     <div class="rating">
-                      <span th:each="i : ${#numbers.sequence(1, feedback.rating)}">Ã¢Ëœâ€¦</span>
-                      <span th:each="i : ${#numbers.sequence(feedback.rating + 1, 5)}">Ã¢Ëœâ€ </span>
+                      <span th:each="i : ${#numbers.sequence(1, feedback.rating)}">★</span>
+                      <span th:each="i : ${#numbers.sequence(feedback.rating + 1, 5)}">☆</span>
                     </div>
                   </div>
                 </div>
@@ -833,7 +890,7 @@
                        class="testimonial-avatar">
                   <div class="testimonial-info">
                     <h3>Sarah Johnson</h3>
-                    <div class="rating">Ã¢Ëœâ€¦Ã¢Ëœâ€¦Ã¢Ëœâ€¦Ã¢Ëœâ€¦Ã¢Ëœâ€¦</div>
+                    <div class="rating">★★★★★</div>
                   </div>
                 </div>
                 <p class="testimonial-text">
@@ -852,7 +909,7 @@
                        class="testimonial-avatar">
                   <div class="testimonial-info">
                     <h3>Michael Chen</h3>
-                    <div class="rating">Ã¢Ëœâ€¦Ã¢Ëœâ€¦Ã¢Ëœâ€¦Ã¢Ëœâ€¦Ã¢Ëœâ€¦</div>
+                    <div class="rating">★★★★★</div>
                   </div>
                 </div>
                 <p class="testimonial-text">
@@ -871,7 +928,7 @@
                        class="testimonial-avatar">
                   <div class="testimonial-info">
                     <h3>Emma Williams</h3>
-                    <div class="rating">Ã¢Ëœâ€¦Ã¢Ëœâ€¦Ã¢Ëœâ€¦Ã¢Ëœâ€¦Ã¢Ëœâ€¦</div>
+                    <div class="rating">★★★★★</div>
                   </div>
                 </div>
                 <p class="testimonial-text">
@@ -917,7 +974,7 @@
         <ul class="contact-list">
           <li>
             <i class="fas fa-envelope"></i>
-            <span>support@assignmentservice.com</span>
+            <span><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2c5f595c5c435e586c4d5f5f454b42414942585f495e5a454f49024f4341">[email&#160;protected]</a></span>
           </li>
           <li>
             <i class="fas fa-phone"></i>
@@ -977,16 +1034,16 @@
         </p>
         <div class="footer-social">
           <a href="#" class="social-link" aria-label="Facebook">
-            <i class="fab fa-facebook-f"></i>
+            <i class="bi bi-facebook"></i>
           </a>
           <a href="#" class="social-link" aria-label="Twitter">
-            <i class="fab fa-twitter"></i>
+            <i class="bi bi-twitter-x"></i>
           </a>
           <a href="#" class="social-link" aria-label="LinkedIn">
-            <i class="fab fa-linkedin-in"></i>
+            <i class="bi bi-linkedin"></i>
           </a>
           <a href="#" class="social-link" aria-label="Instagram">
-            <i class="fab fa-instagram"></i>
+            <i class="bi bi-instagram"></i>
           </a>
         </div>
       </div>
@@ -1023,7 +1080,7 @@
           <li>
             <a href="https://wa.me/1234567890" class="contact-item whatsapp" target="_blank">
               <div class="contact-icon whatsapp-icon">
-                <i class="fab fa-whatsapp"></i>
+                <i class="bi bi-whatsapp"></i>
               </div>
               <div class="contact-details">
                 <span class="contact-label">WhatsApp</span>
@@ -1036,7 +1093,7 @@
           <li>
             <a href="tel:+15551234567" class="contact-item">
               <div class="contact-icon phone-icon">
-                <i class="fas fa-phone-alt"></i>
+                <i class="bi bi-phone"></i>
               </div>
               <div class="contact-details">
                 <span class="contact-label">Phone</span>
@@ -1047,13 +1104,13 @@
 
           <!-- Email -->
           <li>
-            <a href="mailto:support@assignmentservice.com" class="contact-item">
+            <a href="/cdn-cgi/l/email-protection#8efdfbfefee1fcfaceeffdfde7e9e0e3ebe0fafdebfcf8e7edeba0ede1e3" class="contact-item">
               <div class="contact-icon email-icon">
-                <i class="fas fa-envelope"></i>
+                <i class="bi bi-envelope"></i>
               </div>
               <div class="contact-details">
                 <span class="contact-label">Email</span>
-                <span class="contact-value">support@assignmentservice.com</span>
+                <span class="contact-value"><span class="__cf_email__" data-cfemail="196a6c6969766b6d59786a6a707e77747c776d6a7c6b6f707a7c377a7674">[email&#160;protected]</span></span>
               </div>
             </a>
           </li>
@@ -1062,7 +1119,8 @@
           <li>
             <div class="contact-item">
               <div class="contact-icon location-icon">
-                <i class="fas fa-map-marker-alt"></i>
+                <i class="bi bi-geo-alt-fill"></i>
+
               </div>
               <div class="contact-details">
                 <span class="contact-label">Location</span>
@@ -1093,7 +1151,7 @@
 
   <!-- Floating WhatsApp Button -->
   <a href="https://wa.me/1234567890" class="whatsapp-float" target="_blank" aria-label="Contact us on WhatsApp">
-    <i class="fab fa-whatsapp"></i>
+    <i class="bi bi-whatsapp"></i>
   </a>
 </footer>
 
@@ -1245,7 +1303,7 @@
   }
 
   .footer-links a::before {
-    content: 'Ã¢â€ â€™';
+    content: '→';
     position: absolute;
     left: -20px;
     opacity: 0;
@@ -1500,7 +1558,7 @@
 
 
 <!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
   // Navbar scroll effect
@@ -1513,36 +1571,74 @@
     }
   });
 
-  // Testimonial slider
-  let currentSlide = 0;
-  const sliderWrapper = document.getElementById('sliderWrapper');
-  const slides = document.querySelectorAll('.testimonial-slide');
-  const totalSlides = slides.length;
+  // Testimonial slider - Improved version
+  window.addEventListener('load', function() {
+    const sliderWrapper = document.getElementById('sliderWrapper');
+    const nextBtn = document.getElementById('nextBtn');
+    const prevBtn = document.getElementById('prevBtn');
 
-  function showSlide(index) {
-    if (index >= totalSlides) {
-      currentSlide = 0;
-    } else if (index < 0) {
-      currentSlide = totalSlides - 1;
-    } else {
-      currentSlide = index;
+    if (!sliderWrapper || !nextBtn || !prevBtn) {
+      console.log('Slider elements not found');
+      return;
     }
 
-    sliderWrapper.style.transform = `translateX(-${currentSlide * 100}%)`;
-  }
+    let currentSlide = 0;
+    let slides = [];
 
-  document.getElementById('nextBtn').addEventListener('click', () => {
-    showSlide(currentSlide + 1);
+    // Function to update slides array
+    function updateSlides() {
+      slides = document.querySelectorAll('.testimonial-slide');
+      console.log('Total slides found:', slides.length);
+      return slides.length;
+    }
+
+    // Initial update
+    const totalSlides = updateSlides();
+
+    if (totalSlides === 0) {
+      console.log('No slides found');
+      // Hide buttons if no slides
+      nextBtn.style.display = 'none';
+      prevBtn.style.display = 'none';
+      return;
+    }
+
+    function showSlide(index) {
+      const total = slides.length;
+      if (total === 0) return;
+
+      if (index >= total) {
+        currentSlide = 0;
+      } else if (index < 0) {
+        currentSlide = total - 1;
+      } else {
+        currentSlide = index;
+      }
+
+      sliderWrapper.style.transform = `translateX(-${currentSlide * 100}%)`;
+      console.log('Showing slide:', currentSlide);
+    }
+
+    nextBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('Next button clicked');
+      showSlide(currentSlide + 1);
+    });
+
+    prevBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('Prev button clicked');
+      showSlide(currentSlide - 1);
+    });
+
+    // Auto-slide every 5 seconds
+    setInterval(() => {
+      showSlide(currentSlide + 1);
+    }, 5000);
+
+    // Show initial slide
+    showSlide(0);
   });
-
-  document.getElementById('prevBtn').addEventListener('click', () => {
-    showSlide(currentSlide - 1);
-  });
-
-  // Auto-slide every 5 seconds
-  setInterval(() => {
-    showSlide(currentSlide + 1);
-  }, 5000);
 
   // Contact form submission
   document.getElementById('contactForm').addEventListener('submit', async (e) => {
@@ -1581,18 +1677,4 @@
   });
 
   // Smooth scrolling for navigation links
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-      e.preventDefault();
-      const target = document.querySelector(this.getAttribute('href'));
-      if (target) {
-        window.scrollTo({
-          top: target.offsetTop - 80,
-          behavior: 'smooth'
-        });
-      }
-    });
-  });
-</script>
-</body>
-</html>
+  doc
