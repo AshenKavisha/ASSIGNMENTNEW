@@ -108,7 +108,8 @@
                                                 <i class="bi bi-star-fill"
                                                    th:each="i : ${#numbers.sequence(1, feedback.rating)}"></i>
                                                 <i class="bi bi-star"
-                                                   th:each="i : ${#numbers.sequence(feedback.rating + 1, 5)}"></i>
+                                                   th:if="${feedback.rating < 5}"
+                                                   th:each="i : ${#numbers.sequence(1, 5 - feedback.rating)}"></i>
                                             </div>
 
                                             <div class="feedback-message">
