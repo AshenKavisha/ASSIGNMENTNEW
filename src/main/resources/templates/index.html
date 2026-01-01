@@ -866,7 +866,7 @@
                     <h3 th:text="${feedback.user.fullName}">Student Name</h3>
                     <div class="rating">
                       <span th:each="i : ${#numbers.sequence(1, feedback.rating)}">★</span>
-                      <span th:each="i : ${#numbers.sequence(feedback.rating + 1, 5)}">☆</span>
+                      <span th:if="${feedback.rating < 5}" th:each="i : ${#numbers.sequence(1, 5 - feedback.rating)}">☆</span>
                     </div>
                   </div>
                 </div>
