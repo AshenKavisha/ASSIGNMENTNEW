@@ -911,4 +911,143 @@ public class EmailService {
                 "</table></td></tr></table>" +
                 "</body></html>";
     }
+
+    /**
+     * Send assignment notification to admin WITH attached files
+     */
+    public void sendAssignmentNotificationToAdminWithFiles(Assignment assignment,
+                                                           List<MultipartFile> descriptionFiles,
+                                                           List<MultipartFile> requirementFiles) {
+        if (!emailEnabled) {
+            System.out.println("⚠️ Email is disabled. Assignment notification skipped.");
+            return;
+        }
+
+        try {
+            MimeMessage message = emailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(adminEmail);
+            helper.setSubject("🔔 New Assignment Submitted - " + assignment.getTitle());
+
+            String htmlContent = buildAdminAssignmentNotificationEmailWithFiles(assignment);
+            helper.setText(htmlContent, true);
+
+            // Attach description files
+            int totalAttachments = 0;
+            long totalSize = 0;
+
+            if (descriptionFiles != null && !descriptionFiles.isEmpty()) {
+                for (MultipartFile file : descriptionFiles) {
+                    if (!file.isEmpty()) {
+                        helper.addAttachment(
+                                "[DESC] " + file.getOriginalFilename(),
+                                new ByteArrayResource(file.getBytes()),
+                                file.getContentType()
+                        );
+                        totalAttachments++;
+                        totalSize += file.getSize();
+                        System.out.println("📎 Attached description file: " + file.getOriginalFilename() +
+                                " (" + (file.getSize() / 1024) + " KB)");
+                    }
+                }
+            }
+
+            // Attach requirement files
+            if (requirementFiles != null && !requirementFiles.isEmpty()) {
+                for (MultipartFile file : requirementFiles) {
+                    if (!file.isEmpty()) {
+                        helper.addAttachment(
+                                "[REQ] " + file.getOriginalFilename(),
+                                new ByteArrayResource(file.getBytes()),
+                                file.getContentType()
+                        );
+                        totalAttachments++;
+                        totalSize += file.getSize();
+                        System.out.println("📎 Attached requirement file: " + file.getOriginalFilename() +
+                                " (" + (file.getSize() / 1024) + " KB)");
+                    }
+                }
+            }
+
+            System.out.println("📧 Sending to admin: " + adminEmail);
+            System.out.println("   Total attachments: " + totalAttachments);
+            System.out.println("   Total size: " + (totalSize / (1024 * 1024)) + " MB");
+
+            emailSender.send(message);
+            System.out.println("✅ Assignment notification with files sent successfully!");
+
+        } catch (Exception e) {
+            System.err.println("❌ Failed to send assignment notification: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to send assignment notification: " + e.getMessage(), e);
+        }
+    }
+
+    private String buildAdminAssignmentNotificationEmailWithFiles(Assignment assignment) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm");
+        String submittedDate = assignment.getCreatedAt() != null
+                ? assignment.getCreatedAt().format(formatter)
+                : LocalDateTime.now().format(formatter);
+
+        int descFileCount = assignment.getDescriptionFileList() != null
+                ? (int) assignment.getDescriptionFileList().stream().filter(f -> !f.isEmpty()).count()
+                : 0;
+        int reqFileCount = assignment.getRequirementsFileList() != null
+                ? (int) assignment.getRequirementsFileList().stream().filter(f -> !f.isEmpty()).count()
+                : 0;
+        int totalFiles = descFileCount + reqFileCount;
+
+        return "<!DOCTYPE html>" +
+                "<html><body style='font-family: Arial, sans-serif; padding: 20px;'>" +
+                "<div style='max-width: 600px; margin: 0 auto; background: #f8f9fa; padding: 30px; border-radius: 10px;'>" +
+                "<h2 style='color: #667eea;'>🔔 New Assignment Submitted</h2>" +
+
+                "<div style='background: white; padding: 20px; border-radius: 5px; margin: 20px 0;'>" +
+                "<h3 style='color: #333; margin-top: 0;'>📋 Assignment Details</h3>" +
+                "<p><strong>ID:</strong> #" + assignment.getId() + "</p>" +
+                "<p><strong>Title:</strong> " + assignment.getTitle() + "</p>" +
+                "<p><strong>Type:</strong> " + assignment.getType() + "</p>" +
+                "<p><strong>Subject:</strong> " + assignment.getSubject() + "</p>" +
+                "<p><strong>Deadline:</strong> " + assignment.getDeadline() + "</p>" +
+                "<p><strong>Submitted:</strong> " + submittedDate + "</p>" +
+                "</div>" +
+
+                "<div style='background: #e3f2fd; padding: 20px; border-radius: 5px; margin: 20px 0;'>" +
+                "<h3 style='color: #1565C0; margin-top: 0;'>👤 Student Information</h3>" +
+                "<p><strong>Name:</strong> " + assignment.getUser().getFullName() + "</p>" +
+                "<p><strong>Email:</strong> " + assignment.getUser().getEmail() + "</p>" +
+                "</div>" +
+
+                "<div style='background: white; padding: 20px; border-radius: 5px; margin: 20px 0;'>" +
+                "<h3 style='color: #333; margin-top: 0;'>📝 Description</h3>" +
+                "<p style='white-space: pre-wrap;'>" + assignment.getDescription() + "</p>" +
+                "</div>" +
+
+                (assignment.getAdditionalRequirements() != null && !assignment.getAdditionalRequirements().isEmpty() ?
+                        "<div style='background: white; padding: 20px; border-radius: 5px; margin: 20px 0;'>" +
+                                "<h3 style='color: #333; margin-top: 0;'>⚙️ Additional Requirements</h3>" +
+                                "<p style='white-space: pre-wrap;'>" + assignment.getAdditionalRequirements() + "</p>" +
+                                "</div>" : "") +
+
+                (totalFiles > 0 ?
+                        "<div style='background: #fff3cd; padding: 20px; border-radius: 5px; margin: 20px 0;'>" +
+                                "<h3 style='color: #856404; margin-top: 0;'>📎 Attached Files (" + totalFiles + ")</h3>" +
+                                "<p><strong>Description Files:</strong> " + descFileCount + "</p>" +
+                                "<p><strong>Requirement Files:</strong> " + reqFileCount + "</p>" +
+                                "<p style='font-size: 14px; color: #856404;'>✅ All files are attached to this email. Download them to work on the assignment.</p>" +
+                                "</div>" :
+                        "<div style='background: #e3f2fd; padding: 15px; border-radius: 5px;'>" +
+                                "<p style='color: #1565C0; margin: 0;'>ℹ️ No files were attached to this assignment.</p>" +
+                                "</div>") +
+
+                "<div style='text-align: center; margin: 30px 0;'>" +
+                "<a href='" + appUrl + "/admin/dashboard' style='background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block;'>Go to Admin Dashboard</a>" +
+                "</div>" +
+
+                "</div>" +
+                "</body></html>";
+    }
+
 }

@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -46,6 +47,37 @@ public class AssignmentService {
 
         // ADDED: Send in-app notification to admin
         notificationService.notifyAdminAssignmentSubmitted(savedAssignment);
+
+        return savedAssignment;
+    }
+
+    /**
+     * Create assignment and send email with attached files
+     */
+    public Assignment createAssignmentWithFiles(Assignment assignment,
+                                                List<MultipartFile> descriptionFiles,
+                                                List<MultipartFile> requirementFiles) {
+        Assignment savedAssignment = assignmentRepository.save(assignment);
+
+        System.out.println("✅ Assignment saved to database with ID: " + savedAssignment.getId());
+
+        try {
+            emailService.sendAssignmentNotificationToAdminWithFiles(
+                    savedAssignment,
+                    descriptionFiles,
+                    requirementFiles
+            );
+            System.out.println("✅ Email with files sent to admin successfully");
+        } catch (Exception e) {
+            System.err.println("⚠️ Failed to send email: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        try {
+            notificationService.notifyAdminAssignmentSubmitted(savedAssignment);
+        } catch (Exception e) {
+            System.err.println("⚠️ Failed to send notification: " + e.getMessage());
+        }
 
         return savedAssignment;
     }

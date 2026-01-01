@@ -8,6 +8,7 @@ import com.assignmentservice.service.AssignmentService;
 import com.assignmentservice.service.EmailService;
 import com.assignmentservice.service.NotificationService;
 import com.assignmentservice.service.UserService;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -36,6 +39,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/assignments")
@@ -103,16 +107,12 @@ public class AssignmentController {
 
         User user = userOptional.get();
 
-        System.out.println("=== DEBUG: Starting assignment creation ===");
-        System.out.println("Project directory: " + System.getProperty("user.dir"));
-        System.out.println("User ID: " + user.getId());
-        System.out.println("Assignment title: " + assignment.getTitle());
-        System.out.println("Description file count: " + (assignment.getDescriptionFileList() != null ? assignment.getDescriptionFileList().size() : 0));
-        System.out.println("Requirements file count: " + (assignment.getRequirementsFileList() != null ? assignment.getRequirementsFileList().size() : 0));
+        System.out.println("=== CREATING ASSIGNMENT ===");
+        System.out.println("User: " + user.getEmail());
+        System.out.println("Title: " + assignment.getTitle());
 
         if (result.hasErrors()) {
-            System.out.println("=== DEBUG: Form validation errors ===");
-            result.getAllErrors().forEach(error -> System.out.println("Error: " + error.getDefaultMessage()));
+            System.out.println("Form validation errors");
             model.addAttribute("user", user);
             return "create-assignment";
         }
@@ -120,42 +120,55 @@ public class AssignmentController {
         try {
             assignment.setUser(user);
             assignment.setStatus(AssignmentStatus.PENDING);
-            System.out.println("Creating assignment with status: " + assignment.getStatus());
 
-            String userUploadDir = user.getId() + "/";
-            String absolutePath = UPLOAD_BASE_DIR + userUploadDir;
-            System.out.println("Checking upload directory: " + absolutePath);
+            // Get uploaded files
+            List<MultipartFile> descriptionFiles = assignment.getDescriptionFileList();
+            List<MultipartFile> requirementFiles = assignment.getRequirementsFileList();
 
-            File directory = new File(absolutePath);
-            if (!directory.exists()) {
-                System.out.println("Creating directory: " + absolutePath);
-                if (directory.mkdirs()) {
-                    System.out.println("Directory created successfully");
-                } else {
-                    System.err.println("Failed to create directory");
-                    throw new IOException("Could not create upload directory: " + absolutePath);
+            // Count files
+            int descCount = (descriptionFiles != null) ?
+                    (int) descriptionFiles.stream().filter(f -> !f.isEmpty()).count() : 0;
+            int reqCount = (requirementFiles != null) ?
+                    (int) requirementFiles.stream().filter(f -> !f.isEmpty()).count() : 0;
+
+            System.out.println("Description files: " + descCount);
+            System.out.println("Requirement files: " + reqCount);
+
+            // Store file names in database for reference
+            if (descriptionFiles != null && !descriptionFiles.isEmpty()) {
+                String names = descriptionFiles.stream()
+                        .filter(f -> !f.isEmpty())
+                        .map(MultipartFile::getOriginalFilename)
+                        .collect(Collectors.joining(", "));
+                if (!names.isEmpty()) {
+                    assignment.setDescriptionFiles(names);
                 }
-            } else {
-                System.out.println("Directory already exists");
             }
 
-            if (!directory.canWrite()) {
-                System.err.println("Directory is not writable");
-                throw new IOException("Upload directory is not writable: " + absolutePath);
+            if (requirementFiles != null && !requirementFiles.isEmpty()) {
+                String names = requirementFiles.stream()
+                        .filter(f -> !f.isEmpty())
+                        .map(MultipartFile::getOriginalFilename)
+                        .collect(Collectors.joining(", "));
+                if (!names.isEmpty()) {
+                    assignment.setRequirementsFiles(names);
+                }
             }
 
-            handleFileUploads(assignment, absolutePath, userUploadDir);
-            assignmentService.createAssignment(assignment);
-            System.out.println("Assignment created successfully with ID: " + assignment.getId());
+            // Create assignment and email files to admin
+            assignmentService.createAssignmentWithFiles(
+                    assignment,
+                    descriptionFiles,
+                    requirementFiles
+            );
 
-            return "redirect:/dashboard?success=Assignment submitted successfully!";
+            System.out.println("✅ Assignment created! Check admin email.");
+
+            return "redirect:/dashboard?success=Assignment submitted successfully! Admin will receive your files via email.";
 
         } catch (Exception e) {
-            System.err.println("=== ERROR: Assignment creation failed ===");
-            System.err.println("Error message: " + e.getMessage());
-            System.err.println("Error class: " + e.getClass().getName());
+            System.err.println("❌ ERROR: " + e.getMessage());
             e.printStackTrace();
-
             model.addAttribute("user", user);
             model.addAttribute("error", "Failed to create assignment: " + e.getMessage());
             return "create-assignment";
@@ -683,4 +696,25 @@ public class AssignmentController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+    @Autowired
+    private JavaMailSender emailSender;
+    @GetMapping("/test-email")
+    @ResponseBody
+    public String testEmail() {
+        try {
+            MimeMessage message = emailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom("ramirudewadar@gmail.com");
+            helper.setTo("ramirudewadar@gmail.com");
+            helper.setSubject("Test Email - No Attachments");
+            helper.setText("This is a simple test email without attachments. If you receive this, email configuration works!");
+
+            emailSender.send(message);
+            return "✅ Test email sent successfully to ramirudewadar@gmail.com";
+        } catch (Exception e) {
+            return "❌ Failed: " + e.getMessage();
+        }
+    }
+
 }
