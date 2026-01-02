@@ -1050,4 +1050,103 @@ public class EmailService {
                 "</body></html>";
     }
 
+
+    /**
+     * Send contact form submission to admin
+     */
+    public void sendContactFormToAdmin(String name, String email, String phone, String message)
+            throws MessagingException {
+        if (!emailEnabled) {
+            System.out.println("⚠️ Email is disabled. Contact form submission skipped.");
+            return;
+        }
+
+        try {
+            MimeMessage mimeMessage = emailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(adminEmail);
+            helper.setSubject("📧 New Contact Form Submission - " + name);
+
+            String htmlContent = buildContactFormEmail(name, email, phone, message);
+            helper.setText(htmlContent, true);
+
+            // Also set reply-to as the user's email for easy response
+            helper.setReplyTo(email);
+
+            emailSender.send(mimeMessage);
+            System.out.println("✅ Contact form email sent successfully to admin!");
+
+        } catch (Exception e) {
+            System.err.println("❌ Failed to send contact form email: " + e.getMessage());
+            e.printStackTrace();
+            throw new MessagingException("Failed to send contact form email: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Build HTML email for contact form submission
+     */
+    private String buildContactFormEmail(String name, String email, String phone, String message) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm");
+        String receivedDate = LocalDateTime.now().format(formatter);
+
+        return "<!DOCTYPE html>" +
+                "<html><body style='font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5;'>" +
+                "<table style='max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);'>" +
+
+                "<!-- Header -->" +
+                "<tr><td style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;'>" +
+                "<h1 style='color: white; margin: 0; font-size: 28px;'>📧 New Contact Form</h1>" +
+                "<p style='color: rgba(255,255,255,0.9); margin: 10px 0 0; font-size: 14px;'>Someone reached out through your website!</p>" +
+                "</td></tr>" +
+
+                "<!-- Content -->" +
+                "<tr><td style='padding: 40px 30px;'>" +
+
+                "<!-- Contact Details -->" +
+                "<div style='background: #f8f9fa; border-left: 4px solid #667eea; padding: 20px; margin-bottom: 20px; border-radius: 5px;'>" +
+                "<h3 style='color: #667eea; margin: 0 0 15px; font-size: 18px;'>👤 Contact Information</h3>" +
+                "<p style='margin: 8px 0; color: #333;'><strong>Name:</strong> " + name + "</p>" +
+                "<p style='margin: 8px 0; color: #333;'><strong>Email:</strong> <a href='mailto:" + email + "' style='color: #667eea; text-decoration: none;'>" + email + "</a></p>" +
+                "<p style='margin: 8px 0; color: #333;'><strong>Phone:</strong> <a href='tel:" + phone + "' style='color: #667eea; text-decoration: none;'>" + phone + "</a></p>" +
+                "<p style='margin: 8px 0; color: #999; font-size: 13px;'><strong>Received:</strong> " + receivedDate + "</p>" +
+                "</div>" +
+
+                "<!-- Message -->" +
+                "<div style='background: white; border: 2px solid #e0e0e0; border-radius: 5px; padding: 20px; margin-bottom: 20px;'>" +
+                "<h3 style='color: #333; margin: 0 0 15px; font-size: 18px;'>💬 Message</h3>" +
+                "<p style='color: #555; line-height: 1.8; white-space: pre-wrap; margin: 0;'>" + message + "</p>" +
+                "</div>" +
+
+                "<!-- Action Buttons -->" +
+                "<div style='text-align: center; margin: 30px 0;'>" +
+                "<a href='mailto:" + email + "?subject=Re: Your inquiry' " +
+                "style='background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; " +
+                "display: inline-block; margin: 5px; font-weight: 600;'>✉️ Reply via Email</a>" +
+
+                "<a href='https://wa.me/" + phone.replaceAll("[^0-9]", "") + "' " +
+                "style='background: #25D366; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; " +
+                "display: inline-block; margin: 5px; font-weight: 600;'>💬 WhatsApp</a>" +
+                "</div>" +
+
+                "<!-- Quick Stats -->" +
+                "<div style='background: #e3f2fd; padding: 15px; border-radius: 5px; text-align: center;'>" +
+                "<p style='color: #1565C0; margin: 0; font-size: 14px;'>" +
+                "💡 <strong>Quick Tip:</strong> This email has 'Reply-To' set to the sender's email for easy responses!" +
+                "</p>" +
+                "</div>" +
+
+                "</td></tr>" +
+
+                "<!-- Footer -->" +
+                "<tr><td style='background-color: #f8f9fa; padding: 20px; text-align: center;'>" +
+                "<p style='color: #999; margin: 0; font-size: 12px;'>© 2025 Assignment Service. All rights reserved.</p>" +
+                "<p style='color: #999; margin: 5px 0 0; font-size: 11px;'>This is an automated notification from your contact form.</p>" +
+                "</td></tr>" +
+
+                "</table></body></html>";
+    }
+
 }

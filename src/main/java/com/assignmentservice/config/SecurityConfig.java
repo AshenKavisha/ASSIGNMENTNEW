@@ -58,6 +58,9 @@ public class SecurityConfig {
                                 // Public API endpoints
                                 "/api/public/**",
 
+                                // ⭐ ADDED: Contact Form API - Allow contact form submissions
+                                "/api/contact/**",
+
                                 // Feedback pages
                                 "/feedback/all",
                                 "/feedback/view/**",
