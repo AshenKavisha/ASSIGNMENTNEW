@@ -256,6 +256,14 @@
             font-weight: 500;
         }
 
+        .input-group-text {
+            background: white;
+            border: none;
+            font-weight: 700;
+            color: #28a745;
+            font-size: 1rem;
+        }
+
         /* Buttons */
         .btn {
             border-radius: 10px;
@@ -408,6 +416,10 @@
             .empty-state i {
                 font-size: 4rem;
             }
+
+            .action-section .row.g-2 > div {
+                margin-bottom: 0.5rem;
+            }
         }
 
         /* Loading Animation */
@@ -475,14 +487,6 @@
             border-color: #28a745;
             box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
         }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .action-section .row.g-2 > div {
-                margin-bottom: 0.5rem;
-            }
-        }
-
     </style>
 </head>
 <body>
@@ -596,9 +600,7 @@
                                     <!-- Price Input -->
                                     <div class="col-md-5">
                                         <div class="input-group">
-                <span class="input-group-text bg-white">
-                    <i class="bi bi-currency-dollar text-success"></i>
-                </span>
+                                            <span class="input-group-text" id="currencySymbol">Rs.</span>
                                             <input type="number"
                                                    name="price"
                                                    class="form-control"
@@ -611,7 +613,7 @@
 
                                     <!-- Currency Dropdown -->
                                     <div class="col-md-4">
-                                        <select name="currency" class="form-select" required>
+                                        <select name="currency" class="form-select" required onchange="updateCurrencySymbol(this)">
                                             <option value="LKR" selected>🇱🇰 LKR (Rs.)</option>
                                             <option value="USD">🇺🇸 USD ($)</option>
                                         </select>
@@ -632,15 +634,14 @@
                                 </small>
                             </form>
 
-                                <!-- Reject Button -->
-                                <form th:action="@{/admin/assignments/{id}/reject(id=${assignment.id})}" method="post">
-                                    <button type="submit"
-                                            class="btn btn-danger w-100"
-                                            onclick="return confirm('Are you sure you want to reject this assignment?')">
-                                        <i class="bi bi-x-circle"></i> Reject Assignment
-                                    </button>
-                                </form>
-                            </div>
+                            <!-- Reject Button -->
+                            <form th:action="@{/admin/assignments/{id}/reject(id=${assignment.id})}" method="post">
+                                <button type="submit"
+                                        class="btn btn-danger w-100"
+                                        onclick="return confirm('Are you sure you want to reject this assignment?')">
+                                    <i class="bi bi-x-circle"></i> Reject Assignment
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -658,6 +659,20 @@
         </div>
     </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function updateCurrencySymbol(selectElement) {
+        // Find the closest form to this select element
+        const form = selectElement.closest('form');
+        const currencySymbol = form.querySelector('#currencySymbol');
+
+        if (selectElement.value === 'LKR') {
+            currencySymbol.textContent = 'Rs.';
+        } else if (selectElement.value === 'USD') {
+            currencySymbol.textContent = '$';
+        }
+    }
+</script>
 </body>
 </html>
