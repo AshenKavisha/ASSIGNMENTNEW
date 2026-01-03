@@ -462,6 +462,27 @@
         .card-header .badge {
             animation: pulse 3s infinite;
         }
+
+        .form-select {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 0.65rem;
+            transition: all 0.3s ease;
+            background-color: white;
+        }
+
+        .form-select:focus {
+            border-color: #28a745;
+            box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .action-section .row.g-2 > div {
+                margin-bottom: 0.5rem;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -570,25 +591,46 @@
                             </div>
 
                             <!-- Action Section -->
-                            <div class="action-section">
-                                <!-- Approve Form -->
-                                <form th:action="@{/admin/assignments/{id}/approve(id=${assignment.id})}" method="post" class="mb-3">
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-white">
-                                            <i class="bi bi-currency-dollar text-success"></i>
-                                        </span>
-                                        <input type="number"
-                                               name="price"
-                                               class="form-control"
-                                               placeholder="Enter price amount"
-                                               step="0.01"
-                                               min="0"
-                                               required>
-                                        <button type="submit" class="btn btn-success">
+                            <form th:action="@{/admin/assignments/{id}/approve(id=${assignment.id})}" method="post" class="mb-3">
+                                <div class="row g-2">
+                                    <!-- Price Input -->
+                                    <div class="col-md-5">
+                                        <div class="input-group">
+                <span class="input-group-text bg-white">
+                    <i class="bi bi-currency-dollar text-success"></i>
+                </span>
+                                            <input type="number"
+                                                   name="price"
+                                                   class="form-control"
+                                                   placeholder="Enter amount"
+                                                   step="0.01"
+                                                   min="0"
+                                                   required>
+                                        </div>
+                                    </div>
+
+                                    <!-- Currency Dropdown -->
+                                    <div class="col-md-4">
+                                        <select name="currency" class="form-select" required>
+                                            <option value="LKR" selected>🇱🇰 LKR (Rs.)</option>
+                                            <option value="USD">🇺🇸 USD ($)</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Approve Button -->
+                                    <div class="col-md-3">
+                                        <button type="submit" class="btn btn-success w-100">
                                             <i class="bi bi-check-circle"></i> Approve
                                         </button>
                                     </div>
-                                </form>
+                                </div>
+
+                                <!-- Currency Info -->
+                                <small class="text-muted mt-2 d-block">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    User will receive a payment link via email in the selected currency
+                                </small>
+                            </form>
 
                                 <!-- Reject Button -->
                                 <form th:action="@{/admin/assignments/{id}/reject(id=${assignment.id})}" method="post">

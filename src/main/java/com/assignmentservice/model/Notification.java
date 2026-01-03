@@ -63,7 +63,9 @@ public class Notification {
         PAYMENT_RECEIVED,          // Payment received
         SYSTEM,                    // System notification (for all users)
         ADMIN,                     // Admin-only notification
-        FEEDBACK_RECEIVED          // Feedback received
+        FEEDBACK_RECEIVED,
+        PAYMENT_REQUIRED,      // NEW
+        PAYMENT_CONFIRMED     // NEW
     }
 
     public enum NotificationStatus {

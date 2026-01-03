@@ -1,5 +1,7 @@
 package com.assignmentservice.controller;
 import com.assignmentservice.model.RevisionRequest;
+import com.assignmentservice.model.Payment;
+import com.assignmentservice.service.PayHereService;
 
 import com.assignmentservice.dto.AdminPerformanceDto;
 import com.assignmentservice.dto.AdminRegistrationDto;
@@ -54,6 +56,9 @@ public class AdminController {
 
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private PayHereService payHereService;
 
 
 
@@ -339,47 +344,73 @@ public class AdminController {
 
     // ============ ASSIGNMENT ACTIONS ============
     @PostMapping("/assignments/{id}/approve")
-    public String approveAssignment(@PathVariable Long id,
-                                    @RequestParam(required = false) @Min(0) Double price,
-                                    RedirectAttributes redirectAttributes) {
-
-
+    public String approveAssignment(
+            @PathVariable Long id,
+            @RequestParam Double price,
+            @RequestParam(defaultValue = "LKR") String currency,
+            RedirectAttributes redirectAttributes) {
 
         if (!isAdminUser()) {
             return "redirect:/dashboard?error=Unauthorized";
         }
 
-        // Get current admin
-        Optional<User> currentAdminOpt = getCurrentAdmin();
-        if (!currentAdminOpt.isPresent()) {
-            return "redirect:/dashboard?error=User not found";
-        }
-
-        User currentAdmin = currentAdminOpt.get();
-
         try {
-            // Check if admin has access to this assignment
-            Optional<Assignment> assignmentOpt = assignmentService.getAssignmentByIdForAdmin(id, currentAdmin);
-            if (assignmentOpt.isPresent()) {
-                Assignment assignment = assignmentOpt.get();
-                assignment.setStatus(Assignment.AssignmentStatus.APPROVED);
-                if (price != null) {
-                    assignment.setPrice(price);
-                }
-                assignmentService.saveAssignment(assignment);
-
-                emailService.sendAssignmentApprovalToUser(assignment.getUser().getEmail(), assignment);
-
-                // After approving assignment
-                notificationService.notifyUserAssignmentApproved(assignment);
-
-                redirectAttributes.addFlashAttribute("success", "Assignment approved successfully!");
-            } else {
-                redirectAttributes.addFlashAttribute("error", "Assignment not found or you don't have permission to approve it!");
+            Optional<User> currentAdminOpt = getCurrentAdmin();
+            if (!currentAdminOpt.isPresent()) {
+                redirectAttributes.addFlashAttribute("error", "Admin user not found");
+                return "redirect:/admin/assignments/pending";
             }
+
+            User currentAdmin = currentAdminOpt.get();
+            Optional<Assignment> assignmentOpt = assignmentService.getAssignmentByIdForAdmin(id, currentAdmin);
+
+            if (assignmentOpt.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Assignment not found or unauthorized");
+                return "redirect:/admin/assignments/pending";
+            }
+
+            Assignment assignment = assignmentOpt.get();
+
+            // Validate currency
+            Payment.Currency selectedCurrency;
+            try {
+                selectedCurrency = Payment.Currency.valueOf(currency);
+            } catch (IllegalArgumentException e) {
+                redirectAttributes.addFlashAttribute("error", "Invalid currency selected");
+                return "redirect:/admin/assignments/pending";
+            }
+
+            // Update assignment
+            assignment.setPrice(price);
+            assignment.setStatus(Assignment.AssignmentStatus.APPROVED);
+            assignmentService.saveAssignment(assignment);
+
+            // Create payment record
+            Payment payment = payHereService.createPayment(assignment, price, selectedCurrency);
+
+            // Send approval email with payment link
+            try {
+                emailService.sendApprovalWithPaymentLinkEmail(assignment, payment);
+            } catch (Exception e) {
+                log.error("Failed to send approval email", e);
+            }
+
+            // Send in-app notification to user
+            try {
+                notificationService.notifyUserAssignmentApprovedWithPayment(assignment, payment);
+            } catch (Exception e) {
+                log.error("Failed to send notification", e);
+            }
+
+            redirectAttributes.addFlashAttribute("success",
+                    "Assignment approved! Payment link sent to " + assignment.getUser().getEmail());
+
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Failed to approve assignment: " + e.getMessage());
+            log.error("Failed to approve assignment", e);
+            redirectAttributes.addFlashAttribute("error",
+                    "Failed to approve assignment: " + e.getMessage());
         }
+
         return "redirect:/admin/assignments/pending";
     }
 

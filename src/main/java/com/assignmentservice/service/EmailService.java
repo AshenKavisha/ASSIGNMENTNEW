@@ -1,6 +1,7 @@
 package com.assignmentservice.service;
 
 import com.assignmentservice.model.Assignment;
+import com.assignmentservice.model.Payment;
 import com.assignmentservice.model.RevisionRequest;
 import com.assignmentservice.model.User;
 import jakarta.mail.MessagingException;
@@ -1148,5 +1149,127 @@ public class EmailService {
 
                 "</table></body></html>";
     }
+
+    /**
+     * Send approval email with payment link
+     */
+    public void sendApprovalWithPaymentLinkEmail(Assignment assignment, Payment payment) throws MessagingException {
+        MimeMessage message = emailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        String subject = "✅ Assignment Approved - Complete Payment to Start Processing";
+        String content = createApprovalWithPaymentContent(assignment, payment);
+
+        helper.setTo(assignment.getUser().getEmail());
+        helper.setSubject(subject);
+        helper.setText(content, true);
+
+        emailSender.send(message);
+    }
+
+    /**
+     * Send payment link email
+     */
+    public void sendPaymentLinkEmail(Payment payment) throws MessagingException {
+        MimeMessage message = emailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        String subject = "💳 Payment Link - " + payment.getAssignment().getTitle();
+        String content = createPaymentLinkContent(payment);
+
+        helper.setTo(payment.getUser().getEmail());
+        helper.setSubject(subject);
+        helper.setText(content, true);
+
+        emailSender.send(message);
+    }
+
+    /**
+     * Send payment confirmation email
+     */
+    public void sendPaymentConfirmationEmail(Payment payment) throws MessagingException {
+        MimeMessage message = emailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        String subject = "✅ Payment Received - " + payment.getAssignment().getTitle();
+        String content = createPaymentConfirmationContent(payment);
+
+        helper.setTo(payment.getUser().getEmail());
+        helper.setSubject(subject);
+        helper.setText(content, true);
+
+        emailSender.send(message);
+    }
+
+    // EMAIL TEMPLATES
+    private String createApprovalWithPaymentContent(Assignment assignment, Payment payment) {
+        String paymentLink = appUrl + "/payment/pay/" + payment.getPaymentToken();
+        String currencySymbol = payment.getCurrency().getSymbol();
+        String amount = String.format("%.2f", payment.getAmount());
+
+        return "<!DOCTYPE html>" +
+                "<html><head><style>" +
+                "body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }" +
+                ".container { background: #ffffff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }" +
+                ".header { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 30px; text-align: center; }" +
+                ".content { padding: 30px; }" +
+                ".price-box { background: #f8f9fa; border: 2px solid #28a745; border-radius: 10px; padding: 20px; text-align: center; margin: 20px 0; }" +
+                ".price-amount { font-size: 36px; font-weight: bold; color: #28a745; }" +
+                ".payment-btn { display: inline-block; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; }" +
+                "</style></head><body>" +
+                "<div class='container'>" +
+                "<div class='header'><h1>🎉 Assignment Approved!</h1></div>" +
+                "<div class='content'>" +
+                "<p>Dear <strong>" + assignment.getUser().getFullName() + "</strong>,</p>" +
+                "<p>Your assignment <strong>" + assignment.getTitle() + "</strong> has been approved!</p>" +
+                "<div class='price-box'>" +
+                "<div class='price-amount'>" + currencySymbol + " " + amount + "</div>" +
+                "</div>" +
+                "<div style='text-align: center;'>" +
+                "<a href='" + paymentLink + "' class='payment-btn'>💳 Complete Payment Now</a>" +
+                "</div>" +
+                "<p><strong>Order ID:</strong> " + payment.getOrderId() + "</p>" +
+                "<p>This payment link is valid for 7 days.</p>" +
+                "<p>Best regards,<br><strong>Assignment Service Team</strong></p>" +
+                "</div></div></body></html>";
+    }
+
+    private String createPaymentLinkContent(Payment payment) {
+        String paymentLink = appUrl + "/payment/pay/" + payment.getPaymentToken();
+        String currencySymbol = payment.getCurrency().getSymbol();
+        String amount = String.format("%.2f", payment.getAmount());
+
+        return "<!DOCTYPE html>" +
+                "<html><head><style>" +
+                "body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }" +
+                ".payment-btn { background: #28a745; color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; }" +
+                "</style></head><body>" +
+                "<p>Dear <strong>" + payment.getUser().getFullName() + "</strong>,</p>" +
+                "<p>Payment link for: <strong>" + payment.getAssignment().getTitle() + "</strong></p>" +
+                "<p><strong>Amount:</strong> " + currencySymbol + " " + amount + "</p>" +
+                "<p><a href='" + paymentLink + "' class='payment-btn'>Pay Now</a></p>" +
+                "<p>Best regards,<br><strong>Assignment Service Team</strong></p>" +
+                "</body></html>";
+    }
+
+    private String createPaymentConfirmationContent(Payment payment) {
+        String currencySymbol = payment.getCurrency().getSymbol();
+        String amount = String.format("%.2f", payment.getAmount());
+
+        return "<!DOCTYPE html>" +
+                "<html><head><style>" +
+                "body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }" +
+                "</style></head><body>" +
+                "<p>Dear <strong>" + payment.getUser().getFullName() + "</strong>,</p>" +
+                "<h2>✅ Payment Received!</h2>" +
+                "<p>Your payment has been confirmed.</p>" +
+                "<p><strong>Order ID:</strong> " + payment.getOrderId() + "</p>" +
+                "<p><strong>Amount Paid:</strong> " + currencySymbol + " " + amount + "</p>" +
+                "<p><strong>Assignment:</strong> " + payment.getAssignment().getTitle() + "</p>" +
+                "<p>Admin will start working on your assignment now!</p>" +
+                "<p>Best regards,<br><strong>Assignment Service Team</strong></p>" +
+                "</body></html>";
+    }
+
 
 }

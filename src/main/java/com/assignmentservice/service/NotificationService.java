@@ -3,6 +3,7 @@ package com.assignmentservice.service;
 
 import com.assignmentservice.model.*;
 import com.assignmentservice.repository.NotificationRepository;
+import com.assignmentservice.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,9 @@ public class NotificationService {
 
     @Autowired
     private UserService userService;  // Properly autowired
+
+    @Autowired
+    private UserRepository userRepository;
 
     /**
      * Create a new notification
@@ -311,4 +315,89 @@ public class NotificationService {
             notificationRepository.save(notification);
         }
     }
+    /**
+     * Notify user assignment approved with payment required
+     */
+    public void notifyUserAssignmentApprovedWithPayment(Assignment assignment, Payment payment) {
+        String currencySymbol = payment.getCurrency().getSymbol();
+        String amount = String.format("%.2f", payment.getAmount());
+
+        Notification notification = new Notification();
+        notification.setUser(assignment.getUser());
+        notification.setType(Notification.NotificationType.PAYMENT_REQUIRED);
+        notification.setTitle("💳 Payment Required - Assignment Approved");
+        notification.setMessage(
+                "Your assignment '" + assignment.getTitle() + "' has been approved! " +
+                        "Complete payment of " + currencySymbol + " " + amount + " to start processing."
+        );
+        notification.setRelatedAssignmentId(assignment.getId());
+        notification.setImportant(true);
+        notification.setStatus(Notification.NotificationStatus.UNREAD);
+        notification.setCreatedAt(java.time.LocalDateTime.now());
+
+        notificationRepository.save(notification);
+    }
+
+    /**
+     * Notify user payment received
+     */
+    public void notifyUserPaymentReceived(Payment payment) {
+        String currencySymbol = payment.getCurrency().getSymbol();
+        String amount = String.format("%.2f", payment.getAmount());
+
+        Notification notification = new Notification();
+        notification.setUser(payment.getUser());
+        notification.setType(Notification.NotificationType.PAYMENT_CONFIRMED);
+        notification.setTitle("✅ Payment Received!");
+        notification.setMessage(
+                "Payment of " + currencySymbol + " " + amount + " received for '" +
+                        payment.getAssignment().getTitle() + "'. Admin will start working now!"
+        );
+        notification.setRelatedAssignmentId(payment.getAssignment().getId());
+        notification.setImportant(true);
+        notification.setStatus(Notification.NotificationStatus.UNREAD);
+        notification.setCreatedAt(java.time.LocalDateTime.now());
+
+        notificationRepository.save(notification);
+    }
+
+    /**
+     * Notify admin payment received
+     */
+    public void notifyAdminPaymentReceived(Payment payment) {
+        List<User> admins;
+        Assignment assignment = payment.getAssignment();
+
+        if (assignment.getType() == Assignment.AssignmentType.IT) {
+            admins = userRepository.findByRoleAndSpecialization("ADMIN", User.Specialization.IT);
+        } else if (assignment.getType() == Assignment.AssignmentType.QUANTITY_SURVEYING) {
+            admins = userRepository.findByRoleAndSpecialization("ADMIN", User.Specialization.QUANTITY_SURVEYING);
+        } else {
+            admins = userRepository.findByRole("ADMIN");
+        }
+
+        List<User> bothAdmins = userRepository.findByRoleAndSpecialization("ADMIN", User.Specialization.BOTH);
+        admins.addAll(bothAdmins);
+
+        String currencySymbol = payment.getCurrency().getSymbol();
+        String amount = String.format("%.2f", payment.getAmount());
+
+        for (User admin : admins) {
+            Notification notification = new Notification();
+            notification.setUser(admin);
+            notification.setType(Notification.NotificationType.PAYMENT_RECEIVED);
+            notification.setTitle("💰 Payment Received - Start Working");
+            notification.setMessage(
+                    "Payment of " + currencySymbol + " " + amount + " received for '" +
+                            assignment.getTitle() + "'. You can start working now!"
+            );
+            notification.setRelatedAssignmentId(assignment.getId());
+            notification.setImportant(true);
+            notification.setStatus(Notification.NotificationStatus.UNREAD);
+            notification.setCreatedAt(java.time.LocalDateTime.now());
+
+            notificationRepository.save(notification);
+        }
+    }
+
 }

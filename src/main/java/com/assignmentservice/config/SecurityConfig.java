@@ -48,6 +48,11 @@ public class SecurityConfig {
                                 "/forgot-password",
                                 "/reset-password",
 
+                                "/payment/pay/**",
+                                "/payment/notify",
+                                "/payment/return",
+                                "/payment/cancel",
+
                                 // Static resources
                                 "/css/**",
                                 "/js/**",
@@ -176,8 +181,9 @@ public class SecurityConfig {
                 // CSRF configuration (enabled for forms, disabled for APIs if needed)
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers(
-                                "/api/**",  // Disable CSRF for APIs if using token-based auth
-                                "/h2-console/**"
+                                "/api/**",
+                                "/h2-console/**",
+                                "/payment/notify"
                         )
                 )
 
