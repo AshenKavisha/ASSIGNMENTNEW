@@ -2,6 +2,7 @@ package com.assignmentservice.controller;
 
 import com.assignmentservice.model.Assignment;
 import com.assignmentservice.model.Assignment.AssignmentStatus;
+import com.assignmentservice.model.Payment;
 import com.assignmentservice.model.RevisionRequest;
 import com.assignmentservice.model.User;
 import com.assignmentservice.service.AssignmentService;
@@ -717,4 +718,75 @@ public class AssignmentController {
         }
     }
 
-}
+    /**
+     * View assignment details - NEW METHOD
+     * Accessible by both user (owner) and admin
+     */
+    @GetMapping("/{id}")
+    public String viewAssignment(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+            Optional<User> userOptional = userService.getUserByEmail(email);
+
+            if (userOptional.isEmpty()) {
+                return "redirect:/login";
+            }
+
+            User currentUser = userOptional.get();
+            Optional<Assignment> assignmentOpt = assignmentService.getAssignmentById(id);
+
+            if (assignmentOpt.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Assignment not found");
+                return "redirect:/dashboard";
+            }
+
+            Assignment assignment = assignmentOpt.get();
+
+            // Check if user has permission to view this assignment
+            boolean isOwner = assignment.getUser().getId().equals(currentUser.getId());
+            boolean isAdmin = currentUser.getRole().equals("ADMIN") || currentUser.getRole().equals("SUPER_ADMIN");
+
+            if (!isOwner && !isAdmin) {
+                redirectAttributes.addFlashAttribute("error", "You don't have permission to view this assignment");
+                return "redirect:/dashboard";
+            }
+
+            // If admin, check specialization match
+            if (isAdmin && !assignmentService.canAdminAccessAssignment(currentUser, assignment)) {
+                redirectAttributes.addFlashAttribute("error",
+                        "You don't have permission to access this assignment. Check your specialization.");
+                return "redirect:/admin/assignments";
+            }
+
+            // ⭐ NEW: Get payment information for currency display
+            Payment payment = null;
+            try {
+                payment = assignmentService.getPaymentByAssignment(assignment);
+                System.out.println("Payment fetched: " + (payment != null ? "Found" : "Not found"));
+                if (payment != null) {
+                    System.out.println("Payment Currency: " + payment.getCurrency());
+                    System.out.println("Payment Amount: " + payment.getAmount());
+                }
+            } catch (Exception e) {
+                System.err.println("Could not fetch payment: " + e.getMessage());
+                // Continue without payment info - will default to $ symbol
+            }
+
+            model.addAttribute("assignment", assignment);
+            model.addAttribute("user", currentUser);
+            model.addAttribute("isOwner", isOwner);
+            model.addAttribute("isAdmin", isAdmin);
+            model.addAttribute("payment", payment);  // ⭐ ADD THIS
+
+            return "assignments/view-assignment";
+
+        } catch (Exception e) {
+            System.err.println("Error viewing assignment: " + e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Error loading assignment: " + e.getMessage());
+            return "redirect:/dashboard";
+        }
+    }
+
+    }

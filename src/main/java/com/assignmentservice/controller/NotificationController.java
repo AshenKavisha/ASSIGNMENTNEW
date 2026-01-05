@@ -27,9 +27,6 @@ public class NotificationController {
     private UserService userService;
 
     /**
-     * View all notifications
-     */
-    /**
      * View all notifications - handles both /notifications and /notifications/inbox
      */
     @GetMapping({"", "/", "/inbox"})
@@ -71,12 +68,26 @@ public class NotificationController {
     }
 
     /**
-     * Mark notification as read
+     * Mark notification as read - FIXED: Now supports both GET and POST
      */
+    @GetMapping("/{id}/read")
+    public String markAsReadGet(@PathVariable Long id,
+                                @RequestParam(required = false) String redirectUrl,
+                                RedirectAttributes redirectAttributes) {
+        return markAsReadInternal(id, redirectUrl, redirectAttributes);
+    }
+
     @PostMapping("/{id}/read")
-    public String markAsRead(@PathVariable Long id,
-                             @RequestParam(required = false) String redirectUrl,
-                             RedirectAttributes redirectAttributes) {
+    public String markAsReadPost(@PathVariable Long id,
+                                 @RequestParam(required = false) String redirectUrl,
+                                 RedirectAttributes redirectAttributes) {
+        return markAsReadInternal(id, redirectUrl, redirectAttributes);
+    }
+
+    /**
+     * Internal method to mark notification as read
+     */
+    private String markAsReadInternal(Long id, String redirectUrl, RedirectAttributes redirectAttributes) {
         try {
             User user = getCurrentUser();
             if (user == null) {
@@ -90,6 +101,7 @@ public class NotificationController {
             redirectAttributes.addFlashAttribute("error", "Error: " + e.getMessage());
         }
 
+        // If redirectUrl is provided, redirect to it
         if (redirectUrl != null && !redirectUrl.isEmpty()) {
             return "redirect:" + redirectUrl;
         }

@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="'Assignment: ' + ${assignment.title}">Assignment Details</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #3498db;
+      --success-color: #27ae60;
+      --warning-color: #f39c12;
+      --danger-color: #e74c3c;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f8f9fa;
+    }
+
+    .navbar {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .main-card {
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      margin: 30px 0;
+    }
+
+    .card-header-custom {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 2rem;
+    }
+
+    .status-badge {
+      padding: 0.5rem 1.5rem;
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-approved { background: #d1e7dd; color: #0f5132; }
+    .status-rejected { background: #f8d7da; color: #842029; }
+    .status-in-progress, .status-in_progress { background: #cfe2ff; color: #084298; }
+    .status-delivered { background: #d1e7dd; color: #0f5132; }
+    .status-completed { background: #d1e7dd; color: #0f5132; }
+    .status-paid { background: #d1e7dd; color: #0f5132; }
+    .status-revision-requested, .status-revision_requested {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+    }
+
+    .info-section {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .info-label {
+      font-weight: 600;
+      color: #6c757d;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .info-value {
+      color: #212529;
+      font-size: 1.1rem;
+    }
+
+    .file-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .file-list li {
+      padding: 0.5rem;
+      background: white;
+      border-radius: 5px;
+      margin-bottom: 0.5rem;
+    }
+
+    /* ⭐ NEW: Revision Counter Styling (matching my-assignments.html) */
+    .revision-counter {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 0.75rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+    }
+
+    /* ⭐ NEW: Revision Button Styling (matching my-assignments.html) */
+    .btn-revision {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      border: none;
+      color: white;
+      font-weight: 600;
+      padding: 0.6rem 1.5rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-revision:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(240, 147, 251, 0.4);
+      color: white;
+    }
+
+    /* ⭐ NEW: Modal Styling (matching my-assignments.html) */
+    .modal-content {
+      border-radius: 15px;
+    }
+
+    .modal-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 15px 15px 0 0;
+    }
+
+    .modal-header .btn-close {
+      filter: brightness(0) invert(1);
+    }
+
+    /* ⭐ NEW: Revision History Styling */
+    .revision-history {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+
+    .revision-item {
+      padding: 0.75rem;
+      border-left: 3px solid #667eea;
+      background: white;
+      margin-bottom: 0.75rem;
+      border-radius: 5px;
+    }
+
+    .revision-badge {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+  <div class="container">
+    <a class="navbar-brand fw-bold" th:href="@{/dashboard}">
+      <i class="bi bi-journal-check me-2"></i>Assignment Service
+    </a>
+    <div class="navbar-nav ms-auto">
+      <span class="navbar-text me-3 text-white">
+        <i class="bi bi-person-circle me-1"></i>
+        Welcome, <span th:text="${user != null ? user.fullName : 'User'}">User</span>
+      </span>
+      <a class="btn btn-outline-light btn-sm" th:href="@{/logout}">
+        <i class="bi bi-box-arrow-right me-1"></i>Logout
+      </a>
+    </div>
+  </div>
+</nav>
+
+<div class="container pb-5">
+  <!-- Messages -->
+  <div th:if="${success}" class="alert alert-success alert-dismissible fade show mt-3">
+    <i class="bi bi-check-circle me-2"></i><span th:text="${success}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mt-3">
+    <i class="bi bi-exclamation-triangle me-2"></i><span th:text="${error}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+
+  <!-- Back Button -->
+  <div class="mt-4">
+    <a th:href="@{${isAdmin != null and isAdmin == true} ? '/admin/assignments' : '/dashboard'}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-2"></i>Back
+    </a>
+  </div>
+
+  <!-- Main Card -->
+  <div class="card main-card">
+    <!-- Header -->
+    <div class="card-header-custom">
+      <div class="d-flex justify-content-between align-items-start flex-wrap">
+        <div>
+          <h2 class="mb-2" th:text="${assignment.title}">Assignment Title</h2>
+          <p class="mb-0 opacity-75" th:text="${assignment.subject}">Subject</p>
+        </div>
+        <div>
+          <span class="status-badge"
+                th:classappend="${'status-' + #strings.toLowerCase(#strings.replace(assignment.status, '_', '-'))}"
+                th:text="${#strings.capitalize(#strings.replace(assignment.status, '_', ' '))}">
+            Status
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-body p-4">
+      <!-- Basic Info -->
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <div class="info-section">
+            <div class="info-label">
+              <i class="bi bi-tag me-1"></i>Assignment Type
+            </div>
+            <div class="info-value">
+              <span th:if="${assignment.type.name() == 'IT'}">
+                <i class="bi bi-laptop text-primary me-2"></i>IT Assignment
+              </span>
+              <span th:if="${assignment.type.name() == 'QUANTITY_SURVEYING'}">
+                <i class="bi bi-calculator text-success me-2"></i>Quantity Surveying
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="info-section">
+            <div class="info-label">
+              <i class="bi bi-calendar-event me-1"></i>Deadline
+            </div>
+            <div class="info-value">
+              <i class="bi bi-clock text-danger me-1"></i>
+              <span th:text="${assignment.deadline}">Deadline</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="mb-4">
+        <h5 class="mb-3"><i class="bi bi-file-text me-2"></i>Description</h5>
+        <div class="info-section">
+          <p class="mb-0" style="white-space: pre-wrap;" th:text="${assignment.description}">Description</p>
+        </div>
+      </div>
+
+      <!-- Additional Requirements -->
+      <div class="mb-4" th:if="${assignment.additionalRequirements != null and #strings.length(assignment.additionalRequirements) > 0}">
+        <h5 class="mb-3"><i class="bi bi-list-check me-2"></i>Additional Requirements</h5>
+        <div class="info-section">
+          <p class="mb-0" style="white-space: pre-wrap;" th:text="${assignment.additionalRequirements}">Requirements</p>
+        </div>
+      </div>
+
+      <!-- Submitted Files -->
+      <div class="mb-4" th:if="${assignment.descriptionFiles != null and #strings.length(assignment.descriptionFiles) > 0}">
+        <h5 class="mb-3"><i class="bi bi-paperclip me-2"></i>Description Files</h5>
+        <div class="info-section">
+          <ul class="file-list">
+            <li th:each="file : ${#strings.arraySplit(assignment.descriptionFiles, ', ')}">
+              <i class="bi bi-file-earmark text-primary me-2"></i>
+              <span th:text="${file}">filename</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Requirements Files -->
+      <div class="mb-4" th:if="${assignment.requirementsFiles != null and #strings.length(assignment.requirementsFiles) > 0}">
+        <h5 class="mb-3"><i class="bi bi-paperclip me-2"></i>Requirement Files</h5>
+        <div class="info-section">
+          <ul class="file-list">
+            <li th:each="file : ${#strings.arraySplit(assignment.requirementsFiles, ', ')}">
+              <i class="bi bi-file-earmark text-success me-2"></i>
+              <span th:text="${file}">filename</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ⭐ UPDATED: Pricing Information with Dynamic Currency -->
+      <div class="mb-4" th:if="${assignment.price != null}">
+        <h5 class="mb-3"><i class="bi bi-currency-dollar me-2"></i>Pricing</h5>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="info-section">
+              <div class="info-label">Initial Quote</div>
+              <div class="info-value text-primary">
+                <!-- ⭐ FIXED: Show correct currency based on payment -->
+                <span th:if="${payment != null and payment.currency.name() == 'LKR'}">
+                  Rs. <span th:text="${#numbers.formatDecimal(assignment.price, 1, 2)}">0.00</span>
+                </span>
+                <span th:if="${payment != null and payment.currency.name() == 'USD'}">
+                  $ <span th:text="${#numbers.formatDecimal(assignment.price, 1, 2)}">0.00</span>
+                </span>
+                <!-- Default if no payment exists yet -->
+                <span th:if="${payment == null}">
+                  $ <span th:text="${#numbers.formatDecimal(assignment.price, 1, 2)}">0.00</span>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6" th:if="${assignment.finalPrice != null}">
+            <div class="info-section">
+              <div class="info-label">Final Price</div>
+              <div class="info-value text-success">
+                <!-- ⭐ FIXED: Show correct currency for final price too -->
+                <span th:if="${payment != null and payment.currency.name() == 'LKR'}">
+                  Rs. <span th:text="${#numbers.formatDecimal(assignment.finalPrice, 1, 2)}">0.00</span>
+                </span>
+                <span th:if="${payment != null and payment.currency.name() == 'USD'}">
+                  $ <span th:text="${#numbers.formatDecimal(assignment.finalPrice, 1, 2)}">0.00</span>
+                </span>
+                <span th:if="${payment == null}">
+                  $ <span th:text="${#numbers.formatDecimal(assignment.finalPrice, 1, 2)}">0.00</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Notes -->
+      <div class="mb-4" th:if="${assignment.adminNotes != null and #strings.length(assignment.adminNotes) > 0}">
+        <h5 class="mb-3"><i class="bi bi-chat-left-text me-2"></i>Admin Notes</h5>
+        <div class="info-section">
+          <p class="mb-0" style="white-space: pre-wrap;" th:text="${assignment.adminNotes}">Notes</p>
+        </div>
+      </div>
+
+      <!-- ⭐ UPDATED: Revision Information with Counter (matching my-assignments.html) -->
+      <div class="mb-4" th:if="${assignment.status.name() == 'DELIVERED' or assignment.status.name() == 'REVISION_REQUESTED'}">
+        <h5 class="mb-3"><i class="bi bi-arrow-repeat me-2"></i>Revision Information</h5>
+        <div class="info-section">
+          <div class="revision-counter">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Revisions:</strong>
+            <span th:text="${assignment.revisionsUsed != null ? assignment.revisionsUsed : 0}">0</span> used /
+            <span th:text="${assignment.maxRevisions != null ? assignment.maxRevisions : 2}">2</span> available
+
+            <span th:if="${assignment.revisionsUsed >= assignment.maxRevisions}" class="text-danger ms-2">
+              <i class="bi bi-exclamation-circle"></i> No revisions remaining
+            </span>
+            <span th:if="${assignment.revisionsUsed < assignment.maxRevisions}" class="text-success ms-2">
+              <i class="bi bi-check-circle"></i>
+              <span th:text="${assignment.maxRevisions - assignment.revisionsUsed}">2</span> revisions remaining
+            </span>
+          </div>
+
+          <!-- ⭐ NEW: Revision History (matching my-assignments.html) -->
+          <div th:if="${assignment.revisionRequests != null and !assignment.revisionRequests.empty}"
+               class="revision-history">
+            <h6 class="mb-3"><i class="bi bi-clock-history me-2"></i>Revision History</h6>
+            <div th:each="revision, revisionStat : ${assignment.revisionRequests}" class="revision-item">
+              <div class="d-flex justify-content-between">
+                <strong>Revision Request #<span th:text="${revisionStat.count}">1</span></strong>
+                <small class="text-muted" th:text="${#temporals.format(revision.requestedAt, 'MMM dd, yyyy HH:mm')}">Date</small>
+              </div>
+              <p class="mb-1 mt-2"><strong>Reason:</strong></p>
+              <p class="text-muted mb-0" th:text="${revision.reason}">Revision reason</p>
+              <span th:if="${revision.status.name() == 'PENDING'}" class="badge bg-warning mt-2">Pending Review</span>
+              <span th:if="${revision.status.name() == 'IN_PROGRESS'}" class="badge bg-info mt-2">Being Revised</span>
+              <span th:if="${revision.status.name() == 'COMPLETED'}" class="badge bg-success mt-2">Completed</span>
+              <span th:if="${revision.status.name() == 'REJECTED'}" class="badge bg-danger mt-2">Rejected</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Solution Download -->
+      <div class="mb-4" th:if="${assignment.solutionFiles != null and assignment.status.name() == 'DELIVERED'}">
+        <h5 class="mb-3 text-success"><i class="bi bi-file-earmark-check me-2"></i>Solution Available</h5>
+        <div class="info-section">
+          <a th:href="@{/assignments/{id}/download-solution(id=${assignment.id})}"
+             class="btn btn-success">
+            <i class="bi bi-download me-2"></i>Download Solution
+          </a>
+        </div>
+      </div>
+
+      <!-- Timeline -->
+      <div class="mb-4">
+        <h5 class="mb-3"><i class="bi bi-clock-history me-2"></i>Timeline</h5>
+        <div class="info-section">
+          <div class="mb-2" th:if="${assignment.createdAt != null}">
+            <strong>Submitted:</strong>
+            <span th:text="${assignment.createdAt}">Date</span>
+          </div>
+          <div class="mb-2" th:if="${assignment.updatedAt != null}">
+            <strong>Last Updated:</strong>
+            <span th:text="${assignment.updatedAt}">Date</span>
+          </div>
+          <div th:if="${assignment.deliveredAt != null}">
+            <strong class="text-success">Delivered:</strong>
+            <span th:text="${assignment.deliveredAt}">Date</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="d-flex gap-2 flex-wrap">
+        <!-- User Actions -->
+        <div th:if="${isOwner != null and isOwner == true}">
+          <!-- Payment Button -->
+          <a th:if="${assignment.status.name() == 'APPROVED'}"
+             th:href="@{/payment/pay/{token}(token=${payment.paymentToken})}"
+             class="btn btn-success">
+            <i class="bi bi-credit-card me-2"></i>Make Payment
+          </a>
+
+          <!-- ⭐ NEW: Show message if payment not found -->
+          <div th:if="${assignment.status.name() == 'APPROVED' and payment == null}"
+               class="alert alert-warning p-2 mb-0" role="alert">
+            <small><i class="bi bi-exclamation-triangle"></i> Payment information not available. Please contact admin.</small>
+          </div>
+
+          <!-- Feedback Button -->
+          <a th:if="${assignment.status.name() == 'DELIVERED'}"
+             th:href="@{/feedback/submit(assignmentId=${assignment.id})}"
+             class="btn btn-primary">
+            <i class="bi bi-star me-2"></i>Submit Feedback
+          </a>
+
+          <!-- ⭐ UPDATED: Request Revision Button with Modal (matching my-assignments.html) -->
+          <button th:if="${assignment.status.name() == 'DELIVERED' and
+                           (assignment.revisionsUsed == null or assignment.revisionsUsed < assignment.maxRevisions)}"
+                  type="button"
+                  class="btn btn-revision"
+                  data-bs-toggle="modal"
+                  data-bs-target="#revisionModal">
+            <i class="bi bi-arrow-repeat me-2"></i>Request Revision
+          </button>
+
+          <!-- ⭐ NEW: Revision Exhausted Message -->
+          <div th:if="${assignment.status.name() == 'DELIVERED' and assignment.revisionsUsed >= assignment.maxRevisions}"
+               class="alert alert-warning p-2 mb-0" role="alert">
+            <small><i class="bi bi-exclamation-triangle"></i> No revisions remaining</small>
+          </div>
+
+          <!-- ⭐ NEW: Revision in Progress Message -->
+          <div th:if="${assignment.status.name() == 'REVISION_REQUESTED'}"
+               class="alert alert-info p-2 mb-0" role="alert">
+            <small><i class="bi bi-hourglass-split"></i> Revision in progress...</small>
+          </div>
+        </div>
+
+        <!-- Admin Actions -->
+        <div th:if="${isAdmin != null and isAdmin == true}">
+          <!-- Approve Button -->
+          <a th:if="${assignment.status.name() == 'PENDING'}"
+             th:href="@{/admin/assignments/{id}/approve(id=${assignment.id})}"
+             class="btn btn-success">
+            <i class="bi bi-check-circle me-2"></i>Approve Assignment
+          </a>
+
+          <!-- Deliver Solution Button -->
+          <a th:if="${assignment.status.name() == 'IN_PROGRESS' or assignment.status.name() == 'PAID'}"
+             th:href="@{/assignments/{id}/deliver-solution(id=${assignment.id})}"
+             class="btn btn-primary">
+            <i class="bi bi-send me-2"></i>Deliver Solution
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ⭐ NEW: Revision Request Modal (matching my-assignments.html) -->
+<div class="modal fade" id="revisionModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-arrow-repeat me-2"></i>Request Revision
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form th:action="@{/assignments/{id}/request-revision(id=${assignment.id})}" method="post">
+        <div class="modal-body">
+          <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            You have <strong th:text="${assignment.maxRevisions - (assignment.revisionsUsed != null ? assignment.revisionsUsed : 0)}">2</strong>
+            revision(s) remaining for this assignment.
+          </div>
+
+          <div class="mb-3">
+            <label for="revisionReason" class="form-label">
+              <strong>What changes would you like?</strong>
+            </label>
+            <textarea class="form-control"
+                      name="reason"
+                      id="revisionReason"
+                      rows="5"
+                      required
+                      placeholder="Please describe in detail what needs to be revised or corrected..."></textarea>
+            <div class="form-text">
+              Be specific about what needs to be changed for faster processing.
+            </div>
+          </div>
+
+          <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>Note:</strong> Once submitted, the admin will review your request and work on the revisions.
+            You'll be notified via email when the revised solution is ready.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-revision">
+            <i class="bi bi-send"></i> Submit Request
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white py-4 mt-5">
+  <div class="container text-center">
+    <p class="mb-0">&copy; 2025 Assignment Service. All rights reserved.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

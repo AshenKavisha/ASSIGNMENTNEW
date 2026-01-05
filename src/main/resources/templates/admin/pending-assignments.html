@@ -600,7 +600,7 @@
                                     <!-- Price Input -->
                                     <div class="col-md-5">
                                         <div class="input-group">
-                                            <span class="input-group-text" id="currencySymbol">Rs.</span>
+                                            <span class="input-group-text currency-symbol">Rs.</span>
                                             <input type="number"
                                                    name="price"
                                                    class="form-control"
@@ -613,7 +613,7 @@
 
                                     <!-- Currency Dropdown -->
                                     <div class="col-md-4">
-                                        <select name="currency" class="form-select" required onchange="updateCurrencySymbol(this)">
+                                        <select name="currency" class="form-select currency-select" required>
                                             <option value="LKR" selected>🇱🇰 LKR (Rs.)</option>
                                             <option value="USD">🇺🇸 USD ($)</option>
                                         </select>
@@ -662,17 +662,27 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    function updateCurrencySymbol(selectElement) {
-        // Find the closest form to this select element
-        const form = selectElement.closest('form');
-        const currencySymbol = form.querySelector('#currencySymbol');
+    // ⭐ FIXED: Currency symbol updates dynamically for each card
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get all currency select dropdowns
+        const currencySelects = document.querySelectorAll('.currency-select');
 
-        if (selectElement.value === 'LKR') {
-            currencySymbol.textContent = 'Rs.';
-        } else if (selectElement.value === 'USD') {
-            currencySymbol.textContent = '$';
-        }
-    }
+        currencySelects.forEach(function(select) {
+            select.addEventListener('change', function() {
+                // Find the currency symbol span in the same form
+                const form = this.closest('form');
+                const currencySymbol = form.querySelector('.currency-symbol');
+
+                if (this.value === 'LKR') {
+                    currencySymbol.textContent = 'Rs.';
+                    currencySymbol.style.color = '#28a745';
+                } else if (this.value === 'USD') {
+                    currencySymbol.textContent = '$';
+                    currencySymbol.style.color = '#007bff';
+                }
+            });
+        });
+    });
 </script>
 </body>
 </html>

@@ -1,9 +1,11 @@
 package com.assignmentservice.service;
 
 import com.assignmentservice.model.Assignment;
+import com.assignmentservice.model.Payment;
 import com.assignmentservice.model.RevisionRequest;
 import com.assignmentservice.model.User;
 import com.assignmentservice.repository.AssignmentRepository;
+import com.assignmentservice.repository.PaymentRepository;
 import com.assignmentservice.repository.RevisionRequestRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -36,6 +38,9 @@ public class AssignmentService {
 
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private PaymentRepository paymentRepository;
 
     // ============================================
     // EXISTING METHODS WITH NOTIFICATION INTEGRATION
@@ -588,6 +593,11 @@ public class AssignmentService {
 
     public Map<String, Object> getAssignmentStatisticsForAdmin(LocalDateTime startDate, User admin) {
         return getPerformanceMetrics(startDate, admin);
+    }
+
+    // In AssignmentService.java, add:
+    public Payment getPaymentByAssignment(Assignment assignment) {
+        return paymentRepository.findByAssignment(assignment).orElse(null);
     }
 
 }
