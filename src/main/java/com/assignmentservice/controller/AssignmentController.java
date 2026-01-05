@@ -320,6 +320,8 @@ public class AssignmentController {
         return false;
     }
 
+    // REPLACE your existing viewMyAssignments method in AssignmentController.java with this:
+
     @GetMapping("/my-assignments")
     public String viewMyAssignments(Model model) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -339,6 +341,28 @@ public class AssignmentController {
         User user = userOptional.get();
         List<Assignment> assignments = assignmentService.getUserAssignments(user);
 
+        // ⭐ CRITICAL: Attach payment information to each assignment
+        System.out.println("=== FETCHING PAYMENT INFO FOR ASSIGNMENTS ===");
+        for (Assignment assignment : assignments) {
+            try {
+                Payment payment = assignmentService.getPaymentByAssignment(assignment);
+                if (payment != null) {
+                    assignment.setPayment(payment);
+                    System.out.println("✅ Payment found for Assignment ID: " + assignment.getId() +
+                            " | Payment Status: " + payment.getStatus() +
+                            " | Payment Token: " + payment.getPaymentToken());
+                } else {
+                    System.out.println("⚠️ No payment record for Assignment ID: " + assignment.getId());
+                }
+            } catch (Exception e) {
+                System.err.println("❌ Error fetching payment for Assignment ID: " + assignment.getId());
+                System.err.println("Error: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        System.out.println("=== END PAYMENT INFO FETCH ===");
+
+        // Calculate statistics
         long completedCount = assignments.stream()
                 .filter(a -> a.getStatus() == AssignmentStatus.COMPLETED)
                 .count();
@@ -354,6 +378,7 @@ public class AssignmentController {
         model.addAttribute("pendingCount", pendingCount);
         model.addAttribute("inProgressCount", inProgressCount);
         model.addAttribute("user", user);
+
         return "my-assignments";
     }
 

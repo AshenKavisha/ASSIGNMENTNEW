@@ -7,6 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import jakarta.persistence.Transient;
 
 @Entity
 @Table(name = "assignments")
@@ -121,6 +122,9 @@ public class Assignment {
         REVISION_REQUESTED,  // NEW STATUS for revision requests
         PAID
     }
+
+    @Transient
+    private Payment payment;
 
     // ========================================
     // REVISION HELPER METHODS
@@ -290,5 +294,13 @@ public class Assignment {
     public List<RevisionRequest> getRevisionRequests() { return revisionRequests; }
     public void setRevisionRequests(List<RevisionRequest> revisionRequests) {
         this.revisionRequests = revisionRequests;
+    }
+
+    public Payment getPayment() {
+        return payment;
+    }
+
+    public void setPayment(Payment payment) {
+        this.payment = payment;
     }
 }

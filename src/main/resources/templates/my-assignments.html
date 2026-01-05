@@ -42,6 +42,14 @@
             border-left-color: #6c757d;
         }
 
+        .status-approved {
+            border-left-color: #28a745;
+        }
+
+        .status-rejected {
+            border-left-color: #dc3545;
+        }
+
         .revision-badge {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             padding: 0.5rem 1rem;
@@ -106,6 +114,114 @@
             border-radius: 12px;
             margin-bottom: 2rem;
         }
+
+        /* ⭐ NEW: Approval Status Badges */
+        .approval-section {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+            border: 2px solid #e9ecef;
+        }
+
+        .approval-badge {
+            padding: 0.6rem 1.2rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .approved-badge {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+            border: 2px solid #28a745;
+        }
+
+        .not-approved-badge {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            color: #721c24;
+            border: 2px solid #dc3545;
+        }
+
+        .pending-approval-badge {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffe5b4 100%);
+            color: #856404;
+            border: 2px solid #ffc107;
+        }
+
+        /* ⭐ NEW: Payment Section */
+        .payment-section {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-left: 5px solid #28a745;
+            padding: 1.25rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+        }
+
+        .payment-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+            border: none !important;
+            color: white !important;
+            font-weight: 700 !important;
+            padding: 0.75rem 2rem !important;
+            border-radius: 10px !important;
+            box-shadow: 0 5px 20px rgba(40, 167, 69, 0.3) !important;
+            transition: all 0.3s ease !important;
+            text-decoration: none !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .payment-btn:hover {
+            transform: translateY(-3px) !important;
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4) !important;
+        }
+
+        .payment-status {
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .payment-completed {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+
+        .payment-pending {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            color: #856404;
+        }
+
+        .price-display {
+            background: linear-gradient(135deg, #fff9e6 0%, #ffe5b4 100%);
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .price-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ff9800;
+        }
+
+        /* Rejection reason styling */
+        .rejection-notice {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            color: #721c24;
+        }
     </style>
 </head>
 <body>
@@ -130,7 +246,7 @@
     <!-- Page Header -->
     <div class="page-header">
         <h1><i class="bi bi-list-task me-2"></i>My Assignments</h1>
-        <p class="lead mb-0">Track your assignments and request revisions if needed</p>
+        <p class="lead mb-0">Track your assignments, check approval status, and complete payments</p>
     </div>
 
     <!-- Success/Error Messages -->
@@ -150,7 +266,9 @@
             <div class="card assignment-card"
                  th:classappend="${assignment.status.name() == 'DELIVERED'} ? 'status-delivered' :
                                     (${assignment.status.name() == 'COMPLETED'} ? 'status-completed' :
-                                    (${assignment.status.name() == 'IN_PROGRESS'} ? 'status-in-progress' : 'status-pending'))">
+                                    (${assignment.status.name() == 'IN_PROGRESS'} ? 'status-in-progress' :
+                                    (${assignment.status.name() == 'APPROVED'} ? 'status-approved' :
+                                    (${assignment.status.name() == 'REJECTED'} ? 'status-rejected' : 'status-pending'))))">
                 <div class="card-body">
                     <div class="row">
                         <!-- Assignment Details -->
@@ -161,26 +279,35 @@
                             </h4>
 
                             <div class="mb-2">
-                                    <span th:if="${assignment.type.name()} == 'IT'" class="badge bg-primary">
-                                        <i class="bi bi-laptop me-1"></i>IT Assignment
-                                    </span>
+                                <span th:if="${assignment.type.name()} == 'IT'" class="badge bg-primary">
+                                    <i class="bi bi-laptop me-1"></i>IT Assignment
+                                </span>
                                 <span th:if="${assignment.type.name()} == 'QUANTITY_SURVEYING'" class="badge bg-success">
-                                        <i class="bi bi-calculator me-1"></i>QS Assignment
-                                    </span>
+                                    <i class="bi bi-calculator me-1"></i>QS Assignment
+                                </span>
 
                                 <!-- Status Badge -->
+                                <span th:if="${assignment.status.name() == 'PENDING'}" class="badge bg-secondary ms-2">
+                                    <i class="bi bi-clock"></i> PENDING
+                                </span>
+                                <span th:if="${assignment.status.name() == 'APPROVED'}" class="badge bg-success ms-2">
+                                    <i class="bi bi-check-circle"></i> APPROVED
+                                </span>
+                                <span th:if="${assignment.status.name() == 'REJECTED'}" class="badge bg-danger ms-2">
+                                    <i class="bi bi-x-circle"></i> REJECTED
+                                </span>
                                 <span th:if="${assignment.status.name() == 'DELIVERED'}" class="badge bg-info ms-2">
-                                        <i class="bi bi-send-check"></i> DELIVERED
-                                    </span>
+                                    <i class="bi bi-send-check"></i> DELIVERED
+                                </span>
                                 <span th:if="${assignment.status.name() == 'COMPLETED'}" class="badge bg-success ms-2">
-                                        <i class="bi bi-check-circle"></i> COMPLETED
-                                    </span>
+                                    <i class="bi bi-check-circle"></i> COMPLETED
+                                </span>
                                 <span th:if="${assignment.status.name() == 'IN_PROGRESS'}" class="badge bg-warning ms-2">
-                                        <i class="bi bi-gear"></i> IN PROGRESS
-                                    </span>
+                                    <i class="bi bi-gear"></i> IN PROGRESS
+                                </span>
                                 <span th:if="${assignment.status.name() == 'REVISION_REQUESTED'}" class="badge revision-badge ms-2">
-                                        <i class="bi bi-arrow-repeat"></i> REVISION REQUESTED
-                                    </span>
+                                    <i class="bi bi-arrow-repeat"></i> REVISION REQUESTED
+                                </span>
                             </div>
 
                             <p class="text-muted mb-2">
@@ -193,6 +320,118 @@
                                 <strong>Deadline:</strong> <span th:text="${assignment.deadline}"></span>
                             </p>
 
+                            <!-- ⭐ NEW: Price Display -->
+                            <div th:if="${assignment.price != null}" class="price-display">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span><strong>Assignment Fee:</strong></span>
+                                    <span class="price-value">
+                                        <span th:text="${assignment.payment?.currency?.symbol ?: 'Rs.'}">Rs.</span>
+                                        <span th:text="${#numbers.formatDecimal(assignment.price, 1, 2)}">0.00</span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- ⭐ NEW: Approval Status Section -->
+                            <div class="approval-section">
+                                <h6 class="mb-3"><i class="bi bi-shield-check me-2"></i>Approval Status</h6>
+
+                                <!-- PENDING - Not yet reviewed -->
+                                <div th:if="${assignment.status.name() == 'PENDING'}">
+                                    <span class="approval-badge pending-approval-badge">
+                                        <i class="bi bi-hourglass-split me-2"></i>Awaiting Admin Review
+                                    </span>
+                                    <p class="text-muted mt-2 mb-0">
+                                        <small>Your assignment is being reviewed by our admin team.</small>
+                                    </p>
+                                </div>
+
+                                <!-- APPROVED - Ready for payment -->
+                                <div th:if="${assignment.status.name() == 'APPROVED' or
+                                             assignment.status.name() == 'IN_PROGRESS' or
+                                             assignment.status.name() == 'DELIVERED' or
+                                             assignment.status.name() == 'COMPLETED'}">
+                                    <span class="approval-badge approved-badge">
+                                        <i class="bi bi-patch-check-fill me-2"></i>Approved by Admin
+                                    </span>
+                                    <p class="text-success mt-2 mb-0">
+                                        <small><i class="bi bi-check-circle me-1"></i>Your assignment has been approved and is ready for processing.</small>
+                                    </p>
+                                </div>
+
+                                <!-- REJECTED - Not approved -->
+                                <div th:if="${assignment.status.name() == 'REJECTED'}">
+                                    <span class="approval-badge not-approved-badge">
+                                        <i class="bi bi-x-circle-fill me-2"></i>Not Approved
+                                    </span>
+                                    <p class="text-danger mt-2 mb-0">
+                                        <small><i class="bi bi-exclamation-triangle me-1"></i>Your assignment was not approved. Please check the reason below.</small>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- ⭐ NEW: Payment Section (Only show if APPROVED) -->
+                            <div th:if="${assignment.status.name() == 'APPROVED'}" class="payment-section">
+                                <h6 class="mb-3">
+                                    <i class="bi bi-credit-card me-2"></i>Payment Required
+                                </h6>
+
+                                <!-- Check if payment exists and its status -->
+                                <div th:if="${assignment.payment != null}">
+                                    <!-- Payment Completed -->
+                                    <div th:if="${assignment.payment.status.name() == 'COMPLETED'}" class="payment-status payment-completed">
+                                        <i class="bi bi-check-circle-fill me-2"></i>
+                                        <strong>Payment Completed!</strong>
+                                        <p class="mb-0 mt-2">
+                                            <small>Your payment has been confirmed. We'll start working on your assignment shortly.</small>
+                                        </p>
+                                    </div>
+
+                                    <!-- Payment Pending - Show Payment Button -->
+                                    <div th:if="${assignment.payment.status.name() == 'PENDING'}">
+                                        <div class="payment-status payment-pending mb-3">
+                                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                            <strong>Payment Pending</strong>
+                                            <p class="mb-0 mt-2">
+                                                <small>Please complete your payment to start processing your assignment.</small>
+                                            </p>
+                                        </div>
+
+                                        <!-- ⭐ PAYMENT BUTTON -->
+                                        <a th:href="@{/payment/pay/{token}(token=${assignment.payment.paymentToken})}"
+                                           class="payment-btn w-100">
+                                            <i class="bi bi-credit-card-2-front me-2"></i>
+                                            Make Payment Now
+                                        </a>
+                                    </div>
+
+                                    <!-- Payment Failed -->
+                                    <div th:if="${assignment.payment.status.name() == 'FAILED'}" class="payment-status" style="background: #f8d7da; border-left-color: #dc3545; color: #721c24;">
+                                        <i class="bi bi-x-circle-fill me-2"></i>
+                                        <strong>Payment Failed</strong>
+                                        <p class="mb-0 mt-2">
+                                            <small>Your previous payment attempt failed. Please try again.</small>
+                                        </p>
+                                        <a th:href="@{/payment/pay/{token}(token=${assignment.payment.paymentToken})}"
+                                           class="payment-btn w-100 mt-3">
+                                            <i class="bi bi-arrow-clockwise me-2"></i>
+                                            Retry Payment
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- No payment record (shouldn't happen but safety check) -->
+                                <div th:if="${assignment.payment == null}" class="alert alert-info mb-0">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    <strong>Payment link is being generated.</strong> Please refresh in a moment or contact admin.
+                                </div>
+                            </div>
+
+                            <!-- ⭐ NEW: Rejection Reason -->
+                            <div th:if="${assignment.status.name() == 'REJECTED' and assignment.adminNotes}" class="rejection-notice">
+                                <strong><i class="bi bi-x-circle me-2"></i>Rejection Reason:</strong>
+                                <p class="mb-0 mt-2" th:text="${assignment.adminNotes}">Admin notes</p>
+                            </div>
+
                             <!-- Revision Counter -->
                             <div th:if="${assignment.status.name() == 'DELIVERED' or assignment.status.name() == 'REVISION_REQUESTED'}"
                                  class="revision-counter">
@@ -202,28 +441,28 @@
                                 <span th:text="${assignment.maxRevisions != null ? assignment.maxRevisions : 2}"></span> available
 
                                 <span th:if="${assignment.revisionsUsed >= assignment.maxRevisions}" class="text-danger ms-2">
-                                        <i class="bi bi-exclamation-circle"></i> No revisions remaining
-                                    </span>
+                                    <i class="bi bi-exclamation-circle"></i> No revisions remaining
+                                </span>
                                 <span th:if="${assignment.revisionsUsed < assignment.maxRevisions}" class="text-success ms-2">
-                                        <i class="bi bi-check-circle"></i>
-                                        <span th:text="${assignment.maxRevisions - assignment.revisionsUsed}"></span> revisions remaining
-                                    </span>
+                                    <i class="bi bi-check-circle"></i>
+                                    <span th:text="${assignment.maxRevisions - assignment.revisionsUsed}"></span> revisions remaining
+                                </span>
                             </div>
 
                             <!-- Revision History -->
                             <div th:if="${assignment.revisionRequests != null and !assignment.revisionRequests.empty}"
                                  class="revision-history mt-3">
                                 <h6 class="mb-3"><i class="bi bi-clock-history me-2"></i>Revision History</h6>
-                                <div th:each="revision : ${assignment.revisionRequests}" class="revision-item">
+                                <div th:each="revision, revisionStat : ${assignment.revisionRequests}" class="revision-item">
                                     <div class="d-flex justify-content-between">
                                         <strong>Revision Request #<span th:text="${revisionStat.count}"></span></strong>
                                         <small class="text-muted" th:text="${#temporals.format(revision.requestedAt, 'MMM dd, yyyy HH:mm')}"></small>
                                     </div>
                                     <p class="mb-1 mt-2"><strong>Reason:</strong></p>
                                     <p class="text-muted mb-0" th:text="${revision.reason}"></p>
-                                    <span th:if="${revision.status == 'PENDING'}" class="badge bg-warning mt-2">Pending Review</span>
-                                    <span th:if="${revision.status == 'IN_PROGRESS'}" class="badge bg-info mt-2">Being Revised</span>
-                                    <span th:if="${revision.status == 'COMPLETED'}" class="badge bg-success mt-2">Completed</span>
+                                    <span th:if="${revision.status.name() == 'PENDING'}" class="badge bg-warning mt-2">Pending Review</span>
+                                    <span th:if="${revision.status.name() == 'IN_PROGRESS'}" class="badge bg-info mt-2">Being Revised</span>
+                                    <span th:if="${revision.status.name() == 'COMPLETED'}" class="badge bg-success mt-2">Completed</span>
                                 </div>
                             </div>
                         </div>
