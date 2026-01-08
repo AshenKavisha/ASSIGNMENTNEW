@@ -54,9 +54,7 @@ public class InitialAdminController {
             admin.setSpecialization(User.Specialization.BOTH);  // Full access
             admin.setEmailVerified(true);  // Email is verified
             admin.setCreatedAt(LocalDateTime.now());
-
             userService.saveUser(admin);
-
             return "<!DOCTYPE html>" +
                     "<html>" +
                     "<head>" +
