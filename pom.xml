@@ -22,6 +22,9 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <mssql.version>12.4.2.jre11</mssql.version>
+        <!-- ADD THESE PROPERTIES -->
+        <hibernate.version>6.4.10.Final</hibernate.version>
+        <logback.version>1.4.14</logback.version>
     </properties>
 
     <dependencies>
@@ -59,6 +62,30 @@
         </dependency>
 
         <!-- ============================================ -->
+        <!-- ADD: Explicit Hibernate Core                 -->
+        <!-- ============================================ -->
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate.version}</version>
+        </dependency>
+
+        <!-- ============================================ -->
+        <!-- ADD: Explicit Logback Dependencies           -->
+        <!-- ============================================ -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+
+        <!-- ============================================ -->
         <!-- Database - Microsoft SQL Server              -->
         <!-- ============================================ -->
         <dependency>
@@ -78,7 +105,7 @@
         </dependency>
 
         <!-- ============================================ -->
-        <!-- ⭐ PayHere Payment Gateway Dependencies      -->
+        <!-- â­ PayHere Payment Gateway Dependencies      -->
         <!-- Commons Codec for MD5 Hash Generation        -->
         <!-- ============================================ -->
         <dependency>
@@ -94,18 +121,6 @@
             <groupId>org.thymeleaf.extras</groupId>
             <artifactId>thymeleaf-extras-springsecurity6</artifactId>
         </dependency>
-
-        <!-- ============================================ -->
-        <!-- Optional: Lombok (Highly Recommended)        -->
-        <!-- Reduces boilerplate code for entities        -->
-        <!-- ============================================ -->
-        <!-- Uncomment if you want to use Lombok
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
-        -->
 
         <!-- ============================================ -->
         <!-- Development Tools                            -->
@@ -154,7 +169,13 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
+
+
+
     </dependencies>
+
+
+
 
     <build>
         <plugins>
@@ -170,12 +191,6 @@
                             <groupId>org.springframework.boot</groupId>
                             <artifactId>spring-boot-devtools</artifactId>
                         </exclude>
-                        <!-- Uncomment if using Lombok
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                        -->
                     </excludes>
                 </configuration>
             </plugin>
@@ -199,7 +214,6 @@
 
             <!-- ============================================ -->
             <!-- Maven Surefire Plugin for Tests             -->
-            <!-- CHANGED: skipTests is now TRUE for Azure     -->
             <!-- ============================================ -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
