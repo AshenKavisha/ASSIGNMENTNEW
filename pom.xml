@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.1</version>  <!-- Changed from 3.3.5 -->
+        <version>3.4.1</version>
         <relativePath/>
     </parent>
     <groupId>com.assignmentservice</groupId>
@@ -23,8 +23,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <mssql.version>12.4.2.jre11</mssql.version>
         <hibernate.version>6.4.10.Final</hibernate.version>
-        <!-- UPDATED: Changed from 1.4.14 to 1.5.6 to fix StatusPrinter2 issue -->
-        <logback.version>1.5.6</logback.version>
+        <!-- Removed explicit Logback version - let Spring Boot manage it -->
     </properties>
 
     <dependencies>
@@ -71,20 +70,9 @@
         </dependency>
 
         <!-- ============================================ -->
-        <!-- UPDATED: Explicit Logback Dependencies       -->
-        <!-- Fixed version to 1.5.6 to include StatusPrinter2 -->
+        <!-- REMOVED: Explicit Logback Dependencies       -->
+        <!-- Spring Boot will manage Logback automatically -->
         <!-- ============================================ -->
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>${logback.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-core</artifactId>
-            <version>${logback.version}</version>
-        </dependency>
 
         <!-- ============================================ -->
         <!-- Database - Microsoft SQL Server              -->
