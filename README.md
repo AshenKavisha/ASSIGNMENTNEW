@@ -2,7 +2,7 @@
 
 A full-stack web platform that connects students with assignment solutions through an efficient submission and delivery system.
 
-## 🌐 Live Is Live
+## 🌐  Website is Live 
 **[View Live Application](https://ashen-assignment-app-fadpbtfxduatavf7.eastasia-01.azurewebsites.net/)**
 
 ## 📋 Overview
