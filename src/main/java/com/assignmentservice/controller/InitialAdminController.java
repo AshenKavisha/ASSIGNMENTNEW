@@ -39,15 +39,15 @@ public class InitialAdminController {
         }
 
         // Check if admin already exists
-        if (userService.getUserByEmail("ramirudewadar@gmail.com").isPresent()) {
+        if (userService.getUserByEmail("assignmentservice.net@gmail.com").isPresent()) {
             return "ERROR: Admin already exists!";
         }
 
         try {
             // Create admin user
             User admin = new User();
-            admin.setEmail("ramirudewadar@gmail.com");
-            admin.setPassword(passwordEncoder.encode("Ramiru@123"));  // Change this password!
+            admin.setEmail("assignmentservice.net@gmail.com");
+            admin.setPassword(passwordEncoder.encode("Ass@1234"));  // Change this password!
             admin.setFullName("Super Admin");
             admin.setPhoneNumber("+94123456789");
             admin.setRole("ADMIN");
@@ -76,8 +76,8 @@ public class InitialAdminController {
                     "<h1>✅ SUCCESS! Admin Created Successfully!</h1>" +
                     "<div class='info'>" +
                     "<h3>Login Credentials:</h3>" +
-                    "<p><strong>Email:</strong> <code>ramirudewadar@gmail.com</code></p>" +
-                    "<p><strong>Password:</strong> <code>Ramiru@123</code></p>" +
+                    "<p><strong>Email:</strong> <code>assignmentservice.net@gmail.com</code></p>" +
+                    "<p><strong>Password:</strong> <code>Ass@1234</code></p>" +
                     "<p><strong>Role:</strong> Super Admin (Full Access)</p>" +
                     "</div>" +
                     "<div class='warning'>" +

@@ -2,12 +2,14 @@ package com.assignmentservice.controller;
 
 import com.assignmentservice.model.User;
 import com.assignmentservice.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -207,5 +209,63 @@ public class UserProfileController {
         }
 
         return "redirect:/profile";
+    }
+
+    /**
+     * DELETE ACCOUNT - HARD DELETE (allows email reuse)
+     * Permanently removes user and all associated data
+     * After deletion, the same email CAN be used to create a new account
+     */
+    @PostMapping("/delete-account")
+    public String deleteAccount(@RequestParam("password") String password,
+                                HttpServletRequest request,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+
+            Optional<User> userOptional = userService.getUserByEmail(email);
+            if (userOptional.isPresent()) {
+                User user = userOptional.get();
+
+                // Verify password before deletion
+                if (!passwordEncoder.matches(password, user.getPassword())) {
+                    redirectAttributes.addFlashAttribute("error",
+                            "Incorrect password. Account deletion cancelled.");
+                    return "redirect:/profile";
+                }
+
+                // Prevent last admin from deleting account
+                if ("ADMIN".equals(user.getRole())) {
+                    long adminCount = userService.countAdmins();
+                    if (adminCount <= 1) {
+                        redirectAttributes.addFlashAttribute("error",
+                                "Cannot delete account. You are the only admin in the system. " +
+                                        "Please create another admin account before deleting yours.");
+                        return "redirect:/profile";
+                    }
+                }
+
+                // HARD DELETE - This will permanently remove the user and free up the email
+                userService.deleteUserById(user.getId());
+
+                // Logout the user
+                new SecurityContextLogoutHandler().logout(request, null, authentication);
+
+                redirectAttributes.addFlashAttribute("message",
+                        "Your account has been permanently deleted. " +
+                                "You can create a new account with the same email if you wish to return.");
+
+                return "redirect:/login";
+            }
+
+            redirectAttributes.addFlashAttribute("error", "User not found");
+            return "redirect:/profile";
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Failed to delete account: " + e.getMessage());
+            return "redirect:/profile";
+        }
     }
 }

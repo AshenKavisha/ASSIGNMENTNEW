@@ -382,4 +382,55 @@ public class UserService {
     public long getTotalAdminCount() {
         return userRepository.countAdmins();
     }
+
+    /**
+     * Count the number of admin users in the system
+     */
+    public long countAdmins() {
+        return userRepository.countByRole("ADMIN");
+    }
+
+    /**
+     * HARD DELETE - Permanently removes user and all associated data
+     * This allows the email to be reused for new accounts
+     */
+    @Transactional
+    public void deleteUserById(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Log the deletion for audit purposes
+        System.out.println("═══════════════════════════════════════════════════════════");
+        System.out.println("⚠️  HARD DELETE - Permanently deleting user account");
+        System.out.println("═══════════════════════════════════════════════════════════");
+        System.out.println("Email: " + user.getEmail());
+        System.out.println("User ID: " + userId);
+        System.out.println("Full Name: " + user.getFullName());
+        System.out.println("Role: " + user.getRole());
+        System.out.println("───────────────────────────────────────────────────────────");
+        System.out.println("Data to be deleted:");
+        System.out.println("  ✓ User profile and credentials");
+        System.out.println("  ✓ Assignments: " + user.getAssignments().size());
+        System.out.println("  ✓ Feedbacks: " + user.getFeedbacks().size());
+        System.out.println("  ✓ Notifications: " + user.getNotifications().size());
+        System.out.println("───────────────────────────────────────────────────────────");
+
+        // Delete the user (cascade will handle related entities)
+        userRepository.deleteById(userId);
+
+        System.out.println("✅ User account PERMANENTLY deleted");
+        System.out.println("✅ Email is now available for reuse: " + user.getEmail());
+        System.out.println("═══════════════════════════════════════════════════════════");
+    }
+
+    /**
+     * Delete user by email
+     */
+    @Transactional
+    public void deleteUserByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+
+        deleteUserById(user.getId());
+    }
 }

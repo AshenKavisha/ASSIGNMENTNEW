@@ -28,6 +28,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // Date-based queries
     long countByCreatedAtAfter(LocalDateTime date);
     long countByRoleAndCreatedAtAfter(String role, LocalDateTime date);
+    long countByRole(String role);
 
     // Online users query
     @Query("SELECT u FROM User u WHERE u.lastLogin >= :since")
