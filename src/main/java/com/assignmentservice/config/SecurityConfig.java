@@ -53,6 +53,14 @@ public class SecurityConfig {
                                 "/payment/return",
                                 "/payment/cancel",
 
+                                // Policy pages - for PayHere activation
+                                "/privacy",
+                                "/privacy-policy",
+                                "/terms",
+                                "/terms-and-conditions",
+                                "/refund",
+                                "/return-policy",
+
                                 // Static resources
                                 "/css/**",
                                 "/js/**",
@@ -73,7 +81,9 @@ public class SecurityConfig {
                                 // Error pages
                                 "/error",
                                 "/access-denied"
-                        ).permitAll()
+                        ).permitAll(
+
+                        )
 
                         // Admin endpoints - require ADMIN role
                         .requestMatchers(
