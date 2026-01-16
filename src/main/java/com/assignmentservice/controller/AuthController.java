@@ -1,5 +1,6 @@
 package com.assignmentservice.controller;
 
+import com.assignmentservice.model.Assignment;
 import com.assignmentservice.model.Notification;
 import com.assignmentservice.model.User;
 import com.assignmentservice.service.AssignmentService;
@@ -34,7 +35,7 @@ public class AuthController {
     private AssignmentService assignmentService;
 
     @Autowired
-    private NotificationService notificationService; // ADDED
+    private NotificationService notificationService;
 
     // ==========================================
     // REGISTRATION ENDPOINTS (Updated with Email Verification)
@@ -261,54 +262,77 @@ public class AuthController {
                             @RequestParam(value = "error", required = false) String error,
                             HttpSession session,
                             Model model) {
-        // Get the authenticated user from Spring Security context
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        try {
+            // Get the authenticated user from Spring Security context
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication != null && authentication.isAuthenticated()
-                && !authentication.getPrincipal().equals("anonymousUser")) {
-            String email = authentication.getName();
+            if (authentication != null && authentication.isAuthenticated()
+                    && !authentication.getPrincipal().equals("anonymousUser")) {
+                String email = authentication.getName();
 
-            Optional<User> userOptional = userService.getUserByEmail(email);
-            if (userOptional.isPresent()) {
-                User user = userOptional.get();
+                Optional<User> userOptional = userService.getUserByEmail(email);
+                if (userOptional.isPresent()) {
+                    User user = userOptional.get();
 
-                // Check if email is verified
-                if (!user.isEmailVerified()) {
-                    return "redirect:/login?unverified=true";
-                }
-
-                // *** FIXED: Load notifications explicitly ***
-                List<Notification> notifications = notificationService.getUserNotifications(user);
-                user.setNotifications(notifications);
-
-                model.addAttribute("user", user);
-                session.setAttribute("user", user);
-
-                // Add admin statistics if user is admin
-                if ("ADMIN".equals(user.getRole())) {
-                    try {
-                        int pendingAssignmentsCount = assignmentService.getPendingAssignments().size();
-                        long totalAssignments = assignmentService.getAllAssignments().size();
-
-                        model.addAttribute("pendingAssignmentsCount", pendingAssignmentsCount);
-                        model.addAttribute("totalAssignments", totalAssignments);
-                    } catch (Exception e) {
-                        model.addAttribute("pendingAssignmentsCount", 0);
-                        model.addAttribute("totalAssignments", 0);
+                    // Check if email is verified
+                    if (!user.isEmailVerified()) {
+                        return "redirect:/login?unverified=true";
                     }
-                }
 
-                if (success != null) {
-                    model.addAttribute("success", success);
+                    // Add user to model
+                    model.addAttribute("user", user);
+                    session.setAttribute("user", user);
+
+                    // ✅ FIXED: Load notifications separately to avoid lazy loading
+                    List<Notification> notifications = notificationService.getRecentNotificationsByUserId(user.getId(), 10);
+                    long unreadCount = notifications.stream()
+                            .filter(n -> "UNREAD".equals(n.getStatus().name()))
+                            .count();
+
+                    model.addAttribute("notifications", notifications);
+                    model.addAttribute("notificationCount", unreadCount);
+
+                    // ✅ FIXED: Load assignments separately to avoid lazy loading
+                    List<Assignment> userAssignments = assignmentService.getByUserId(user.getId());
+                    long deliveredCount = userAssignments.stream()
+                            .filter(a -> "DELIVERED".equals(a.getStatus().name()))
+                            .count();
+
+                    model.addAttribute("deliveredCount", deliveredCount);
+
+                    // Add admin statistics if user is admin
+                    if ("ADMIN".equals(user.getRole())) {
+                        try {
+                            long totalAssignments = assignmentService.countAll();
+                            long pendingCount = assignmentService.countByStatus("PENDING");
+
+                            model.addAttribute("totalAssignments", totalAssignments);
+                            model.addAttribute("pendingAssignmentsCount", pendingCount);
+                        } catch (Exception e) {
+                            model.addAttribute("pendingAssignmentsCount", 0);
+                            model.addAttribute("totalAssignments", 0);
+                        }
+                    }
+
+                    if (success != null) {
+                        model.addAttribute("success", success);
+                    }
+                    if (error != null) {
+                        model.addAttribute("error", error);
+                    }
+
+                    return "dashboard";
                 }
-                if (error != null) {
-                    model.addAttribute("error", error);
-                }
-                return "dashboard";
             }
-        }
 
-        return "redirect:/login";
+            return "redirect:/login";
+
+        } catch (Exception e) {
+            System.err.println("Dashboard Error: " + e.getMessage());
+            e.printStackTrace();
+            model.addAttribute("error", "Error loading dashboard: " + e.getMessage());
+            return "dashboard";
+        }
     }
 
     @GetMapping("/logout")

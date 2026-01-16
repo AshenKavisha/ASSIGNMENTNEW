@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.stream.Collectors;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -482,5 +483,27 @@ public class NotificationService {
         } catch (Exception e) {
             log.error("Failed to create admin notification", e);
         }
+    }
+
+    public List<Notification> getRecentNotificationsByUserId(Long userId, int limit) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return List.of();
+        }
+        List<Notification> allNotifications = notificationRepository.findByUserOrderByCreatedAtDesc(user);
+        return allNotifications.stream()
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get unread notification count
+     */
+    public long getUnreadCountByUserId(Long userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return 0;
+        }
+        return notificationRepository.countByUserAndStatus(user, Notification.NotificationStatus.UNREAD);
     }
 }

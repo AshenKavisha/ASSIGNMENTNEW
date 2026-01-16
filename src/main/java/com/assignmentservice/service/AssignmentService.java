@@ -600,4 +600,30 @@ public class AssignmentService {
         return paymentRepository.findByAssignment(assignment).orElse(null);
     }
 
+    /**
+     * Count all assignments
+     */
+    public Long countAll() {
+        return assignmentRepository.count();
+    }
+
+    /**
+     * Count assignments by status
+     */
+    public Long countByStatus(String status) {
+        try {
+            Assignment.AssignmentStatus statusEnum = Assignment.AssignmentStatus.valueOf(status);
+            return assignmentRepository.countByStatus(statusEnum);
+        } catch (IllegalArgumentException e) {
+            return 0L;
+        }
+    }
+
+    /**
+     * Get assignments by user ID
+     */
+    public List<Assignment> getByUserId(Long userId) {
+        return assignmentRepository.findByUserId(userId);
+    }
+
 }
