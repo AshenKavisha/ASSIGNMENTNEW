@@ -54,12 +54,19 @@ public class SecurityConfig {
                                 "/payment/cancel",
 
                                 // Policy pages - for PayHere activation
+                                // Policy pages - for PayHere activation
                                 "/privacy",
+                                "/privacy.html",
                                 "/privacy-policy",
+                                "/privacy-policy.html",
                                 "/terms",
+                                "/terms.html",
                                 "/terms-and-conditions",
+                                "/terms-and-conditions.html",
                                 "/refund",
+                                "/refund.html",
                                 "/return-policy",
+                                "/return-policy.html",
 
                                 // Static resources
                                 "/css/**",
