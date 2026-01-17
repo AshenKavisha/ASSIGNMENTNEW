@@ -318,7 +318,7 @@ public class AdminController {
     }
 
     // ============ PENDING ASSIGNMENTS PAGE ============
-    @GetMapping("/assignments/pending")
+    @GetMapping("/assignments/pending-old")  // ← Changed URL
     public String viewPendingAssignments(Model model) {
         if (!isAdminUser()) {
             return "redirect:/dashboard?error=Unauthorized";
@@ -845,53 +845,92 @@ public class AdminController {
     /**
      * View assignments with filter for revision requests
      */
+    /**
+     * View all assignments (updated to show assigned assignments)
+     */
     @GetMapping("/assignments")
     public String viewAllAssignments(
             @RequestParam(required = false) String status,
-            @RequestParam(defaultValue = "1") int page,
-            Model model) {
+            Model model,
+            RedirectAttributes redirectAttributes) {
 
         if (!isAdminUser()) {
             return "redirect:/dashboard?error=Unauthorized";
         }
 
-        Optional<User> currentAdminOpt = getCurrentAdmin();
-        if (!currentAdminOpt.isPresent()) {
-            return "redirect:/dashboard?error=User not found";
+        try {
+            Optional<User> currentAdminOpt = getCurrentAdmin();
+            if (!currentAdminOpt.isPresent()) {
+                redirectAttributes.addFlashAttribute("error", "Admin user not found");
+                return "redirect:/admin/dashboard";
+            }
+
+            User currentAdmin = currentAdminOpt.get();
+            List<Assignment> filteredAssignments;
+
+            if (status != null && !status.isEmpty()) {
+                Assignment.AssignmentStatus assignmentStatus = Assignment.AssignmentStatus.valueOf(status);
+
+                // For super admin: show all assignments OR assignments assigned to them
+                if (isSuperAdmin()) {
+                    filteredAssignments = assignmentService.getAssignmentsByStatus(assignmentStatus).stream()
+                            .filter(a -> assignmentService.canAdminAccessAssignment(currentAdmin, a))
+                            .collect(Collectors.toList());
+                } else {
+                    // For regular admin: show only assignments assigned to them OR matching their specialization
+                    filteredAssignments = assignmentService.getAssignmentsByStatus(assignmentStatus).stream()
+                            .filter(a -> {
+                                // Show if assigned to this admin
+                                if (a.getAssignedAdmin() != null && a.getAssignedAdmin().getId().equals(currentAdmin.getId())) {
+                                    return true;
+                                }
+                                // Or if it matches their specialization and not assigned to anyone
+                                return a.getAssignedAdmin() == null && assignmentService.canAdminAccessAssignment(currentAdmin, a);
+                            })
+                            .collect(Collectors.toList());
+                }
+            } else {
+                // Show all assignments for super admin, only assigned ones for regular admin
+                if (isSuperAdmin()) {
+                    filteredAssignments = assignmentService.getAllAssignmentsByAdminSpecialization(currentAdmin);
+                } else {
+                    // For regular admins, prioritize showing their assigned assignments
+                    List<Assignment> assignedToMe = assignmentService.getAssignmentsByAssignedAdmin(currentAdmin);
+                    List<Assignment> bySpecialization = assignmentService.getAllAssignmentsByAdminSpecialization(currentAdmin)
+                            .stream()
+                            .filter(a -> a.getAssignedAdmin() == null) // Only unassigned ones
+                            .collect(Collectors.toList());
+
+                    filteredAssignments = new ArrayList<>();
+                    filteredAssignments.addAll(assignedToMe);
+                    filteredAssignments.addAll(bySpecialization);
+                }
+            }
+
+            // Calculate revision stats
+            Map<String, Long> revisionStats = new HashMap<>();
+            revisionStats.put("PENDING", (long) assignmentService.getPendingAssignmentsByAdminSpecialization(currentAdmin).size());
+            revisionStats.put("APPROVED", filteredAssignments.stream()
+                    .filter(a -> a.getStatus() == Assignment.AssignmentStatus.APPROVED).count());
+            revisionStats.put("IN_PROGRESS", filteredAssignments.stream()
+                    .filter(a -> a.getStatus() == Assignment.AssignmentStatus.IN_PROGRESS).count());
+            revisionStats.put("DELIVERED", filteredAssignments.stream()
+                    .filter(a -> a.getStatus() == Assignment.AssignmentStatus.DELIVERED).count());
+            revisionStats.put("REVISION_REQUESTED", filteredAssignments.stream()
+                    .filter(a -> a.getStatus() == Assignment.AssignmentStatus.REVISION_REQUESTED).count());
+
+            model.addAttribute("assignments", filteredAssignments);
+            model.addAttribute("currentAdmin", currentAdmin);
+            model.addAttribute("revisionStats", revisionStats);
+            model.addAttribute("selectedStatus", status);
+
+            return "admin/total-assignments";
+
+        } catch (Exception e) {
+            log.error("Error loading assignments", e);
+            redirectAttributes.addFlashAttribute("error", "Failed to load assignments: " + e.getMessage());
+            return "redirect:/admin/dashboard";
         }
-
-        User currentAdmin = currentAdminOpt.get();
-        List<Assignment> assignments;
-
-        // Filter assignments based on status parameter for 4 tabs
-        if (status != null && !status.isEmpty()) {
-            Assignment.AssignmentStatus statusEnum = Assignment.AssignmentStatus.valueOf(status);
-            assignments = assignmentService.getAssignmentsByStatusForAdmin(statusEnum, currentAdmin);
-            model.addAttribute("currentFilter", status);
-        } else {
-            // Default to COMPLETED if no status specified
-            assignments = assignmentService.getAssignmentsByStatusForAdmin(
-                    Assignment.AssignmentStatus.APPROVED, currentAdmin);
-            model.addAttribute("currentFilter", "APPROVED");
-        }
-
-        // Get statistics for all 4 tabs
-        Map<String, Long> revisionStats = new HashMap<>();
-        revisionStats.put("APPROVED", (long) assignmentService.getAssignmentsByStatusForAdmin(
-                Assignment.AssignmentStatus.APPROVED, currentAdmin).size());
-        revisionStats.put("DELIVERED", (long) assignmentService.getAssignmentsByStatusForAdmin(
-                Assignment.AssignmentStatus.DELIVERED, currentAdmin).size());
-        revisionStats.put("PENDING", (long) assignmentService.getAssignmentsByStatusForAdmin(
-                Assignment.AssignmentStatus.PENDING, currentAdmin).size());
-        revisionStats.put("REVISION_REQUESTED", (long) assignmentService.getAssignmentsByStatusForAdmin(
-                Assignment.AssignmentStatus.REVISION_REQUESTED, currentAdmin).size());
-
-        model.addAttribute("assignments", assignments);
-        model.addAttribute("revisionStats", revisionStats);
-        model.addAttribute("totalCount", assignments.size());
-        model.addAttribute("user", currentAdmin);
-
-        return "admin/total-assignments";
     }
 
 
@@ -1192,4 +1231,167 @@ public class AdminController {
 
         return Arrays.asList(allowedExtensions).contains(fileExtension);
     }
+
+    /**
+     * Show pending assignments page with available admins for handover
+     */
+    @GetMapping("/assignments/pending")
+    public String viewPendingAssignments(Model model, RedirectAttributes redirectAttributes) {
+        if (!isAdminUser()) {
+            return "redirect:/dashboard?error=Unauthorized";
+        }
+
+        try {
+            Optional<User> currentAdminOpt = getCurrentAdmin();
+            if (!currentAdminOpt.isPresent()) {
+                redirectAttributes.addFlashAttribute("error", "Admin user not found");
+                return "redirect:/admin/dashboard";
+            }
+
+            User currentAdmin = currentAdminOpt.get();
+
+            // Get pending assignments based on admin specialization
+            List<Assignment> pendingAssignments = assignmentService.getPendingAssignmentsByAdminSpecialization(currentAdmin);
+
+            // Get available admins for handover (only if super admin)
+            boolean isSuperAdmin = isSuperAdmin();
+            List<User> availableAdmins = new ArrayList<>();
+
+            if (isSuperAdmin) {
+                // Get all admins except the current one
+                availableAdmins = userService.getAllAdmins().stream()
+                        .filter(admin -> !admin.getId().equals(currentAdmin.getId()))
+                        .collect(Collectors.toList());
+            }
+
+            model.addAttribute("assignments", pendingAssignments);
+            model.addAttribute("pendingCount", pendingAssignments.size());
+            model.addAttribute("isSuperAdmin", isSuperAdmin);
+            model.addAttribute("availableAdmins", availableAdmins);
+            model.addAttribute("currentUser", currentAdmin);
+
+            return "admin/pending-assignments";
+
+        } catch (Exception e) {
+            log.error("Error loading pending assignments", e);
+            redirectAttributes.addFlashAttribute("error", "Failed to load pending assignments: " + e.getMessage());
+            return "redirect:/admin/dashboard";
+        }
+    }
+
+    /**
+     * Approve assignment and handover to selected admin
+     */
+    @PostMapping("/assignments/{id}/approve-and-handover")
+    public String approveAndHandoverAssignment(
+            @PathVariable Long id,
+            @RequestParam Double price,
+            @RequestParam String currency,
+            @RequestParam Long assignedAdminId,
+            RedirectAttributes redirectAttributes) {
+
+        if (!isSuperAdmin()) {
+            redirectAttributes.addFlashAttribute("error", "Only Super Admin can handover assignments");
+            return "redirect:/admin/assignments/pending";
+        }
+
+        try {
+            // Get current super admin
+            Optional<User> currentAdminOpt = getCurrentAdmin();
+            if (!currentAdminOpt.isPresent()) {
+                redirectAttributes.addFlashAttribute("error", "Admin user not found");
+                return "redirect:/admin/assignments/pending";
+            }
+
+            User currentAdmin = currentAdminOpt.get();
+
+            // Get assignment
+            Optional<Assignment> assignmentOpt = assignmentService.getAssignmentByIdForAdmin(id, currentAdmin);
+            if (assignmentOpt.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Assignment not found or unauthorized");
+                return "redirect:/admin/assignments/pending";
+            }
+
+            Assignment assignment = assignmentOpt.get();
+
+            // Validate assignment status
+            if (assignment.getStatus() != Assignment.AssignmentStatus.PENDING) {
+                redirectAttributes.addFlashAttribute("error", "Only pending assignments can be handed over");
+                return "redirect:/admin/assignments/pending";
+            }
+
+            // Get assigned admin
+            Optional<User> assignedAdminOpt = userService.getUserById(assignedAdminId);
+            if (!assignedAdminOpt.isPresent()) {
+                redirectAttributes.addFlashAttribute("error", "Selected admin not found");
+                return "redirect:/admin/assignments/pending";
+            }
+
+            User assignedAdmin = assignedAdminOpt.get();
+
+            // Validate admin specialization matches assignment type
+            if (!canAdminHandleAssignmentType(assignedAdmin, assignment.getType())) {
+                redirectAttributes.addFlashAttribute("error",
+                        "Selected admin's specialization does not match the assignment type");
+                return "redirect:/admin/assignments/pending";
+            }
+
+            // Update assignment
+            assignment.setPrice(price);
+            assignment.setCurrency(currency);
+            assignment.setStatus(Assignment.AssignmentStatus.APPROVED);
+            assignment.setApprovedAt(LocalDateTime.now());
+            assignment.setAssignedAdmin(assignedAdmin); // Set the assigned admin
+
+            assignmentService.saveAssignment(assignment);
+
+            // Send notification email to student
+            try {
+                // Don't send email here - payment creation will handle it
+// The payment email will be sent automatically when payment is created
+            } catch (Exception e) {
+                log.warn("Failed to send approval email", e);
+            }
+
+            // Send notification to assigned admin
+            try {
+                notificationService.notifyAdminAssignmentHandover(assignedAdmin, assignment, currentAdmin);
+            } catch (Exception e) {
+                log.warn("Failed to send handover notification", e);
+            }
+
+            redirectAttributes.addFlashAttribute("success",
+                    String.format("Assignment approved and handed over to %s successfully! Payment link sent to student.",
+                            assignedAdmin.getFullName()));
+
+            return "redirect:/admin/assignments/pending";
+
+        } catch (Exception e) {
+            log.error("Failed to approve and handover assignment", e);
+            redirectAttributes.addFlashAttribute("error",
+                    "Failed to approve and handover assignment: " + e.getMessage());
+            return "redirect:/admin/assignments/pending";
+        }
+    }
+
+    /**
+     * Helper method to check if admin can handle specific assignment type
+     */
+    private boolean canAdminHandleAssignmentType(User admin, Assignment.AssignmentType assignmentType) {
+        if (admin.getSpecialization() == User.Specialization.BOTH) {
+            return true; // Can handle all types
+        }
+
+        if (assignmentType == Assignment.AssignmentType.IT) {
+            return admin.getSpecialization() == User.Specialization.IT;
+        }
+
+        if (assignmentType == Assignment.AssignmentType.QUANTITY_SURVEYING) {
+            return admin.getSpecialization() == User.Specialization.QUANTITY_SURVEYING;
+        }
+
+        return false;
+    }
+
+
 }

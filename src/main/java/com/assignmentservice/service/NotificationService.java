@@ -506,4 +506,40 @@ public class NotificationService {
         }
         return notificationRepository.countByUserAndStatus(user, Notification.NotificationStatus.UNREAD);
     }
+
+    /**
+     * Notify admin about assignment handover
+     */
+    public void notifyAdminAssignmentHandover(User assignedAdmin, Assignment assignment, User superAdmin) {
+        try {
+            String subject = "New Assignment Assigned to You";
+            String body = String.format(
+                    "Dear %s,\n\n" +
+                            "Super Admin %s has assigned you a new assignment:\n\n" +
+                            "Title: %s\n" +
+                            "Type: %s\n" +
+                            "Subject: %s\n" +
+                            "Student: %s\n" +
+                            "Deadline: %s\n\n" +
+                            "Please log in to your dashboard to view and work on this assignment.\n\n" +
+                            "Best regards,\n" +
+                            "Assignment Service Team",
+                    assignedAdmin.getFullName(),
+                    superAdmin.getFullName(),
+                    assignment.getTitle(),
+                    assignment.getType().name(),
+                    assignment.getSubject(),
+                    assignment.getUser().getFullName(),
+                    assignment.getDeadline()
+            );
+
+            emailService.sendSimpleEmail(assignedAdmin.getEmail(), subject, body);
+            log.info("Handover notification sent to admin: {}", assignedAdmin.getEmail());
+
+        } catch (Exception e) {
+            log.error("Failed to send handover notification", e);
+            throw new RuntimeException("Failed to send handover notification", e);
+        }
+    }
+
 }

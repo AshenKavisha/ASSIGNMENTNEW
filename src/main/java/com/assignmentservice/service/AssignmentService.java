@@ -626,4 +626,20 @@ public class AssignmentService {
         return assignmentRepository.findByUserId(userId);
     }
 
+    public List<Assignment> getAssignmentsByAssignedAdmin(User admin) {
+        return assignmentRepository.findAll().stream()
+                .filter(assignment -> assignment.getAssignedAdmin() != null &&
+                        assignment.getAssignedAdmin().getId().equals(admin.getId()))
+                .collect(Collectors.toList());
+    }
+
+    public List<Assignment> getAssignmentsByStatusAndAssignedAdmin(
+            Assignment.AssignmentStatus status, User admin) {
+        return assignmentRepository.findAll().stream()
+                .filter(assignment -> assignment.getStatus() == status &&
+                        assignment.getAssignedAdmin() != null &&
+                        assignment.getAssignedAdmin().getId().equals(admin.getId()))
+                .collect(Collectors.toList());
+    }
+
 }

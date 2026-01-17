@@ -1272,4 +1272,62 @@ public class EmailService {
     }
 
 
+    /**
+     * Send simple text email (used for admin notifications)
+     */
+    public void sendSimpleEmail(String toEmail, String subject, String body) {
+        if (!emailEnabled) {
+            System.out.println("Email is disabled. Would have sent to: " + toEmail);
+            System.out.println("Subject: " + subject);
+            System.out.println("Body: " + body);
+            return;
+        }
+
+        try {
+            MimeMessage message = emailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+
+            // Create HTML version of the body
+            String htmlBody = createSimpleEmailContent(subject, body);
+            helper.setText(htmlBody, true);
+
+            emailSender.send(message);
+            System.out.println("Simple email sent successfully to: " + toEmail);
+
+        } catch (MessagingException e) {
+            System.err.println("Failed to send simple email to: " + toEmail);
+            e.printStackTrace();
+            throw new RuntimeException("Failed to send email", e);
+        }
+    }
+
+    /**
+     * Create HTML content for simple email
+     */
+    private String createSimpleEmailContent(String subject, String body) {
+        return "<!DOCTYPE html>" +
+                "<html><head><style>" +
+                "body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }" +
+                ".container { background: #ffffff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }" +
+                ".header { background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%); color: white; padding: 20px; text-align: center; }" +
+                ".content { padding: 30px; }" +
+                ".message-box { background: #f8f9fa; border-left: 4px solid #4361ee; padding: 15px; margin: 20px 0; white-space: pre-wrap; }" +
+                ".footer { background-color: #f8f9fa; padding: 15px; text-align: center; color: #999; font-size: 12px; }" +
+                "</style></head><body>" +
+                "<div class='container'>" +
+                "<div class='header'><h2>" + subject + "</h2></div>" +
+                "<div class='content'>" +
+                "<div class='message-box'>" + body.replace("\n", "<br>") + "</div>" +
+                "</div>" +
+                "<div class='footer'>" +
+                "<p>© 2025 Assignment Service. All rights reserved.</p>" +
+                "</div>" +
+                "</div></body></html>";
+    }
+
+
 }

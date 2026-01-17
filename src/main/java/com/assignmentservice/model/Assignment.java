@@ -61,6 +61,15 @@ public class Assignment {
     private AssignmentStatus status = AssignmentStatus.PENDING;
 
     private Double price;
+
+    // NEW: Currency field
+    @Column(name = "currency")
+    private String currency;
+
+    // NEW: Approved at timestamp
+    @Column(name = "approved_at")
+    private LocalDateTime approvedAt;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -94,6 +103,10 @@ public class Assignment {
 
     @Transient
     private List<MultipartFile> solutionFileList;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_admin_id")
+    private User assignedAdmin;
 
     @PrePersist
     protected void onCreate() {
@@ -262,7 +275,24 @@ public class Assignment {
 
     public Double getPrice() { return price; }
     public void setPrice(Double price) {
-        this.price = price;
+        this.price = price; }
+
+    // NEW: Currency getter and setter
+    public String getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
+
+    // NEW: ApprovedAt getter and setter
+    public LocalDateTime getApprovedAt() {
+        return approvedAt;
+    }
+
+    public void setApprovedAt(LocalDateTime approvedAt) {
+        this.approvedAt = approvedAt;
     }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
@@ -302,5 +332,13 @@ public class Assignment {
 
     public void setPayment(Payment payment) {
         this.payment = payment;
+    }
+
+    public User getAssignedAdmin() {
+        return assignedAdmin;
+    }
+
+    public void setAssignedAdmin(User assignedAdmin) {
+        this.assignedAdmin = assignedAdmin;
     }
 }
