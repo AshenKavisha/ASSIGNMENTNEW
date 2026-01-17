@@ -46,8 +46,12 @@ public class PaymentController {
     @Value("${payhere.api.url}")
     private String payhereApiUrl;
 
+    /**
+     * NEW: Payment method selection page (first step)
+     * This page shows before checkout and lets users choose between PayHere or Bank Transfer
+     */
     @GetMapping("/pay/{token}")
-    public String paymentPage(@PathVariable String token, Model model, RedirectAttributes redirectAttributes) {
+    public String paymentMethodSelection(@PathVariable String token, Model model, RedirectAttributes redirectAttributes) {
         try {
             Optional<Payment> paymentOpt = payHereService.getPaymentByToken(token);
 
@@ -71,6 +75,50 @@ public class PaymentController {
             Assignment assignment = payment.getAssignment();
             User user = payment.getUser();
 
+            model.addAttribute("payment", payment);
+            model.addAttribute("assignment", assignment);
+            model.addAttribute("user", user);
+            model.addAttribute("orderId", payment.getOrderId());
+
+            log.info("Payment method selection page loaded for order: {}", payment.getOrderId());
+            return "payment/payment-method-selection";
+
+        } catch (Exception e) {
+            log.error("Error loading payment method selection page", e);
+            redirectAttributes.addFlashAttribute("error", "Error loading payment page: " + e.getMessage());
+            return "redirect:/dashboard";
+        }
+    }
+
+    /**
+     * NEW: Process payment method selection and redirect to appropriate page
+     */
+    @PostMapping("/checkout")
+    public String processCheckout(@RequestParam Long assignmentId, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            User currentUser = getCurrentUser();
+            if (currentUser == null) {
+                return "redirect:/login";
+            }
+
+            Optional<Assignment> assignmentOpt = assignmentService.getAssignmentById(assignmentId);
+            if (assignmentOpt.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Assignment not found");
+                return "redirect:/dashboard";
+            }
+
+            Assignment assignment = assignmentOpt.get();
+
+            // Get payment for this assignment
+            Optional<Payment> paymentOpt = payHereService.getPaymentByAssignment(assignment);
+            if (paymentOpt.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Payment record not found");
+                return "redirect:/dashboard";
+            }
+
+            Payment payment = paymentOpt.get();
+
+            // Generate hash for PayHere
             String hash = payHereService.generatePaymentHash(
                     payment.getOrderId(),
                     payment.getAmount(),
@@ -79,7 +127,7 @@ public class PaymentController {
 
             model.addAttribute("payment", payment);
             model.addAttribute("assignment", assignment);
-            model.addAttribute("user", user);
+            model.addAttribute("user", currentUser);
             model.addAttribute("merchantId", payHereService.getMerchantId());
             model.addAttribute("orderId", payment.getOrderId());
             model.addAttribute("amount", String.format("%.2f", payment.getAmount()));
@@ -90,12 +138,12 @@ public class PaymentController {
             model.addAttribute("cancelUrl", payHereService.getCancelUrl());
             model.addAttribute("notifyUrl", payHereService.getNotifyUrl());
 
-            log.info("Payment page loaded for order: {}", payment.getOrderId());
+            log.info("PayHere checkout page loaded for order: {}", payment.getOrderId());
             return "payment/checkout";
 
         } catch (Exception e) {
-            log.error("Error loading payment page", e);
-            redirectAttributes.addFlashAttribute("error", "Error loading payment page: " + e.getMessage());
+            log.error("Error loading checkout page", e);
+            redirectAttributes.addFlashAttribute("error", "Error loading checkout: " + e.getMessage());
             return "redirect:/dashboard";
         }
     }

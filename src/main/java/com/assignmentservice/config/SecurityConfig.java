@@ -48,13 +48,13 @@ public class SecurityConfig {
                                 "/forgot-password",
                                 "/reset-password",
 
+                                // Payment endpoints - public access for payment links
                                 "/payment/pay/**",
                                 "/payment/notify",
                                 "/payment/return",
                                 "/payment/cancel",
 
-                                // Policy pages - for PayHere activation
-                                // Policy pages - for PayHere activation
+                                // Policy pages - public access (legal requirement)
                                 "/privacy",
                                 "/privacy.html",
                                 "/privacy-policy",
@@ -78,7 +78,7 @@ public class SecurityConfig {
                                 // Public API endpoints
                                 "/api/public/**",
 
-                                // ⭐ ADDED: Contact Form API - Allow contact form submissions
+                                // Contact Form API
                                 "/api/contact/**",
 
                                 // Feedback pages
@@ -88,9 +88,7 @@ public class SecurityConfig {
                                 // Error pages
                                 "/error",
                                 "/access-denied"
-                        ).permitAll(
-
-                        )
+                        ).permitAll()
 
                         // Admin endpoints - require ADMIN role
                         .requestMatchers(
@@ -104,6 +102,11 @@ public class SecurityConfig {
                                 "/admin/management",
                                 "/admin/analytics"
                         ).hasRole("ADMIN")
+
+                        // Payment checkout - require authentication
+                        .requestMatchers(
+                                "/payment/checkout"
+                        ).authenticated()
 
                         // User profile endpoints - require authentication
                         .requestMatchers(
@@ -128,7 +131,7 @@ public class SecurityConfig {
                                 "/feedback/my-feedback"
                         ).authenticated()
 
-                        // Notification endpoints - require authentication (FIXED - moved before anyRequest)
+                        // Notification endpoints - require authentication
                         .requestMatchers(
                                 "/notifications/**",
                                 "/api/notifications/**"

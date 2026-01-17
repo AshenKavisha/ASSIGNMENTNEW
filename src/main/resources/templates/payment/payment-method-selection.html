@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Payment Method - Assignment Service</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .payment-selection-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .page-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+            animation: fadeIn 0.6s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .page-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .page-header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        .assignment-summary {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.6s ease-out 0.2s both;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .amount-display {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            margin-top: 1rem;
+        }
+        .amount-display h2 {
+            color: #667eea;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .payment-method-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 3px solid transparent;
+            animation: slideUp 0.6s ease-out 0.4s both;
+        }
+        .payment-method-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            border-color: #667eea;
+        }
+        .payment-method-card.selected {
+            border-color: #28a745;
+            background: linear-gradient(135deg, #28a74510 0%, #20c99710 100%);
+        }
+        .method-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+        .method-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #212529;
+        }
+        .method-description {
+            color: #6c757d;
+            margin-bottom: 1.5rem;
+        }
+        .method-features {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .method-features li {
+            padding: 0.5rem 0;
+            color: #495057;
+        }
+        .method-features li i {
+            color: #28a745;
+            margin-right: 0.5rem;
+        }
+        .bank-details-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: none;
+            animation: slideDown 0.5s ease-out;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .bank-details-card.show {
+            display: block;
+        }
+        .bank-info {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+        .bank-info h5 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+        .bank-detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .bank-detail-row:last-child {
+            border-bottom: none;
+        }
+        .bank-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .bank-value {
+            color: #212529;
+            font-family: monospace;
+            font-size: 1.1rem;
+        }
+        .copy-btn {
+            background: #667eea;
+            border: none;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+        .upload-section {
+            background: #fff3cd;
+            border: 2px dashed #ffc107;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .upload-section i {
+            font-size: 3rem;
+            color: #ffc107;
+            margin-bottom: 1rem;
+        }
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+        .file-input-label {
+            background: #ffc107;
+            color: #212529;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        .file-input-label:hover {
+            background: #ffb300;
+            transform: translateY(-2px);
+        }
+        .whatsapp-btn {
+            background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+            border: none;
+            color: white;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+        }
+        .whatsapp-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+        }
+        .proceed-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border: none;
+            color: white;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+            display: none;
+        }
+        .proceed-btn.show {
+            display: block;
+        }
+        .proceed-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+        .back-link {
+            text-align: center;
+            margin-top: 2rem;
+        }
+        .back-link a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.3s ease;
+        }
+        .back-link a:hover {
+            opacity: 0.8;
+        }
+        .file-preview {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            display: none;
+        }
+        .file-preview.show {
+            display: block;
+        }
+        .alert-info-custom {
+            background: #e7f3ff;
+            border-left: 4px solid #0d6efd;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+<div class="payment-selection-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1><i class="bi bi-cash-coin me-2"></i>Select Payment Method</h1>
+        <p>Choose how you'd like to complete your payment</p>
+    </div>
+
+    <!-- Assignment Summary -->
+    <div class="assignment-summary">
+        <h4 class="mb-3"><i class="bi bi-file-text me-2"></i>Assignment Summary</h4>
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Title:</strong> <span th:text="${assignment.title}">Assignment Title</span></p>
+                <p><strong>Subject:</strong> <span th:text="${assignment.subject}">Subject</span></p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Type:</strong>
+                    <span th:if="${assignment.type.name() == 'IT'}" class="badge bg-primary">IT</span>
+                    <span th:if="${assignment.type.name() == 'QUANTITY_SURVEYING'}" class="badge bg-success">QS</span>
+                </p>
+                <p><strong>Order ID:</strong> <span th:text="${orderId}">ORD-123-456</span></p>
+            </div>
+        </div>
+        <div class="amount-display">
+            <small class="text-muted d-block mb-2">Total Amount</small>
+            <h2>
+                <span th:text="${payment.currency.symbol}">Rs.</span>
+                <span th:text="${#numbers.formatDecimal(payment.amount, 1, 2)}">2500.00</span>
+            </h2>
+        </div>
+    </div>
+
+    <!-- Payment Method Selection -->
+    <div class="payment-methods">
+        <!-- PayHere Gateway -->
+        <div class="payment-method-card" id="payhereCard" onclick="selectPaymentMethod('payhere')">
+            <div class="text-center">
+                <div class="method-icon">
+                    <i class="bi bi-credit-card-2-front"></i>
+                </div>
+                <h3 class="method-title">PayHere Gateway</h3>
+                <p class="method-description">Fast & secure online payment</p>
+            </div>
+            <ul class="method-features">
+                <li><i class="bi bi-check-circle-fill"></i> Instant payment confirmation</li>
+                <li><i class="bi bi-check-circle-fill"></i> Credit/Debit cards accepted</li>
+                <li><i class="bi bi-check-circle-fill"></i> Secure encrypted payment</li>
+                <li><i class="bi bi-check-circle-fill"></i> Mobile banking supported</li>
+            </ul>
+        </div>
+
+        <!-- Bank Transfer -->
+        <div class="payment-method-card" id="bankTransferCard" onclick="selectPaymentMethod('bank')">
+            <div class="text-center">
+                <div class="method-icon">
+                    <i class="bi bi-bank"></i>
+                </div>
+                <h3 class="method-title">Bank Transfer</h3>
+                <p class="method-description">Direct bank deposit/transfer</p>
+            </div>
+            <ul class="method-features">
+                <li><i class="bi bi-check-circle-fill"></i> No transaction fees</li>
+                <li><i class="bi bi-check-circle-fill"></i> Transfer from any bank</li>
+                <li><i class="bi bi-check-circle-fill"></i> Upload payment slip</li>
+                <li><i class="bi bi-check-circle-fill"></i> Verified within 24 hours</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Bank Transfer Details (Hidden by default) -->
+    <div class="bank-details-card" id="bankDetailsSection">
+        <h4 class="mb-4"><i class="bi bi-bank me-2"></i>Bank Transfer Instructions</h4>
+
+        <div class="alert-info-custom">
+            <i class="bi bi-info-circle-fill me-2"></i>
+            <strong>Please transfer the exact amount to the following bank account:</strong>
+        </div>
+
+        <div class="bank-info">
+            <h5><i class="bi bi-building me-2"></i>Bank Account Details</h5>
+            <div class="bank-detail-row">
+                <span class="bank-label">Account Name:</span>
+                <span class="bank-value">
+                    Ashen Kaveesha Lakshan Fernando
+                    <button class="copy-btn ms-2" onclick="copyToClipboard('Ashen Kaveesha Lakshan Fernando', this)">
+                        <i class="bi bi-clipboard"></i> Copy
+                    </button>
+                </span>
+            </div>
+            <div class="bank-detail-row">
+                <span class="bank-label">Account Number:</span>
+                <span class="bank-value">
+                    269200280046594
+                    <button class="copy-btn ms-2" onclick="copyToClipboard('269200280046594', this)">
+                        <i class="bi bi-clipboard"></i> Copy
+                    </button>
+                </span>
+            </div>
+            <div class="bank-detail-row">
+                <span class="bank-label">Branch:</span>
+                <span class="bank-value">Badulla</span>
+            </div>
+            <div class="bank-detail-row">
+                <span class="bank-label">Amount to Transfer:</span>
+                <span class="bank-value" style="color: #28a745; font-size: 1.3rem; font-weight: 700;">
+                    <span th:text="${payment.currency.symbol}">Rs.</span>
+                    <span th:text="${#numbers.formatDecimal(payment.amount, 1, 2)}">2500.00</span>
+                </span>
+            </div>
+        </div>
+
+        <div class="alert alert-success">
+            <i class="bi bi-whatsapp me-2"></i>
+            <strong>Next Step:</strong> Click the button below to send your payment confirmation via WhatsApp.
+            You'll need to attach your payment slip/screenshot in WhatsApp.
+        </div>
+
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>Important:</strong> After clicking the button, WhatsApp will open. Please attach your payment slip
+            (photo or screenshot) showing the transaction details, amount, and reference number.
+        </div>
+
+        <button type="button" class="whatsapp-btn" id="whatsappBtn" onclick="sendToWhatsApp()">
+            <i class="bi bi-whatsapp me-2"></i>
+            Send Payment Confirmation via WhatsApp
+        </button>
+    </div>
+
+    <!-- PayHere Proceed Button -->
+    <form method="post" th:action="@{/payment/checkout}" id="payhereForm" style="display: none;">
+        <input type="hidden" name="assignmentId" th:value="${assignment.id}">
+        <button type="submit" class="proceed-btn" id="payhereBtn">
+            <i class="bi bi-shield-check me-2"></i>
+            Proceed to PayHere Payment
+        </button>
+    </form>
+
+    <!-- Back Link -->
+    <div class="back-link">
+        <a href="/dashboard">
+            <i class="bi bi-arrow-left me-1"></i> Return to Dashboard
+        </a>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    let selectedMethod = null;
+    const adminWhatsApp = '94715621598'; // Admin WhatsApp number
+    const assignmentId = [[${assignment.id}]];
+    const orderId = [[${orderId}]];
+    const amount = [[${payment.amount}]];
+    const currency = [[${payment.currency.symbol}]];
+    const assignmentTitle = [[${assignment.title}]];
+
+    function selectPaymentMethod(method) {
+        selectedMethod = method;
+
+        // Reset card styles
+        document.getElementById('payhereCard').classList.remove('selected');
+        document.getElementById('bankTransferCard').classList.remove('selected');
+
+        // Hide/show sections
+        document.getElementById('bankDetailsSection').classList.remove('show');
+        document.getElementById('payhereBtn').classList.remove('show');
+        document.getElementById('payhereForm').style.display = 'none';
+
+        if (method === 'payhere') {
+            document.getElementById('payhereCard').classList.add('selected');
+            document.getElementById('payhereForm').style.display = 'block';
+            document.getElementById('payhereBtn').classList.add('show');
+        } else if (method === 'bank') {
+            document.getElementById('bankTransferCard').classList.add('selected');
+            document.getElementById('bankDetailsSection').classList.add('show');
+
+            // Scroll to bank details
+            setTimeout(() => {
+                document.getElementById('bankDetailsSection').scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 100);
+        }
+    }
+
+    function copyToClipboard(text, button) {
+        navigator.clipboard.writeText(text).then(() => {
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="bi bi-check"></i> Copied!';
+            button.style.background = '#28a745';
+
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.style.background = '#667eea';
+            }, 2000);
+        });
+    }
+
+    function sendToWhatsApp() {
+        // Create WhatsApp message
+        const message = `🎓 *Payment Confirmation - Assignment Service*%0A%0A` +
+            `💎 *Order ID:* ${orderId}%0A` +
+            `💰 *Amount:* ${currency}${amount}%0A` +
+            `📝 *Assignment ID:* ${assignmentId}%0A%0A` +
+            `✅ I have completed the bank transfer.%0A` +
+            `📎 Payment slip attached.%0A%0A` +
+            `Please verify and confirm my payment.`;
+
+        // Open WhatsApp with message
+        const whatsappUrl = `https://wa.me/${adminWhatsApp}?text=${message}`;
+
+        // Show instruction alert
+        alert('📱 WhatsApp will open now.\n\n⚠️ IMPORTANT: Please attach your payment slip image/screenshot in WhatsApp before sending the message!\n\nMake sure the payment details are clearly visible.');
+
+        // Open WhatsApp
+        window.open(whatsappUrl, '_blank');
+
+        // Redirect to dashboard after 3 seconds
+        setTimeout(() => {
+            if (confirm('Have you sent the payment slip via WhatsApp with the attachment?')) {
+                window.location.href = '/dashboard?success=Payment confirmation sent! We will verify your payment within 24 hours.';
+            }
+        }, 3000);
+    }
+</script>
+</body>
+</html>
