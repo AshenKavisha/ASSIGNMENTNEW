@@ -115,7 +115,6 @@
             margin-bottom: 2rem;
         }
 
-        /* ⭐ NEW: Approval Status Badges */
         .approval-section {
             background: #f8f9fa;
             padding: 1rem;
@@ -152,7 +151,6 @@
             border: 2px solid #ffc107;
         }
 
-        /* ⭐ NEW: Payment Section */
         .payment-section {
             background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
             border-left: 5px solid #28a745;
@@ -171,9 +169,9 @@
             box-shadow: 0 5px 20px rgba(40, 167, 69, 0.3) !important;
             transition: all 0.3s ease !important;
             text-decoration: none !important;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+            display: inline-block;
+            width: 100%;
+            text-align: center;
         }
 
         .payment-btn:hover {
@@ -184,7 +182,7 @@
         .payment-status {
             padding: 0.75rem;
             border-radius: 8px;
-            margin-top: 1rem;
+            margin-bottom: 1rem;
         }
 
         .payment-completed {
@@ -213,7 +211,6 @@
             color: #ff9800;
         }
 
-        /* Rejection reason styling */
         .rejection-notice {
             background: #f8d7da;
             border-left: 4px solid #dc3545;
@@ -221,6 +218,14 @@
             border-radius: 8px;
             margin-top: 1rem;
             color: #721c24;
+        }
+
+        .paid-badge {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 2px solid #28a745;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
         }
     </style>
 </head>
@@ -320,7 +325,7 @@
                                 <strong>Deadline:</strong> <span th:text="${assignment.deadline}"></span>
                             </p>
 
-                            <!-- ⭐ NEW: Price Display -->
+                            <!-- Price Display -->
                             <div th:if="${assignment.price != null}" class="price-display">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span><strong>Assignment Fee:</strong></span>
@@ -331,11 +336,11 @@
                                 </div>
                             </div>
 
-                            <!-- ⭐ NEW: Approval Status Section -->
+                            <!-- Approval Status Section -->
                             <div class="approval-section">
                                 <h6 class="mb-3"><i class="bi bi-shield-check me-2"></i>Approval Status</h6>
 
-                                <!-- PENDING - Not yet reviewed -->
+                                <!-- PENDING -->
                                 <div th:if="${assignment.status.name() == 'PENDING'}">
                                     <span class="approval-badge pending-approval-badge">
                                         <i class="bi bi-hourglass-split me-2"></i>Awaiting Admin Review
@@ -345,7 +350,7 @@
                                     </p>
                                 </div>
 
-                                <!-- APPROVED - Ready for payment -->
+                                <!-- APPROVED -->
                                 <div th:if="${assignment.status.name() == 'APPROVED' or
                                              assignment.status.name() == 'IN_PROGRESS' or
                                              assignment.status.name() == 'DELIVERED' or
@@ -358,7 +363,7 @@
                                     </p>
                                 </div>
 
-                                <!-- REJECTED - Not approved -->
+                                <!-- REJECTED -->
                                 <div th:if="${assignment.status.name() == 'REJECTED'}">
                                     <span class="approval-badge not-approved-badge">
                                         <i class="bi bi-x-circle-fill me-2"></i>Not Approved
@@ -369,24 +374,30 @@
                                 </div>
                             </div>
 
-                            <!-- ⭐ NEW: Payment Section (Only show if APPROVED) -->
-                            <div th:if="${assignment.status.name() == 'APPROVED'}" class="payment-section">
+                            <!-- Payment Section (APPROVED or IN_PROGRESS) -->
+                            <div th:if="${assignment.status.name() == 'APPROVED' or assignment.status.name() == 'IN_PROGRESS'}"
+                                 class="payment-section">
                                 <h6 class="mb-3">
-                                    <i class="bi bi-credit-card me-2"></i>Payment Required
+                                    <i class="bi bi-credit-card me-2"></i>Payment Status
                                 </h6>
 
-                                <!-- Check if payment exists and its status -->
                                 <div th:if="${assignment.payment != null}">
+
                                     <!-- Payment Completed -->
-                                    <div th:if="${assignment.payment.status.name() == 'COMPLETED'}" class="payment-status payment-completed">
-                                        <i class="bi bi-check-circle-fill me-2"></i>
-                                        <strong>Payment Completed!</strong>
-                                        <p class="mb-0 mt-2">
-                                            <small>Your payment has been confirmed. We'll start working on your assignment shortly.</small>
-                                        </p>
+                                    <div th:if="${assignment.payment.status.name() == 'COMPLETED'}"
+                                         class="payment-status payment-completed">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-check-circle-fill me-2" style="font-size: 1.5rem;"></i>
+                                            <div>
+                                                <strong>Payment Completed!</strong>
+                                                <p class="mb-0 mt-1">
+                                                    <small>✓ Payment verified and confirmed. Your assignment is now in progress.</small>
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <!-- Payment Pending - Show Payment Button -->
+                                    <!-- Payment Pending -->
                                     <div th:if="${assignment.payment.status.name() == 'PENDING'}">
                                         <div class="payment-status payment-pending mb-3">
                                             <i class="bi bi-exclamation-triangle-fill me-2"></i>
@@ -396,37 +407,94 @@
                                             </p>
                                         </div>
 
-                                        <!-- ⭐ PAYMENT BUTTON -->
                                         <a th:href="@{/payment/pay/{token}(token=${assignment.payment.paymentToken})}"
-                                           class="payment-btn w-100">
+                                           class="payment-btn">
                                             <i class="bi bi-credit-card-2-front me-2"></i>
                                             Make Payment Now
                                         </a>
                                     </div>
 
                                     <!-- Payment Failed -->
-                                    <div th:if="${assignment.payment.status.name() == 'FAILED'}" class="payment-status" style="background: #f8d7da; border-left-color: #dc3545; color: #721c24;">
+                                    <div th:if="${assignment.payment.status.name() == 'FAILED'}"
+                                         class="payment-status mb-3"
+                                         style="background: #f8d7da; border-left-color: #dc3545; color: #721c24;">
                                         <i class="bi bi-x-circle-fill me-2"></i>
                                         <strong>Payment Failed</strong>
                                         <p class="mb-0 mt-2">
                                             <small>Your previous payment attempt failed. Please try again.</small>
                                         </p>
-                                        <a th:href="@{/payment/pay/{token}(token=${assignment.payment.paymentToken})}"
-                                           class="payment-btn w-100 mt-3">
-                                            <i class="bi bi-arrow-clockwise me-2"></i>
-                                            Retry Payment
-                                        </a>
                                     </div>
+                                    <a th:if="${assignment.payment.status.name() == 'FAILED'}"
+                                       th:href="@{/payment/pay/{token}(token=${assignment.payment.paymentToken})}"
+                                       class="payment-btn">
+                                        <i class="bi bi-arrow-clockwise me-2"></i>
+                                        Retry Payment
+                                    </a>
+
+                                    <!-- Payment Processing -->
+                                    <div th:if="${assignment.payment.status.name() == 'PROCESSING'}"
+                                         class="payment-status"
+                                         style="background: #d1ecf1; border-left-color: #17a2b8; color: #0c5460;">
+                                        <i class="bi bi-hourglass-split me-2"></i>
+                                        <strong>Payment Processing</strong>
+                                        <p class="mb-0 mt-2">
+                                            <small>Your payment is being verified. You'll be notified once confirmed.</small>
+                                        </p>
+                                    </div>
+
+                                    <!-- Payment Cancelled -->
+                                    <div th:if="${assignment.payment.status.name() == 'CANCELLED'}"
+                                         class="payment-status mb-3"
+                                         style="background: #f8d7da; border-left-color: #dc3545; color: #721c24;">
+                                        <i class="bi bi-x-circle-fill me-2"></i>
+                                        <strong>Payment Cancelled</strong>
+                                        <p class="mb-0 mt-2">
+                                            <small>You cancelled the payment. Click below to try again.</small>
+                                        </p>
+                                    </div>
+                                    <a th:if="${assignment.payment.status.name() == 'CANCELLED'}"
+                                       th:href="@{/payment/pay/{token}(token=${assignment.payment.paymentToken})}"
+                                       class="payment-btn">
+                                        <i class="bi bi-credit-card-2-front me-2"></i>
+                                        Make Payment Now
+                                    </a>
                                 </div>
 
-                                <!-- No payment record (shouldn't happen but safety check) -->
-                                <div th:if="${assignment.payment == null}" class="alert alert-info mb-0">
-                                    <i class="bi bi-info-circle me-2"></i>
-                                    <strong>Payment link is being generated.</strong> Please refresh in a moment or contact admin.
+                                <!-- No payment record - Show simple payment button -->
+                                <div th:if="${assignment.payment == null}">
+                                    <div class="payment-status payment-pending mb-3">
+                                        <i class="bi bi-credit-card-2-front me-2"></i>
+                                        <strong>Ready for Payment</strong>
+                                        <p class="mb-0 mt-2">
+                                            <small>Your assignment has been approved. Click below to proceed with payment.</small>
+                                        </p>
+                                    </div>
+
+                                    <a th:href="@{/payment/checkout?assignmentId={id}(id=${assignment.id})}"
+                                       class="payment-btn">
+                                        <i class="bi bi-cash-coin me-2"></i>
+                                        Click to Pay
+                                    </a>
                                 </div>
                             </div>
 
-                            <!-- ⭐ NEW: Rejection Reason -->
+                            <!-- PAID Badge (for IN_PROGRESS, DELIVERED, COMPLETED) -->
+                            <div th:if="${assignment.status.name() == 'IN_PROGRESS' or
+                                          assignment.status.name() == 'DELIVERED' or
+                                          assignment.status.name() == 'COMPLETED'}"
+                                 class="paid-badge">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-check-circle-fill me-2" style="font-size: 1.5rem; color: #28a745;"></i>
+                                    <div>
+                                        <strong style="color: #28a745;">✓ PAID</strong>
+                                        <p class="mb-0 mt-1">
+                                            <small>Payment verified and confirmed</small>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Rejection Reason -->
                             <div th:if="${assignment.status.name() == 'REJECTED' and assignment.adminNotes}" class="rejection-notice">
                                 <strong><i class="bi bi-x-circle me-2"></i>Rejection Reason:</strong>
                                 <p class="mb-0 mt-2" th:text="${assignment.adminNotes}">Admin notes</p>
@@ -469,14 +537,14 @@
 
                         <!-- Action Buttons -->
                         <div class="col-md-4 text-end">
-                            <!-- Download Solution (Only for DELIVERED status) -->
+                            <!-- Download Solution -->
                             <a th:if="${assignment.status.name() == 'DELIVERED' and assignment.solutionFiles != null}"
                                th:href="@{/assignments/{id}/download-solution(id=${assignment.id})}"
                                class="btn btn-success btn-sm w-100 mb-2">
                                 <i class="bi bi-download"></i> Download Solution
                             </a>
 
-                            <!-- Request Revision Button (Only for DELIVERED status with available revisions) -->
+                            <!-- Request Revision Button -->
                             <button th:if="${assignment.status.name() == 'DELIVERED' and
                                                (assignment.revisionsUsed == null or assignment.revisionsUsed < assignment.maxRevisions)}"
                                     type="button"

@@ -91,10 +91,104 @@ public class PaymentController {
     }
 
     /**
-     * NEW: Process payment method selection and redirect to appropriate page
+     * NEW: Process payment checkout - handles both with and without payment token
+     * If payment exists, load it. If not, create it on the fly.
+     */
+    @GetMapping("/checkout")
+    public String processCheckout(@RequestParam Long assignmentId,
+                                  Model model,
+                                  RedirectAttributes redirectAttributes) {
+        try {
+            User currentUser = getCurrentUser();
+            if (currentUser == null) {
+                return "redirect:/login";
+            }
+
+            Optional<Assignment> assignmentOpt = assignmentService.getAssignmentById(assignmentId);
+            if (assignmentOpt.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Assignment not found");
+                return "redirect:/dashboard";
+            }
+
+            Assignment assignment = assignmentOpt.get();
+
+            // Security check
+            if (!assignment.getUser().getId().equals(currentUser.getId())) {
+                redirectAttributes.addFlashAttribute("error", "Unauthorized access");
+                return "redirect:/dashboard";
+            }
+
+            // Check if assignment is approved
+            if (!assignment.getStatus().name().equals("APPROVED")) {
+                redirectAttributes.addFlashAttribute("error", "Assignment must be approved before payment");
+                return "redirect:/assignments/my-assignments";
+            }
+
+            // Get or create payment
+            Payment payment;
+            Optional<Payment> paymentOpt = payHereService.getPaymentByAssignment(assignment);
+
+            if (paymentOpt.isEmpty()) {
+                // Create payment on the fly
+                if (assignment.getPrice() == null || assignment.getPrice() <= 0) {
+                    redirectAttributes.addFlashAttribute("error", "Assignment price not set. Please contact admin.");
+                    return "redirect:/assignments/my-assignments";
+                }
+
+                // Create new payment record using the correct method signature
+                payment = payHereService.createPayment(assignment, assignment.getPrice(), Payment.Currency.LKR);
+
+                // Send payment link email
+                try {
+                    emailService.sendPaymentLinkEmail(payment);
+                } catch (Exception e) {
+                    log.warn("Failed to send payment email: " + e.getMessage());
+                }
+            } else {
+                payment = paymentOpt.get();
+            }
+
+            // Check if already paid
+            if (payment.getStatus() == Payment.PaymentStatus.COMPLETED) {
+                redirectAttributes.addFlashAttribute("info", "This assignment has already been paid");
+                return "redirect:/assignments/my-assignments";
+            }
+
+            // Generate hash for PayHere
+            String hash = payHereService.generatePaymentHash(
+                    payment.getOrderId(),
+                    payment.getAmount(),
+                    payment.getCurrency().name()
+            );
+
+            model.addAttribute("payment", payment);
+            model.addAttribute("assignment", assignment);
+            model.addAttribute("user", currentUser);
+            model.addAttribute("merchantId", payHereService.getMerchantId());
+            model.addAttribute("orderId", payment.getOrderId());
+            model.addAttribute("amount", String.format("%.2f", payment.getAmount()));
+            model.addAttribute("currency", payment.getCurrency().name());
+            model.addAttribute("hash", hash);
+            model.addAttribute("payhereApiUrl", payhereApiUrl);
+            model.addAttribute("returnUrl", payHereService.getReturnUrl());
+            model.addAttribute("cancelUrl", payHereService.getCancelUrl());
+            model.addAttribute("notifyUrl", payHereService.getNotifyUrl());
+
+            log.info("Checkout page loaded for assignment: {}, order: {}", assignmentId, payment.getOrderId());
+            return "payment/payment-method-selection";
+
+        } catch (Exception e) {
+            log.error("Error loading checkout page", e);
+            redirectAttributes.addFlashAttribute("error", "Error loading checkout: " + e.getMessage());
+            return "redirect:/assignments/my-assignments";
+        }
+    }
+
+    /**
+     * UPDATED: Process payment method selection and redirect to appropriate page
      */
     @PostMapping("/checkout")
-    public String processCheckout(@RequestParam Long assignmentId, Model model, RedirectAttributes redirectAttributes) {
+    public String processPayHereCheckout(@RequestParam Long assignmentId, Model model, RedirectAttributes redirectAttributes) {
         try {
             User currentUser = getCurrentUser();
             if (currentUser == null) {
