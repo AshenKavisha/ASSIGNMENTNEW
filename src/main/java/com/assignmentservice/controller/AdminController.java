@@ -83,11 +83,13 @@ public class AdminController {
 
         // Calculate status counts with filtering
         long inProgressCount = allAssignments.stream()
-                .filter(a -> a.getStatus() == Assignment.AssignmentStatus.IN_PROGRESS)
+                .filter(a -> a.getStatus() == Assignment.AssignmentStatus.IN_PROGRESS ||
+                        a.getStatus() == Assignment.AssignmentStatus.APPROVED ||
+                        a.getStatus() == Assignment.AssignmentStatus.READY_FOR_DELIVERY)
                 .count();
 
         long completedCount = allAssignments.stream()
-                .filter(a -> a.getStatus() == Assignment.AssignmentStatus.APPROVED ||
+                .filter(a -> a.getStatus() == Assignment.AssignmentStatus.COMPLETED ||
                         a.getStatus() == Assignment.AssignmentStatus.DELIVERED)
                 .count();
 
@@ -867,56 +869,47 @@ public class AdminController {
 
             User currentAdmin = currentAdminOpt.get();
             List<Assignment> filteredAssignments;
+            List<Assignment> allAssignments; // ✅ NEW: For calculating stats
 
+            // ✅ FIRST: Get ALL assignments for stats calculation (before any filtering)
+            if (isSuperAdmin()) {
+                allAssignments = assignmentService.getAllAssignmentsByAdminSpecialization(currentAdmin);
+            } else {
+                List<Assignment> assignedToMe = assignmentService.getAssignmentsByAssignedAdmin(currentAdmin);
+                List<Assignment> bySpecialization = assignmentService.getAllAssignmentsByAdminSpecialization(currentAdmin)
+                        .stream()
+                        .filter(a -> a.getAssignedAdmin() == null)
+                        .collect(Collectors.toList());
+
+                allAssignments = new ArrayList<>();
+                allAssignments.addAll(assignedToMe);
+                allAssignments.addAll(bySpecialization);
+            }
+
+            // ✅ THEN: Filter by status if needed
             if (status != null && !status.isEmpty()) {
                 Assignment.AssignmentStatus assignmentStatus = Assignment.AssignmentStatus.valueOf(status);
 
-                // For super admin: show all assignments OR assignments assigned to them
-                if (isSuperAdmin()) {
-                    filteredAssignments = assignmentService.getAssignmentsByStatus(assignmentStatus).stream()
-                            .filter(a -> assignmentService.canAdminAccessAssignment(currentAdmin, a))
-                            .collect(Collectors.toList());
-                } else {
-                    // For regular admin: show only assignments assigned to them OR matching their specialization
-                    filteredAssignments = assignmentService.getAssignmentsByStatus(assignmentStatus).stream()
-                            .filter(a -> {
-                                // Show if assigned to this admin
-                                if (a.getAssignedAdmin() != null && a.getAssignedAdmin().getId().equals(currentAdmin.getId())) {
-                                    return true;
-                                }
-                                // Or if it matches their specialization and not assigned to anyone
-                                return a.getAssignedAdmin() == null && assignmentService.canAdminAccessAssignment(currentAdmin, a);
-                            })
-                            .collect(Collectors.toList());
-                }
+                // Filter from allAssignments instead of querying again
+                filteredAssignments = allAssignments.stream()
+                        .filter(a -> a.getStatus() == assignmentStatus)
+                        .collect(Collectors.toList());
             } else {
-                // Show all assignments for super admin, only assigned ones for regular admin
-                if (isSuperAdmin()) {
-                    filteredAssignments = assignmentService.getAllAssignmentsByAdminSpecialization(currentAdmin);
-                } else {
-                    // For regular admins, prioritize showing their assigned assignments
-                    List<Assignment> assignedToMe = assignmentService.getAssignmentsByAssignedAdmin(currentAdmin);
-                    List<Assignment> bySpecialization = assignmentService.getAllAssignmentsByAdminSpecialization(currentAdmin)
-                            .stream()
-                            .filter(a -> a.getAssignedAdmin() == null) // Only unassigned ones
-                            .collect(Collectors.toList());
-
-                    filteredAssignments = new ArrayList<>();
-                    filteredAssignments.addAll(assignedToMe);
-                    filteredAssignments.addAll(bySpecialization);
-                }
+                // No filter, show all assignments
+                filteredAssignments = allAssignments;
             }
 
-            // Calculate revision stats
+            // ✅ FIXED: Calculate revision stats from ALL assignments, not filtered ones
             Map<String, Long> revisionStats = new HashMap<>();
+            revisionStats.put("ALL", (long) allAssignments.size()); // ✅ ADD THIS LINE
             revisionStats.put("PENDING", (long) assignmentService.getPendingAssignmentsByAdminSpecialization(currentAdmin).size());
-            revisionStats.put("APPROVED", filteredAssignments.stream()
-                    .filter(a -> a.getStatus() == Assignment.AssignmentStatus.APPROVED).count());
-            revisionStats.put("IN_PROGRESS", filteredAssignments.stream()
-                    .filter(a -> a.getStatus() == Assignment.AssignmentStatus.IN_PROGRESS).count());
-            revisionStats.put("DELIVERED", filteredAssignments.stream()
+            revisionStats.put("APPROVED", allAssignments.stream()
+                    .filter(a -> a.getStatus() == Assignment.AssignmentStatus.APPROVED ||
+                            a.getStatus() == Assignment.AssignmentStatus.IN_PROGRESS ||
+                            a.getStatus() == Assignment.AssignmentStatus.READY_FOR_DELIVERY).count());
+            revisionStats.put("DELIVERED", allAssignments.stream()
                     .filter(a -> a.getStatus() == Assignment.AssignmentStatus.DELIVERED).count());
-            revisionStats.put("REVISION_REQUESTED", filteredAssignments.stream()
+            revisionStats.put("REVISION_REQUESTED", allAssignments.stream()
                     .filter(a -> a.getStatus() == Assignment.AssignmentStatus.REVISION_REQUESTED).count());
 
             model.addAttribute("assignments", filteredAssignments);

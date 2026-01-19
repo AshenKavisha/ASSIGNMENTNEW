@@ -441,7 +441,7 @@
                th:classappend="${param.status == null} ? 'active' : ''">
                 <i class="bi bi-list-ul tab-icon"></i>
                 <span class="tab-label">All Assignments</span>
-                <span class="tab-count" th:text="${assignments.size()}">0</span>
+                <span class="tab-count" th:text="${revisionStats.ALL}">0</span>
             </a>
 
             <!-- Pending Tab -->
