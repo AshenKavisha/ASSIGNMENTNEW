@@ -975,7 +975,7 @@
                                                 <td th:text="${user.email}"></td>
                                                 <td th:text="${user.assignments != null ? user.assignments.size() : 0}"></td>
                                                 <td>
-                                                    <span th:text="${user.assignments != null ? user.assignments.stream().filter(a -> a.status.name() == 'COMPLETED').count() : 0}">0</span>
+                                                    <span th:text="${user.assignments != null ? user.assignments.?[status.name() == 'COMPLETED'].size() : 0}">0</span>
                                                 </td>
                                                 <td th:text="${user.lastLogin != null ? #temporals.format(user.lastLogin, 'MMM dd, yyyy') : 'Never'}"></td>
                                             </tr>
