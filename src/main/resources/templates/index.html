@@ -261,18 +261,342 @@
       padding-top: 0;
     }
 
-    /* Assignment Cards */
-    .assignment-card {
-      transition: transform 0.3s, box-shadow 0.3s;
-      border: 1px solid #dee2e6;
-      border-radius: 0.5rem;
-      height: 100%;
+
+    /* Services Section */
+    .services-section {
+      padding: 100px 0;
+      background: #ffffff;
+      position: relative;
       overflow: hidden;
     }
 
-    .assignment-card:hover {
+    /* Subtle background decoration */
+    .services-section::before {
+      content: '';
+      position: absolute;
+      top: -200px; right: -200px;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(102,126,234,0.05) 0%, transparent 65%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .services-section::after {
+      content: '';
+      position: absolute;
+      bottom: -150px; left: -150px;
+      width: 450px; height: 450px;
+      background: radial-gradient(circle, rgba(17,153,142,0.05) 0%, transparent 65%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .services-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Header */
+    .services-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .services-label {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      padding: 6px 18px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+
+    .services-header h2 {
+      font-size: 40px;
+      font-weight: 800;
+      color: #212529;
+      margin-bottom: 14px;
+    }
+
+    .services-header p {
+      font-size: 16px;
+      color: #6c757d;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* Cards Grid */
+    .services-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      margin-bottom: 60px;
+    }
+
+    /* Service Card */
+    .service-card {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 40px 36px;
+      border: 1.5px solid #f0f0f0;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.05);
+    }
+
+    /* Decorative background blob inside card */
+    .service-card-bg {
+      position: absolute;
+      top: -80px; right: -80px;
+      width: 220px; height: 220px;
+      background: radial-gradient(circle, rgba(102,126,234,0.07) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      transition: transform 0.5s ease;
+    }
+
+    .qs-bg {
+      background: radial-gradient(circle, rgba(17,153,142,0.07) 0%, transparent 70%);
+    }
+
+    .service-card:hover .service-card-bg {
+      transform: scale(1.4);
+    }
+
+    /* Top border accent on hover */
+    .service-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      border-radius: 24px 24px 0 0;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .it-card::before {
+      background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+
+    .qs-card::before {
+      background: linear-gradient(90deg, #11998e, #38ef7d);
+    }
+
+    .service-card:hover {
       transform: translateY(-10px);
-      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.1);
+      border-color: transparent;
+    }
+
+    .service-card:hover::before {
+      opacity: 1;
+    }
+
+    /* Top row */
+    .service-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    /* Icon */
+    .service-icon-wrap {
+      width: 64px; height: 64px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      color: #ffffff;
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .service-card:hover .service-icon-wrap {
+      transform: rotate(-8deg) scale(1.1);
+    }
+
+    .it-icon  { background: linear-gradient(135deg, #667eea, #764ba2); }
+    .qs-icon  { background: linear-gradient(135deg, #11998e, #38ef7d); }
+
+    /* Tag */
+    .service-tag {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 20px;
+      background: rgba(102,126,234,0.08);
+      color: #667eea;
+    }
+
+    .qs-tag {
+      background: rgba(17,153,142,0.08);
+      color: #11998e;
+    }
+
+    /* Title */
+    .service-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: #212529;
+      margin-bottom: 12px;
+    }
+
+    /* Description */
+    .service-desc {
+      font-size: 14.5px;
+      color: #6c757d;
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+
+    /* List */
+    .service-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 30px;
+      border-top: 1px solid #f0f0f0;
+      padding-top: 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .service-list li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13.5px;
+      color: #495057;
+      font-weight: 500;
+    }
+
+    .scheck {
+      width: 22px; height: 22px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .it-check { background: rgba(102,126,234,0.1); color: #667eea; }
+    .qs-check { background: rgba(17,153,142,0.1); color: #11998e; }
+
+    /* Button */
+    .service-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 28px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .it-btn {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #ffffff;
+      box-shadow: 0 6px 20px rgba(102,126,234,0.3);
+    }
+
+    .it-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(102,126,234,0.5);
+      color: #ffffff;
+    }
+
+    .qs-btn {
+      background: linear-gradient(135deg, #11998e, #38ef7d);
+      color: #ffffff;
+      box-shadow: 0 6px 20px rgba(17,153,142,0.3);
+    }
+
+    .qs-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(17,153,142,0.5);
+      color: #ffffff;
+    }
+
+    .service-btn i {
+      transition: transform 0.3s ease;
+    }
+
+    .service-btn:hover i {
+      transform: translateX(5px);
+    }
+
+    /* Stats Bar */
+    .services-stats {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      background: linear-gradient(135deg, #0f0c29, #302b63);
+      border-radius: 20px;
+      padding: 32px 40px;
+      flex-wrap: wrap;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .stat-num {
+      font-size: 34px;
+      font-weight: 800;
+      color: #ffffff;
+      background: linear-gradient(135deg, #667eea, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-txt {
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .stat-divider {
+      width: 1px;
+      height: 50px;
+      background: rgba(255,255,255,0.1);
+      flex-shrink: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .services-grid { grid-template-columns: 1fr; }
+      .service-list  { grid-template-columns: 1fr; }
+      .services-stats { gap: 20px; }
+      .stat-divider { display: none; }
+    }
+
+    @media (max-width: 576px) {
+      .services-header h2 { font-size: 28px; }
+      .service-card { padding: 28px 22px; }
+      .services-stats { padding: 24px 20px; }
+      .stat-num { font-size: 26px; }
     }
 
     /* Step Cards */
@@ -299,306 +623,600 @@
       margin-bottom: 1.5rem;
     }
 
+
     /* Testimonials Section */
     .testimonials-section {
-      padding: 80px 0;
-      background: #f8f9fa;
-    }
-
-    .section-title {
-      text-align: center;
-      margin-bottom: 60px;
-    }
-
-    .section-title p {
-      color: #667eea;
-      font-size: 15px;
-      font-weight: 600;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-
-    .section-title h2 {
-      font-size: 36px;
-      font-weight: 700;
-      color: #212529;
-    }
-
-    .testimonials-container {
+      padding: 100px 0;
+      background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
       position: relative;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 80px;
-    }
-
-    .testimonial-slider {
       overflow: hidden;
     }
 
+    /* Background orbs */
+    .testi-bg-orb {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .testi-orb-1 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(102,126,234,0.12) 0%, transparent 70%);
+      top: -150px; right: -100px;
+    }
+
+    .testi-orb-2 {
+      width: 350px; height: 350px;
+      background: radial-gradient(circle, rgba(118,75,162,0.1) 0%, transparent 70%);
+      bottom: -100px; left: -80px;
+    }
+
+    /* Header */
+    .testi-header {
+      text-align: center;
+      margin-bottom: 60px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .testi-label {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      padding: 6px 18px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+
+    .testi-header h2 {
+      font-size: 40px;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 12px;
+    }
+
+    .testi-header p {
+      font-size: 16px;
+      color: rgba(255,255,255,0.6);
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* Container */
+    .testimonials-container {
+      position: relative;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 70px;
+      z-index: 2;
+    }
+
+    /* Slider */
+    .testimonial-slider { overflow: hidden; }
+
     .slider-wrapper {
       display: flex;
-      transition: transform 0.5s ease;
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .testimonial-slide {
       min-width: 100%;
       flex-shrink: 0;
-      padding: 0 15px;
+      padding: 0 10px;
     }
 
+    /* Card */
     .testimonial-card {
-      background: #fff;
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 24px;
+      padding: 44px 40px 36px;
+      position: relative;
+      transition: all 0.4s ease;
+      overflow: hidden;
     }
 
-    .testimonial-header {
+    .testimonial-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #667eea, #764ba2, #f5576c);
+      border-radius: 24px 24px 0 0;
+    }
+
+    .testimonial-card:hover {
+      background: rgba(255,255,255,0.09);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+
+    /* Quote icon */
+    .testi-quote-icon {
+      font-size: 52px;
+      line-height: 1;
+      color: rgba(102,126,234,0.4);
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    /* Text */
+    .testimonial-text {
+      font-size: 16px;
+      line-height: 1.8;
+      color: rgba(255,255,255,0.85);
+      font-style: italic;
+      margin-bottom: 30px;
+    }
+
+    /* Footer */
+    .testimonial-footer {
       display: flex;
       align-items: center;
-      margin-bottom: 25px;
+      gap: 16px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
     }
 
     .testimonial-avatar {
-      width: 70px;
-      height: 70px;
+      width: 52px; height: 52px;
       border-radius: 50%;
-      margin-right: 20px;
+      border: 3px solid rgba(102,126,234,0.6);
+      flex-shrink: 0;
       object-fit: cover;
-      border: 4px solid #667eea;
+    }
+
+    .testimonial-info {
+      flex: 1;
     }
 
     .testimonial-info h3 {
-      font-size: 20px;
-      font-weight: 600;
-      color: #667eea;
-      margin-bottom: 5px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 4px;
     }
 
     .testimonial-info .rating {
       color: #ffc107;
-      font-size: 16px;
-    }
-
-    .testimonial-text {
-      font-size: 16px;
-      line-height: 1.8;
-      color: #555;
-      font-style: italic;
+      font-size: 14px;
+      letter-spacing: 2px;
     }
 
     .testimonial-date {
-      font-size: 14px;
-      color: #999;
-      margin-top: 15px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+      margin: 0;
+      margin-left: auto;
+      white-space: nowrap;
     }
 
+    /* Slider Buttons */
     .slider-btn {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      background: #667eea;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10px);
       color: #fff;
-      border: none;
-      width: 50px;
-      height: 50px;
+      border: 1px solid rgba(255,255,255,0.15);
+      width: 48px; height: 48px;
       border-radius: 50%;
-      font-size: 20px;
+      font-size: 18px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: all 0.3s ease;
-      z-index: 100;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      z-index: 10;
     }
 
     .slider-btn:hover {
-      background: #764ba2;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-color: transparent;
       transform: translateY(-50%) scale(1.1);
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+      box-shadow: 0 8px 20px rgba(102,126,234,0.5);
     }
 
-    .slider-btn.prev {
-      left: 10px;
-    }
+    .slider-btn.prev { left: 0; }
+    .slider-btn.next { right: 0; }
 
-    .slider-btn.next {
-      right: 10px;
-    }
-
+    /* Average Rating */
     .average-rating {
       text-align: center;
       margin-top: 40px;
-      font-size: 18px;
-      color: #667eea;
+      font-size: 16px;
+      color: rgba(255,255,255,0.7);
       font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .average-rating i {
+      color: #ffc107;
     }
 
     .average-rating .stars {
       color: #ffc107;
-      font-size: 24px;
-      margin: 0 10px;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .testimonials-container { padding: 0 50px; }
+      .testimonial-card { padding: 30px 24px; }
+      .testi-header h2 { font-size: 28px; }
+      .testimonial-text { font-size: 14px; }
+      .testimonial-footer { flex-wrap: wrap; }
+      .testimonial-date { margin-left: 0; }
+    }
+
+    @media (max-width: 480px) {
+      .testimonials-container { padding: 0 40px; }
+      .slider-btn { width: 36px; height: 36px; font-size: 14px; }
     }
 
     /* Contact Section */
     .contact-section {
-      padding: 80px 0;
-      background: #f8f9fa; /* Changed from #fff to light gray */
+      padding: 100px 0;
+      background: linear-gradient(135deg, #f0f4ff 0%, #fafbff 50%, #f0f4ff 100%);
+      position: relative;
+      overflow: hidden;
     }
 
-    .section-title {
+    /* Background orbs */
+    .contact-bg-orb {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .contact-orb-1 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(102,126,234,0.1) 0%, transparent 70%);
+      top: -200px; left: -150px;
+    }
+
+    .contact-orb-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(118,75,162,0.08) 0%, transparent 70%);
+      bottom: -150px; right: -100px;
+    }
+
+    .contact-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Header */
+    .contact-header {
       text-align: center;
       margin-bottom: 60px;
     }
 
-    .section-title p {
-      color: #667eea;
-      font-size: 14px;
-      font-weight: 600;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-      letter-spacing: 2px;
-    }
-
-    .section-title h2 {
-      font-size: 36px;
+    .contact-label {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      font-size: 11px;
       font-weight: 700;
+      letter-spacing: 3px;
+      padding: 6px 18px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+
+    .contact-header h2 {
+      font-size: 40px;
+      font-weight: 800;
       color: #212529;
-      margin: 0;
+      margin-bottom: 12px;
     }
 
-    .contact-container {
-      max-width: 1200px;
+    .contact-header p {
+      font-size: 16px;
+      color: #6c757d;
+      max-width: 500px;
       margin: 0 auto;
-      padding: 0 20px;
     }
 
+    /* Grid */
     .contact-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 40px;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 30px;
       align-items: start;
     }
 
-    .contact-info {
-      background: #ffffff; /* Changed to white */
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); /* Added subtle shadow */
+    /* Info Panel */
+    .contact-info-panel {
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      border-radius: 24px;
+      padding: 44px 36px;
+      color: #ffffff;
+      position: relative;
+      overflow: hidden;
     }
 
-    .contact-info h3 {
-      font-size: 24px;
-      color: #667eea;
-      margin-bottom: 20px;
-      display: block; /* Remove flex to remove icon */
-      font-weight: 600;
+    .contact-info-panel::before {
+      content: '';
+      position: absolute;
+      top: -80px; right: -80px;
+      width: 200px; height: 200px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 50%;
     }
 
-    .contact-info h3 i {
-      display: none; /* Hide the icon */
+    .contact-info-panel::after {
+      content: '';
+      position: absolute;
+      bottom: -60px; left: -60px;
+      width: 160px; height: 160px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 50%;
     }
 
-    .contact-info p {
-      font-size: 15px;
-      color: #6c757d; /* Lighter gray */
-      margin-bottom: 30px;
-      line-height: 1.8;
+    .info-intro {
+      margin-bottom: 36px;
+      position: relative;
+      z-index: 1;
     }
 
-    .contact-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
+    .info-intro h3 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #ffffff;
     }
 
-    .contact-list li {
-      display: block; /* Changed from flex */
-      margin: 15px 0;
-      font-size: 15px;
-      color: #495057;
-      padding-left: 0; /* Remove icon space */
+    .info-intro p {
+      font-size: 14px;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.7;
     }
 
-    .contact-list li i {
-      display: none; /* Hide all icons */
+    .info-items {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-bottom: 36px;
+      position: relative;
+      z-index: 1;
     }
 
-    .contact-form {
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .info-icon {
+      width: 46px; height: 46px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      transition: transform 0.3s ease;
+    }
+
+    .info-item:hover .info-icon {
+      transform: scale(1.1) rotate(5deg);
+    }
+
+    .email-icon  { background: linear-gradient(135deg, #f093fb, #f5576c); }
+    .phone-icon  { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+    .globe-icon  { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+    .clock-icon  { background: linear-gradient(135deg, #fa709a, #fee140); }
+
+    .info-detail {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .info-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+    }
+
+    .info-value {
+      font-size: 14px;
+      font-weight: 500;
+      color: #ffffff;
+    }
+
+    /* Social */
+    .contact-social {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .contact-social span {
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .csocial-btn {
+      width: 38px; height: 38px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 16px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .csocial-btn:hover {
+      background: rgba(255,255,255,0.2);
+      transform: translateY(-3px);
+      color: #ffffff;
+    }
+
+    .csocial-btn.whatsapp:hover {
+      background: #25D366;
+      border-color: #25D366;
+    }
+
+    /* Form Panel */
+    .contact-form-panel {
       background: #ffffff;
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+      border-radius: 24px;
+      padding: 44px 40px;
+      box-shadow: 0 10px 50px rgba(102,126,234,0.1);
+      border: 1px solid rgba(102,126,234,0.08);
     }
 
-    .contact-form label {
-      font-weight: 600;
+    .contact-form-panel h3 {
+      font-size: 22px;
+      font-weight: 700;
       color: #212529;
-      margin-bottom: 8px;
-      display: block;
-      font-size: 15px;
+      margin-bottom: 28px;
     }
 
-    .contact-form input,
-    .contact-form textarea {
-      width: 100%;
-      padding: 12px 16px;
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-group {
       margin-bottom: 20px;
-      border: 1px solid #dee2e6;
-      border-radius: 8px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 8px;
+      letter-spacing: 0.3px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #adb5bd;
       font-size: 15px;
-      transition: border-color 0.3s;
-      background: #f8f9fa; /* Light gray background for inputs */
+      pointer-events: none;
+      transition: color 0.3s ease;
     }
 
-    .contact-form input:focus,
-    .contact-form textarea:focus {
+    .input-wrap.textarea-wrap i {
+      top: 16px;
+      transform: none;
+    }
+
+    .input-wrap input,
+    .input-wrap textarea {
+      width: 100%;
+      padding: 12px 16px 12px 42px;
+      border: 1.5px solid #e9ecef;
+      border-radius: 12px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #212529;
+      background: #f8f9ff;
       outline: none;
-      border-color: #667eea;
-      background: #ffffff; /* White on focus */
+      transition: all 0.3s ease;
     }
 
-    .contact-form textarea {
+    .input-wrap input:focus,
+    .input-wrap textarea:focus {
+      border-color: #667eea;
+      background: #ffffff;
+      box-shadow: 0 0 0 4px rgba(102,126,234,0.1);
+    }
+
+    .input-wrap input:focus ~ i,
+    .input-wrap textarea:focus ~ i,
+    .input-wrap:focus-within i {
+      color: #667eea;
+    }
+
+    .input-wrap textarea {
       resize: vertical;
       min-height: 120px;
     }
 
-    .submit-btn {
-      background: #667eea;
-      color: #fff;
-      padding: 14px 40px;
+    /* Submit Button */
+    .contact-submit-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 36px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #ffffff;
       border: none;
-      border-radius: 8px; /* Changed from 30px to 8px for less rounded */
-      font-size: 16px;
-      font-weight: 600;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
       cursor: pointer;
       transition: all 0.3s ease;
-      width: auto; /* Not full width */
+      box-shadow: 0 8px 25px rgba(102,126,234,0.35);
+      width: 100%;
+      justify-content: center;
     }
 
-    .submit-btn:hover {
-      background: #5568d3;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    .contact-submit-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 35px rgba(102,126,234,0.5);
     }
 
-    .submit-btn:disabled {
+    .contact-submit-btn:active {
+      transform: translateY(0);
+    }
+
+    .contact-submit-btn i {
+      transition: transform 0.3s ease;
+    }
+
+    .contact-submit-btn:hover i {
+      transform: translateX(4px) rotate(15deg);
+    }
+
+    .contact-submit-btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
       transform: none;
     }
 
+    /* Form message */
     .form-message {
-      margin-top: 20px;
-      padding: 15px;
-      border-radius: 8px;
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 10px;
       display: none;
+      font-size: 14px;
       font-weight: 500;
       text-align: center;
-      background-color: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
     }
 
     .form-message.success {
@@ -608,11 +1226,29 @@
       display: block;
     }
 
-    /* Responsive Design */
-    @media (max-width: 768px) {
+    .form-message.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      display: block;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
       .contact-grid {
         grid-template-columns: 1fr;
       }
+    }
+
+    @media (max-width: 576px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      .contact-form-panel,
+      .contact-info-panel {
+        padding: 30px 20px;
+      }
+      .contact-header h2 { font-size: 30px; }
     }
 
     /* Footer */
@@ -690,6 +1326,478 @@
         font-size: 26px;
       }
     }
+
+    /* Pricing Section */
+    .pricing-section {
+      padding: 80px 0;
+      background: linear-gradient(180deg, #ffffff 0%, #f0f4ff 100%);
+    }
+
+    .pricing-subtitle {
+      color: #6c757d;
+      font-size: 16px;
+      max-width: 600px;
+      margin: 10px auto 0;
+      line-height: 1.6;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+      align-items: center;
+      margin-top: 50px;
+    }
+
+    .pricing-card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 40px 30px;
+      border: 1px solid #e0e7ff;
+      position: relative;
+      transition: all 0.4s ease;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    .pricing-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 20px 50px rgba(102, 126, 234, 0.2);
+      border-color: #667eea;
+    }
+
+    .pricing-card.featured {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      color: #ffffff;
+      transform: scale(1.05);
+      border: none;
+      box-shadow: 0 20px 60px rgba(15, 52, 96, 0.5);
+      z-index: 2;
+    }
+
+    .pricing-card.featured:hover {
+      transform: scale(1.05) translateY(-10px);
+      box-shadow: 0 30px 70px rgba(15, 52, 96, 0.6);
+    }
+
+    .pricing-badge {
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      padding: 6px 20px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+
+    .pricing-icon {
+      width: 55px;
+      height: 55px;
+      background: rgba(102, 126, 234, 0.1);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: #667eea;
+      margin-bottom: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .pricing-card.featured .pricing-icon {
+      background: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+    }
+
+    .pricing-card:hover .pricing-icon {
+      transform: rotate(10deg) scale(1.1);
+    }
+
+    .pricing-name {
+      font-size: 22px;
+      font-weight: 700;
+      color: #212529;
+      margin-bottom: 6px;
+    }
+
+    .pricing-card.featured .pricing-name {
+      color: #ffffff;
+    }
+
+    .pricing-desc {
+      font-size: 13px;
+      color: #6c757d;
+      margin-bottom: 20px;
+    }
+
+    .pricing-card.featured .pricing-desc {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .pricing-price {
+      font-size: 42px;
+      font-weight: 800;
+      color: #212529;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .pricing-card.featured .pricing-price {
+      color: #ffffff;
+    }
+
+    .pricing-price .currency {
+      font-size: 22px;
+      font-weight: 600;
+      vertical-align: top;
+      margin-top: 8px;
+      display: inline-block;
+    }
+
+    .pricing-price .plus {
+      font-size: 28px;
+    }
+
+    .pricing-price .per-person {
+      font-size: 14px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.7);
+      display: block;
+      margin-top: 2px;
+    }
+
+    .pricing-period {
+      font-size: 12px;
+      color: #6c757d;
+      margin-bottom: 24px;
+      font-style: italic;
+    }
+
+    .pricing-card.featured .pricing-period {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .pricing-features {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 30px;
+      border-top: 1px solid rgba(0,0,0,0.07);
+      padding-top: 20px;
+    }
+
+    .pricing-card.featured .pricing-features {
+      border-top-color: rgba(255,255,255,0.15);
+    }
+
+    .pricing-features li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: #495057;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .pricing-card.featured .pricing-features li {
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .pricing-features li i {
+      color: #667eea;
+      font-size: 16px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .pricing-card.featured .pricing-features li i {
+      color: #a8c0ff;
+    }
+
+    .pricing-btn {
+      display: block;
+      text-align: center;
+      padding: 14px 20px;
+      background: transparent;
+      border: 2px solid #667eea;
+      border-radius: 10px;
+      color: #667eea;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .pricing-btn:hover {
+      background: #667eea;
+      color: #ffffff;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .pricing-btn.featured-btn {
+      background: #ffffff;
+      border-color: #ffffff;
+      color: #1a1a2e;
+    }
+
+    .pricing-btn.featured-btn:hover {
+      background: transparent;
+      color: #ffffff;
+      box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .pricing-grid {
+        grid-template-columns: 1fr;
+        max-width: 450px;
+        margin: 50px auto 0;
+      }
+
+      .pricing-card.featured {
+        transform: scale(1);
+      }
+
+      .pricing-card.featured:hover {
+        transform: translateY(-10px);
+      }
+    }
+
+
+    .how-it-works-section {
+      padding: 100px 0;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Decorative background blob */
+    .hiw-bg-shape {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(102,126,234,0.15) 0%, transparent 70%);
+      top: -150px;
+      right: -150px;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .how-it-works-section::after {
+      content: '';
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(118,75,162,0.12) 0%, transparent 70%);
+      bottom: -100px;
+      left: -100px;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    /* Header */
+    .hiw-header {
+      text-align: center;
+      margin-bottom: 70px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hiw-label {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      padding: 6px 18px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+
+    .hiw-header h2 {
+      font-size: 42px;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 14px;
+    }
+
+    .hiw-header p {
+      font-size: 16px;
+      color: rgba(255,255,255,0.6);
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* Steps Grid */
+    .hiw-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      position: relative;
+      z-index: 2;
+      margin-bottom: 60px;
+    }
+
+    /* Each Step */
+    .hiw-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      padding: 0 10px;
+    }
+
+    /* Connector line between steps */
+    .hiw-connector {
+      position: absolute;
+      top: 40px;
+      left: 50%;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(102,126,234,0.6), rgba(118,75,162,0.6));
+      z-index: 0;
+    }
+
+    /* Icon wrapper */
+    .hiw-icon-wrap {
+      position: relative;
+      margin-bottom: 24px;
+      z-index: 1;
+    }
+
+    .hiw-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      color: #ffffff;
+      position: relative;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .hiw-step:hover .hiw-icon {
+      transform: translateY(-8px) scale(1.08);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+
+    /* Icon gradient colors */
+    .bg-step-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .bg-step-2 { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+    .bg-step-3 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .bg-step-4 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+
+    /* Step number badge */
+    .hiw-step-number {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      width: 26px;
+      height: 26px;
+      background: #ffffff;
+      border-radius: 50%;
+      font-size: 10px;
+      font-weight: 800;
+      color: #302b63;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    /* Step content */
+    .hiw-content h4 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 10px;
+    }
+
+    .hiw-content p {
+      font-size: 13.5px;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.6;
+      max-width: 200px;
+      margin: 0 auto;
+    }
+
+    /* CTA at bottom */
+    .hiw-cta {
+      text-align: center;
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .hiw-cta p {
+      color: rgba(255,255,255,0.7);
+      font-size: 16px;
+      margin: 0;
+    }
+
+    .hiw-cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 32px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #ffffff;
+      border-radius: 50px;
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 25px rgba(102,126,234,0.4);
+    }
+
+    .hiw-cta-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 35px rgba(102,126,234,0.6);
+      color: #ffffff;
+    }
+
+    .hiw-cta-btn i {
+      transition: transform 0.3s ease;
+    }
+
+    .hiw-cta-btn:hover i {
+      transform: translateX(5px);
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .hiw-steps {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 40px;
+      }
+      .hiw-connector { display: none; }
+    }
+
+    @media (max-width: 576px) {
+      .hiw-steps {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+      .hiw-header h2 { font-size: 30px; }
+    }
+
+
   </style>
 </head>
 <body>
@@ -719,6 +1827,9 @@
         <li class="nav-item">
           <a class="nav-link" href="#contact">Contact</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#pricing">Pricing</a>
+        </li>
       </ul>
       <ul class="navbar-nav">
         <li class="nav-item">
@@ -727,6 +1838,7 @@
         <li class="nav-item">
           <a class="btn-auth btn-register" href="/register">Register</a>
         </li>
+
       </ul>
     </div>
   </div>
@@ -775,118 +1887,291 @@
   </div>
 </section>
 
+
 <!-- Services Section -->
-<section class="py-5" id="services">
-  <div class="container">
-    <div class="row text-center mb-5">
-      <div class="col">
-        <h2 class="display-5 fw-bold">Our Specialized Services</h2>
-        <p class="lead text-muted">Expert help in two main academic areas</p>
+<section class="services-section" id="services">
+
+  <div class="services-wrapper">
+
+    <div class="services-header">
+      <span class="services-label">WHAT WE OFFER</span>
+      <h2>Our Specialized Services</h2>
+      <p>Expert help in two main academic areas — delivered by professionals who know your field</p>
+    </div>
+
+    <div class="services-grid">
+
+      <!-- Card 1: IT Assignments -->
+      <div class="service-card it-card">
+        <div class="service-card-bg"></div>
+
+        <div class="service-top">
+          <div class="service-icon-wrap it-icon">
+            <i class="bi bi-laptop"></i>
+          </div>
+          <div class="service-tag">Technology</div>
+        </div>
+
+        <h3 class="service-title">IT Assignments</h3>
+        <p class="service-desc">
+          From programming challenges to complex software projects, we provide
+          comprehensive assistance across all IT disciplines. Our experts ensure
+          your code is clean, efficient, and well-documented.
+        </p>
+
+        <ul class="service-list">
+          <li><span class="scheck it-check"><i class="bi bi-check2"></i></span> Java, Python, C++, JavaScript</li>
+          <li><span class="scheck it-check"><i class="bi bi-check2"></i></span> Web Development (HTML, CSS, React)</li>
+          <li><span class="scheck it-check"><i class="bi bi-check2"></i></span> Database Design & SQL</li>
+          <li><span class="scheck it-check"><i class="bi bi-check2"></i></span> Mobile App Development</li>
+          <li><span class="scheck it-check"><i class="bi bi-check2"></i></span> Data Structures & Algorithms</li>
+          <li><span class="scheck it-check"><i class="bi bi-check2"></i></span> Software Engineering Projects</li>
+        </ul>
+
+        <a href="/register" class="service-btn it-btn">
+          Get IT Help <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+
+      <!-- Card 2: QS Assignments -->
+      <div class="service-card qs-card">
+        <div class="service-card-bg qs-bg"></div>
+
+        <div class="service-top">
+          <div class="service-icon-wrap qs-icon">
+            <i class="bi bi-calculator"></i>
+          </div>
+          <div class="service-tag qs-tag">Construction</div>
+        </div>
+
+        <h3 class="service-title">Quantity Surveying</h3>
+        <p class="service-desc">
+          Professional assistance with construction cost management, project planning,
+          and all aspects of quantity surveying. Get accurate calculations and
+          detailed reports that meet industry standards.
+        </p>
+
+        <ul class="service-list">
+          <li><span class="scheck qs-check"><i class="bi bi-check2"></i></span> Cost Estimation & Budgeting</li>
+          <li><span class="scheck qs-check"><i class="bi bi-check2"></i></span> Construction Management</li>
+          <li><span class="scheck qs-check"><i class="bi bi-check2"></i></span> Project Planning & Scheduling</li>
+          <li><span class="scheck qs-check"><i class="bi bi-check2"></i></span> Quantity Take-off & Measurement</li>
+          <li><span class="scheck qs-check"><i class="bi bi-check2"></i></span> Contract Administration</li>
+          <li><span class="scheck qs-check"><i class="bi bi-check2"></i></span> Bill of Quantities (BOQ)</li>
+        </ul>
+
+        <a href="/register" class="service-btn qs-btn">
+          Get QS Help <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Bottom Stats Bar -->
+    <div class="services-stats">
+      <div class="stat-item">
+        <span class="stat-num">500+</span>
+        <span class="stat-txt">Projects Completed</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-num">98%</span>
+        <span class="stat-txt">Satisfaction Rate</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-num">24/7</span>
+        <span class="stat-txt">Support Available</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-num">100%</span>
+        <span class="stat-txt">On-time Delivery</span>
       </div>
     </div>
-    <div class="row g-4">
-      <div class="col-md-6">
-        <div class="card assignment-card">
-          <div class="card-body text-center p-4">
-            <i class="bi bi-laptop display-4 text-primary mb-3"></i>
-            <h3 class="card-title">IT Assignments</h3>
-            <p class="card-text">
-              From programming challenges to complex software projects, we provide
-              comprehensive assistance across all IT disciplines. Our experts ensure
-              your code is clean, efficient, and well-documented.
-            </p>
-            <ul class="list-unstyled text-start">
-              <li><i class="bi bi-check-circle text-success"></i> Java, Python, C++, JavaScript</li>
-              <li><i class="bi bi-check-circle text-success"></i> Web Development (HTML, CSS, React)</li>
-              <li><i class="bi bi-check-circle text-success"></i> Database Design & SQL</li>
-              <li><i class="bi bi-check-circle text-success"></i> Mobile App Development</li>
-              <li><i class="bi bi-check-circle text-success"></i> Data Structures & Algorithms</li>
-              <li><i class="bi bi-check-circle text-success"></i> Software Engineering Projects</li>
-            </ul>
+
+  </div>
+</section>
+
+
+<!-- How It Works -->
+<section class="how-it-works-section" id="how-it-works">
+  <div class="hiw-bg-shape"></div>
+  <div class="container">
+
+    <div class="hiw-header">
+      <span class="hiw-label">SIMPLE PROCESS</span>
+      <h2>How It Works</h2>
+      <p>Four easy steps to get your assignment done professionally and on time</p>
+    </div>
+
+    <div class="hiw-steps">
+
+      <!-- Step 1 -->
+      <div class="hiw-step" data-step="1">
+        <div class="hiw-connector"></div>
+        <div class="hiw-icon-wrap">
+          <div class="hiw-icon bg-step-1">
+            <i class="bi bi-person-plus-fill"></i>
           </div>
+          <div class="hiw-step-number">01</div>
+        </div>
+        <div class="hiw-content">
+          <h4>Register Account</h4>
+          <p>Create your free account in minutes. Provide basic information and you're ready to start.</p>
         </div>
       </div>
-      <div class="col-md-6">
-        <div class="card assignment-card">
-          <div class="card-body text-center p-4">
-            <i class="bi bi-calculator display-4 text-success mb-3"></i>
-            <h3 class="card-title">Quantity Surveying Assignments</h3>
-            <p class="card-text">
-              Professional assistance with construction cost management, project planning,
-              and all aspects of quantity surveying. Get accurate calculations and
-              detailed reports that meet industry standards.
-            </p>
-            <ul class="list-unstyled text-start">
-              <li><i class="bi bi-check-circle text-success"></i> Cost Estimation & Budgeting</li>
-              <li><i class="bi bi-check-circle text-success"></i> Construction Management</li>
-              <li><i class="bi bi-check-circle text-success"></i> Project Planning & Scheduling</li>
-              <li><i class="bi bi-check-circle text-success"></i> Quantity Take-off & Measurement</li>
-              <li><i class="bi bi-check-circle text-success"></i> Contract Administration</li>
-              <li><i class="bi bi-check-circle text-success"></i> Bill of Quantities (BOQ)</li>
-            </ul>
+
+      <!-- Step 2 -->
+      <div class="hiw-step" data-step="2">
+        <div class="hiw-connector"></div>
+        <div class="hiw-icon-wrap">
+          <div class="hiw-icon bg-step-2">
+            <i class="bi bi-journal-text"></i>
           </div>
+          <div class="hiw-step-number">02</div>
+        </div>
+        <div class="hiw-content">
+          <h4>Submit Details</h4>
+          <p>Share your assignment requirements, deadline, and any specific instructions or files.</p>
         </div>
       </div>
+
+      <!-- Step 3 -->
+      <div class="hiw-step" data-step="3">
+        <div class="hiw-connector"></div>
+        <div class="hiw-icon-wrap">
+          <div class="hiw-icon bg-step-3">
+            <i class="bi bi-patch-check-fill"></i>
+          </div>
+          <div class="hiw-step-number">03</div>
+        </div>
+        <div class="hiw-content">
+          <h4>Get Quote & Approve</h4>
+          <p>Receive a fair quote based on your requirements. Review and approve to proceed.</p>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="hiw-step" data-step="4">
+        <div class="hiw-icon-wrap">
+          <div class="hiw-icon bg-step-4">
+            <i class="bi bi-rocket-takeoff-fill"></i>
+          </div>
+          <div class="hiw-step-number">04</div>
+        </div>
+        <div class="hiw-content">
+          <h4>Pay & Receive</h4>
+          <p>Complete secure payment and our experts start working. Get your assignment delivered on time.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom CTA -->
+    <div class="hiw-cta">
+      <p>Ready to get started?</p>
+      <a href="/register" class="hiw-cta-btn">
+        Start Now <i class="bi bi-arrow-right"></i>
+      </a>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- Pricing Section -->
+<section class="pricing-section" id="pricing">
+  <div class="container">
+    <div class="section-title">
+      <p>PRICING</p>
+      <h2>Popular Packages</h2>
+      <p class="pricing-subtitle">Transparent pricing for exceptional work. Every project is unique, but these packages give you a starting point.</p>
+    </div>
+
+    <div class="pricing-grid">
+
+      <!-- Card 1: Basic -->
+      <div class="pricing-card">
+        <div class="pricing-icon">
+          <i class="bi bi-lightning-fill"></i>
+        </div>
+        <h3 class="pricing-name">Basic Assignment</h3>
+        <p class="pricing-desc">Perfect for simple tasks & small assignments</p>
+        <div class="pricing-price">
+          <span class="currency">Rs</span>1,500
+        </div>
+        <p class="pricing-period">one-time</p>
+        <ul class="pricing-features">
+          <li><i class="bi bi-check2"></i> Single subject assignment</li>
+          <li><i class="bi bi-check2"></i> Up to 10 pages</li>
+          <li><i class="bi bi-check2"></i> Basic documentation</li>
+          <li><i class="bi bi-check2"></i> 1 revision included</li>
+          <li><i class="bi bi-check2"></i> 3-5 day delivery</li>
+        </ul>
+        <a href="/login" class="pricing-btn">GET STARTED</a>
+      </div>
+
+      <!-- Card 2: University Project (Featured) -->
+      <div class="pricing-card featured">
+        <div class="pricing-badge">Most Popular</div>
+        <div class="pricing-icon">
+          <i class="bi bi-stars"></i>
+        </div>
+        <h3 class="pricing-name">University Project</h3>
+        <p class="pricing-desc">For businesses ready to stand out</p>
+        <div class="pricing-price">
+          <span class="currency">Rs</span>3,500
+          <span class="per-person">Per Person</span>
+        </div>
+        <p class="pricing-period">one-time</p>
+        <ul class="pricing-features">
+          <li><i class="bi bi-check2"></i> Phase-based development with digital agreement</li>
+          <li><i class="bi bi-check2"></i> Customized project according to university guidelines</li>
+          <li><i class="bi bi-check2"></i> Complete documentation and source code</li>
+          <li><i class="bi bi-check2"></i> Regular progress updates and reviews</li>
+        </ul>
+        <a href="/login" class="pricing-btn featured-btn">GET STARTED</a>
+      </div>
+
+      <!-- Card 3: Custom Website -->
+      <div class="pricing-card">
+        <div class="pricing-icon">
+          <i class="bi bi-trophy-fill"></i>
+        </div>
+        <h3 class="pricing-name">Custom Website</h3>
+        <p class="pricing-desc">Complex applications & systems</p>
+        <div class="pricing-price">
+          <span class="currency">Rs</span>15,000<span class="plus">+</span>
+        </div>
+        <p class="pricing-period">project-based</p>
+        <ul class="pricing-features">
+          <li><i class="bi bi-check2"></i> Fully responsive and modern UI design</li>
+          <li><i class="bi bi-check2"></i> Customized features based on requirements</li>
+          <li><i class="bi bi-check2"></i> Secure and optimized performance</li>
+          <li><i class="bi bi-check2"></i> Cross-browser and device compatibility</li>
+          <li><i class="bi bi-check2"></i> Deployment and basic maintenance support</li>
+          <li><i class="bi bi-check2"></i> SEO-friendly structure for better visibility</li>
+        </ul>
+        <a href="/login" class="pricing-btn">GET STARTED</a>
+      </div>
+
     </div>
   </div>
 </section>
 
-<!-- How It Works -->
-<section class="py-5 bg-light" id="how-it-works">
-  <div class="container">
-    <div class="row text-center mb-5">
-      <div class="col">
-        <h2 class="display-5 fw-bold">How It Works</h2>
-        <p class="lead text-muted">Simple steps to get your assignment done</p>
-      </div>
-    </div>
-    <div class="row g-4">
-      <div class="col-md-3 text-center">
-        <div class="card step-card">
-          <div class="step-icon bg-primary text-white">
-            <i class="bi bi-person-plus display-6"></i>
-          </div>
-          <h4>1. Register Account</h4>
-          <p class="text-muted">Create your free account in minutes. Provide basic information and you're ready to start.</p>
-        </div>
-      </div>
-      <div class="col-md-3 text-center">
-        <div class="card step-card">
-          <div class="step-icon bg-success text-white">
-            <i class="bi bi-journal-text display-6"></i>
-          </div>
-          <h4>2. Submit Details</h4>
-          <p class="text-muted">Share your assignment requirements, deadline, and any specific instructions or files.</p>
-        </div>
-      </div>
-      <div class="col-md-3 text-center">
-        <div class="card step-card">
-          <div class="step-icon bg-warning text-white">
-            <i class="bi bi-check-circle display-6"></i>
-          </div>
-          <h4>3. Get Quote & Approve</h4>
-          <p class="text-muted">Receive a fair quote based on your requirements. Review and approve to proceed.</p>
-        </div>
-      </div>
-      <div class="col-md-3 text-center">
-        <div class="card step-card">
-          <div class="step-icon bg-info text-white">
-            <i class="bi bi-credit-card display-6"></i>
-          </div>
-          <h4>4. Pay & Receive</h4>
-          <p class="text-muted">Complete secure payment and our experts start working. Get your completed assignment on time.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- Testimonials Section -->
 <section class="testimonials-section" id="testimonials">
+  <div class="testi-bg-orb testi-orb-1"></div>
+  <div class="testi-bg-orb testi-orb-2"></div>
+
   <div class="container">
-    <div class="section-title">
-      <p>What Our Clients Say</p>
-      <h2>Student Testimonials</h2>
+
+    <div class="testi-header">
+      <span class="testi-label">TESTIMONIALS</span>
+      <h2>What Our Clients Say</h2>
+      <p>Real feedback from students we've helped achieve academic success</p>
     </div>
 
     <div class="testimonials-container">
@@ -899,11 +2184,16 @@
 
       <div class="testimonial-slider">
         <div class="slider-wrapper" id="sliderWrapper">
-          <!-- Testimonials will be dynamically loaded here -->
+
+          <!-- ✅ BACKEND: Dynamic testimonials from DB - NOT CHANGED -->
           <div th:if="${pastFeedbacks != null and !pastFeedbacks.isEmpty()}" th:remove="tag">
             <div th:each="feedback : ${pastFeedbacks}" class="testimonial-slide">
               <div class="testimonial-card">
-                <div class="testimonial-header">
+                <div class="testi-quote-icon"><i class="bi bi-quote"></i></div>
+                <p class="testimonial-text" th:text="${feedback.message}">
+                  Feedback message will appear here
+                </p>
+                <div class="testimonial-footer">
                   <img src="https://ui-avatars.com/api/?name=${feedback.user.firstName}+${feedback.user.lastName}&background=667eea&color=fff&size=70"
                        alt="User Avatar"
                        class="testimonial-avatar"
@@ -915,134 +2205,211 @@
                       <span th:if="${feedback.rating < 5}" th:each="i : ${#numbers.sequence(1, 5 - feedback.rating)}">☆</span>
                     </div>
                   </div>
+                  <p class="testimonial-date" th:text="${#temporals.format(feedback.createdAt, 'MMM dd, yyyy')}">Date</p>
                 </div>
-                <p class="testimonial-text" th:text="${feedback.message}">
-                  Feedback message will appear here
-                </p>
-                <p class="testimonial-date" th:text="${#temporals.format(feedback.createdAt, 'MMM dd, yyyy')}">
-                  Date
-                </p>
               </div>
             </div>
           </div>
 
-          <!-- Default testimonials if no database feedbacks -->
+          <!-- ✅ BACKEND: Default testimonials if no DB data - NOT CHANGED -->
           <div th:if="${pastFeedbacks == null or pastFeedbacks.isEmpty()}" th:remove="tag">
+
             <div class="testimonial-slide">
               <div class="testimonial-card">
-                <div class="testimonial-header">
-                  <img src="https://ui-avatars.com/api/?name=Sarah+Johnson&background=667eea&color=fff&size=70"
-                       alt="Sarah Johnson"
-                       class="testimonial-avatar">
-                  <div class="testimonial-info">
-                    <h3>Sarah Johnson</h3>
-                    <div class="rating">★★★★★</div>
-                  </div>
-                </div>
+                <div class="testi-quote-icon"><i class="bi bi-quote"></i></div>
                 <p class="testimonial-text">
                   "Excellent service! They helped me with my Java programming assignment and delivered it before the deadline.
                   The code was well-structured and thoroughly commented. Highly recommend for any IT student!"
                 </p>
-                <p class="testimonial-date">Dec 20, 2024</p>
+                <div class="testimonial-footer">
+                  <img src="https://ui-avatars.com/api/?name=Sarah+Johnson&background=667eea&color=fff&size=70"
+                       alt="Sarah Johnson" class="testimonial-avatar">
+                  <div class="testimonial-info">
+                    <h3>Sarah Johnson</h3>
+                    <div class="rating">★★★★★</div>
+                  </div>
+                  <p class="testimonial-date">Dec 20, 2024</p>
+                </div>
               </div>
             </div>
 
             <div class="testimonial-slide">
               <div class="testimonial-card">
-                <div class="testimonial-header">
-                  <img src="https://ui-avatars.com/api/?name=Michael+Chen&background=667eea&color=fff&size=70"
-                       alt="Michael Chen"
-                       class="testimonial-avatar">
-                  <div class="testimonial-info">
-                    <h3>Michael Chen</h3>
-                    <div class="rating">★★★★★</div>
-                  </div>
-                </div>
+                <div class="testi-quote-icon"><i class="bi bi-quote"></i></div>
                 <p class="testimonial-text">
                   "Got help with my quantity surveying cost estimation project. The calculations were accurate and the report
                   was professionally formatted. They really understand construction management!"
                 </p>
-                <p class="testimonial-date">Dec 18, 2024</p>
+                <div class="testimonial-footer">
+                  <img src="https://ui-avatars.com/api/?name=Michael+Chen&background=667eea&color=fff&size=70"
+                       alt="Michael Chen" class="testimonial-avatar">
+                  <div class="testimonial-info">
+                    <h3>Michael Chen</h3>
+                    <div class="rating">★★★★★</div>
+                  </div>
+                  <p class="testimonial-date">Dec 18, 2024</p>
+                </div>
               </div>
             </div>
 
             <div class="testimonial-slide">
               <div class="testimonial-card">
-                <div class="testimonial-header">
-                  <img src="https://ui-avatars.com/api/?name=Emma+Williams&background=667eea&color=fff&size=70"
-                       alt="Emma Williams"
-                       class="testimonial-avatar">
-                  <div class="testimonial-info">
-                    <h3>Emma Williams</h3>
-                    <div class="rating">★★★★★</div>
-                  </div>
-                </div>
+                <div class="testi-quote-icon"><i class="bi bi-quote"></i></div>
                 <p class="testimonial-text">
                   "Amazing experience! The team was very responsive and made revisions based on my feedback.
                   My web development project scored an A+. Will definitely use their services again!"
                 </p>
-                <p class="testimonial-date">Dec 15, 2024</p>
+                <div class="testimonial-footer">
+                  <img src="https://ui-avatars.com/api/?name=Emma+Williams&background=667eea&color=fff&size=70"
+                       alt="Emma Williams" class="testimonial-avatar">
+                  <div class="testimonial-info">
+                    <h3>Emma Williams</h3>
+                    <div class="rating">★★★★★</div>
+                  </div>
+                  <p class="testimonial-date">Dec 15, 2024</p>
+                </div>
               </div>
             </div>
+
           </div>
         </div>
       </div>
 
+      <!-- ✅ BACKEND: Average rating - NOT CHANGED -->
       <div class="average-rating" th:if="${averageRating != null and averageRating > 0}">
+        <i class="bi bi-star-fill"></i>
         Average Rating:
         <span class="stars" th:text="${#numbers.formatDecimal(averageRating, 1, 1)}">4.8</span>
         / 5.0
       </div>
+
     </div>
   </div>
 </section>
 
+
 <!-- Contact Section -->
 <section class="contact-section" id="contact">
-  <div class="contact-container">
-    <div class="section-title">
-      <p>GET IN TOUCH</p>
+  <div class="contact-bg-orb contact-orb-1"></div>
+  <div class="contact-bg-orb contact-orb-2"></div>
+
+  <div class="contact-wrapper">
+
+    <div class="contact-header">
+      <span class="contact-label">GET IN TOUCH</span>
       <h2>Contact Us</h2>
+      <p>Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
     </div>
 
     <div class="contact-grid">
-      <div class="contact-info">
-        <h3>Send us a message</h3>
-        <p>
-          Have questions about our services or need help with your assignment?
-          Feel free to reach out to us. We're available 24/7 to assist you with
-          your IT and Quantity Surveying assignments. Our team is committed to
-          providing quick responses and quality support.
-        </p>
-        <ul class="contact-list">
-          <li>assignmentservice.net@gmail.com</li>
-          <li>+94 788 769 570</li>
-          <li>Available Worldwide - Remote Services</li>
-          <li>24/7 Customer Support</li>
-        </ul>
+
+      <!-- Left: Info Panel -->
+      <div class="contact-info-panel">
+
+        <div class="info-intro">
+          <h3>Let's talk about your assignment</h3>
+          <p>Have questions about our services or need help? We're available 24/7 to assist you with IT and Quantity Surveying assignments.</p>
+        </div>
+
+        <div class="info-items">
+          <div class="info-item">
+            <div class="info-icon email-icon">
+              <i class="bi bi-envelope-fill"></i>
+            </div>
+            <div class="info-detail">
+              <span class="info-label">Email Us</span>
+              <span class="info-value">assignmentservice.net@gmail.com</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-icon phone-icon">
+              <i class="bi bi-telephone-fill"></i>
+            </div>
+            <div class="info-detail">
+              <span class="info-label">Call Us</span>
+              <span class="info-value">+94 788 769 570</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-icon globe-icon">
+              <i class="bi bi-globe2"></i>
+            </div>
+            <div class="info-detail">
+              <span class="info-label">Location</span>
+              <span class="info-value">Available Worldwide — Remote Services</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-icon clock-icon">
+              <i class="bi bi-clock-fill"></i>
+            </div>
+            <div class="info-detail">
+              <span class="info-label">Support Hours</span>
+              <span class="info-value">24/7 Customer Support</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Social Links -->
+        <div class="contact-social">
+          <span>Follow us:</span>
+          <a href="#" class="csocial-btn"><i class="bi bi-facebook"></i></a>
+          <a href="#" class="csocial-btn"><i class="bi bi-instagram"></i></a>
+          <a href="https://wa.me/94788769570" class="csocial-btn whatsapp"><i class="bi bi-whatsapp"></i></a>
+        </div>
+
       </div>
 
-      <div class="contact-form">
+      <!-- Right: Form Panel -->
+      <div class="contact-form-panel">
+        <h3>Send a Message</h3>
+
         <form id="contactForm">
-          <label>Your Name</label>
-          <input type="text" name="name" id="name" placeholder="Enter your full name" required>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Your Name</label>
+              <div class="input-wrap">
+                <i class="bi bi-person"></i>
+                <input type="text" name="name" id="name" placeholder="Enter your full name" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Email Address</label>
+              <div class="input-wrap">
+                <i class="bi bi-envelope"></i>
+                <input type="email" name="email" id="email" placeholder="Enter your email" required>
+              </div>
+            </div>
+          </div>
 
-          <label>Email Address</label>
-          <input type="email" name="email" id="email" placeholder="Enter your email" required>
+          <div class="form-group">
+            <label>Phone Number</label>
+            <div class="input-wrap">
+              <i class="bi bi-telephone"></i>
+              <input type="tel" name="phone" id="phone" placeholder="Enter your phone number" required>
+            </div>
+          </div>
 
-          <label>Phone Number</label>
-          <input type="tel" name="phone" id="phone" placeholder="Enter your phone number" required>
+          <div class="form-group">
+            <label>Your Message</label>
+            <div class="input-wrap textarea-wrap">
+              <i class="bi bi-chat-dots"></i>
+              <textarea name="message" id="message" placeholder="Tell us about your assignment or ask any questions..." required></textarea>
+            </div>
+          </div>
 
-          <label>Your Message</label>
-          <textarea name="message" id="message" placeholder="Tell us about your assignment or ask any questions..." required></textarea>
-
-          <button type="submit" class="submit-btn" id="submitBtn">
-            Send Message
+          <button type="submit" class="contact-submit-btn" id="submitBtn">
+            <span>Send Message</span>
+            <i class="bi bi-send-fill"></i>
           </button>
 
           <div id="formMessage" class="form-message"></div>
         </form>
       </div>
+
     </div>
   </div>
 </section>
