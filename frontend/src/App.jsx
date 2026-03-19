@@ -1,69 +1,93 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+// --- Public & Static Pages ---
+import Home from './pages/Home';
+import About from './pages/About';
+import Contact from './pages/Contact';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import ReturnPolicy from './pages/ReturnPolicy';
 import TermsAndConditions from './pages/TermsAndConditions';
+
+// --- Auth Pages ---
+import Register from './pages/Register';
+import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import RegistrationSuccess from './pages/RegistrationSuccess';
+import VerificationSent from './pages/VerificationSent';
+import ResendVerification from './pages/ResendVerification';
+
+// --- User Pages ---
+import Dashboard from './pages/Dashboard';
+import CreateAssignment from './pages/CreateAssignment';
+import MyAssignments from './pages/MyAssignments';
+import ViewAssignment from './pages/ViewAssignment'; 
+import Profile from './pages/Profile';
+import Notifications from './pages/Notifications';
+import EmailPreview from './pages/EmailPreview';
+import SubmitFeedback from './pages/SubmitFeedback';
+import AllFeedbacks from './pages/AllFeedbacks';
+import Checkout from './pages/payment/Checkout';
+import PaymentMethodSelection from './pages/payment/PaymentMethodSelection';
+import PaymentResult from './pages/payment/PaymentResult';
+
+// --- Admin Pages ---
+import AdminDashboard from './pages/admin/AdminDashboard';
 import TotalAssignments from './pages/admin/TotalAssignments';
+import PendingAssignments from './pages/admin/PendingAssignments';
+import AssignmentDetails from './pages/admin/AssignmentDetails';
 import SolutionDelivery from './pages/admin/SolutionDelivery';
 import CustomerProfiles from './pages/admin/CustomerProfiles';
-import ViewReports from './pages/admin/ViewReports';
 import CustomerDetails from './pages/admin/CustomerDetails';
+import ViewReports from './pages/admin/ViewReports';
 import SystemManagement from './pages/admin/SystemManagement';
-import PendingAssignments from './pages/admin/PendingAssignments';
-
-
-// Admin Pages
-import AdminDashboard from './pages/admin/AdminDashboard';
-import AssignmentDetails from './pages/admin/AssignmentDetails'; // Import kala
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Pradhana pituwa (Home page) */}
-        <Route path="/" element={
-          <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-5 font-sans">
-            <h1 className="text-4xl font-bold text-[#2c3e50] mb-8 text-center">
-              Assignment Service - System Pages
-            </h1>
-            <div className="flex flex-col gap-4 text-center w-full max-w-xs">
-              <Link to="/privacy-policy" className="bg-[#3498db] text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition shadow-md font-bold">
-                Privacy Policy
-              </Link>
-              <Link to="/return-policy" className="bg-[#27ae60] text-white px-6 py-3 rounded-lg hover:bg-green-600 transition shadow-md font-bold">
-                Return & Refund Policy
-              </Link>
-              <Link to="/terms-and-conditions" className="bg-[#764ba2] text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition shadow-md font-bold">
-                Terms & Conditions
-              </Link>
-              
-              <div className="mt-6 border-t pt-6">
-                <Link to="/admin/dashboard" className="bg-[#2c3e50] text-white px-6 py-3 rounded-lg hover:bg-black transition shadow-lg font-bold flex items-center justify-center gap-2">
-                  <i className="bi bi-shield-lock"></i> Go to Admin Dashboard
-                </Link>
-              </div>
-            </div>
-          </div>
-        } />
-
-        {/* Static Pages Routes */}
+        
+        {/* --- Public & Static Routes --- */}
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/return-policy" element={<ReturnPolicy />} />
         <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
 
-        {/* --- ADMIN ROUTES --- */}
+        {/* --- Auth Routes --- */}
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/registration-success" element={<RegistrationSuccess />} />
+        <Route path="/verification-sent" element={<VerificationSent />} />
+        <Route path="/resend-verification" element={<ResendVerification />} />
+
+        {/* --- User Routes --- */}
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/assignments/create" element={<CreateAssignment />} />
+        <Route path="/assignments/my-assignments" element={<MyAssignments />} />
+        <Route path="/assignments/:id" element={<ViewAssignment />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/notifications" element={<Notifications />} />
+        <Route path="/email-preview" element={<EmailPreview />} />
+        <Route path="/feedback/submit" element={<SubmitFeedback />} />
+        <Route path="/feedback/all" element={<AllFeedbacks />} />
+        <Route path="/payment/checkout" element={<Checkout />} />
+        <Route path="/payment/method-selection" element={<PaymentMethodSelection />} />
+        <Route path="/payment/result" element={<PaymentResult />} />
+
+        {/* --- Admin Routes --- */}
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        
-        {/* Dynamic Route eka (:id kiyanne assignment eke number eka) */}
-        <Route path="/admin/assignments/:id" element={<AssignmentDetails />} />
         <Route path="/admin/assignments" element={<TotalAssignments />} />
+        <Route path="/admin/assignments/pending" element={<PendingAssignments />} />
+        <Route path="/admin/assignments/:id" element={<AssignmentDetails />} />
         <Route path="/admin/assignments/:id/deliver" element={<SolutionDelivery />} />
         <Route path="/admin/customers" element={<CustomerProfiles />} />
-        <Route path="/admin/reports" element={<ViewReports />} />
         <Route path="/admin/customers/:id" element={<CustomerDetails />} />
+        <Route path="/admin/reports" element={<ViewReports />} />
         <Route path="/admin/system" element={<SystemManagement />} />
-        <Route path="/admin/assignments/pending" element={<PendingAssignments />} />
-        
-
 
       </Routes>
     </BrowserRouter>
