@@ -50,7 +50,6 @@ public class AssignmentService {
         Assignment savedAssignment = assignmentRepository.save(assignment);
         emailService.sendAssignmentNotificationToAdmin(savedAssignment);
 
-        // ADDED: Send in-app notification to admin
         notificationService.notifyAdminAssignmentSubmitted(savedAssignment);
 
         return savedAssignment;
@@ -126,7 +125,6 @@ public class AssignmentService {
 
     /**
      * Update assignment status with notifications
-     * UPDATED: Added User admin parameter for notification tracking
      */
     public Assignment updateAssignmentStatus(Long id, Assignment.AssignmentStatus status, User admin) {
         Optional<Assignment> assignmentOpt = assignmentRepository.findById(id);
@@ -136,7 +134,6 @@ public class AssignmentService {
             assignment.setStatus(status);
             Assignment savedAssignment = assignmentRepository.save(assignment);
 
-            // ADDED: Send notifications based on status change
             if (status == Assignment.AssignmentStatus.APPROVED && oldStatus != status) {
                 notificationService.notifyUserAssignmentApproved(savedAssignment);
             } else if (status == Assignment.AssignmentStatus.REJECTED && oldStatus != status) {
@@ -156,7 +153,6 @@ public class AssignmentService {
      */
     @Deprecated
     public Assignment updateAssignmentStatus(Long id, Assignment.AssignmentStatus status) {
-        // For backward compatibility, call without notification
         Optional<Assignment> assignmentOpt = assignmentRepository.findById(id);
         if (assignmentOpt.isPresent()) {
             Assignment assignment = assignmentOpt.get();
@@ -174,7 +170,6 @@ public class AssignmentService {
             assignment.setStatus(status);
             Assignment savedAssignment = assignmentRepository.save(assignment);
 
-            // ADDED: Send notifications based on status change
             if (status == Assignment.AssignmentStatus.APPROVED && oldStatus != status) {
                 notificationService.notifyUserAssignmentApproved(savedAssignment);
             } else if (status == Assignment.AssignmentStatus.REJECTED && oldStatus != status) {
@@ -399,13 +394,11 @@ public class AssignmentService {
 
     /**
      * Create a revision request for an assignment
-     * UPDATED: Added notification to admin
      */
     public RevisionRequest createRevisionRequest(Long assignmentId, String reason) {
         Assignment assignment = getAssignmentById(assignmentId)
                 .orElseThrow(() -> new RuntimeException("Assignment not found with id: " + assignmentId));
 
-        // Validate revision availability
         if (!assignment.canRequestRevision()) {
             throw new RuntimeException("Cannot request revision for this assignment. " +
                     "Either revisions are exhausted or assignment status is not DELIVERED.");
@@ -414,11 +407,9 @@ public class AssignmentService {
         RevisionRequest revisionRequest = new RevisionRequest(assignment, reason);
         RevisionRequest savedRequest = revisionRequestRepository.save(revisionRequest);
 
-        // ADDED: Update assignment status
         assignment.setStatus(Assignment.AssignmentStatus.REVISION_REQUESTED);
         assignmentRepository.save(assignment);
 
-        // ADDED: Send notification to admin
         notificationService.notifyAdminRevisionRequested(assignment, savedRequest);
 
         return savedRequest;
@@ -434,12 +425,10 @@ public class AssignmentService {
 
     /**
      * Update revision request
-     * UPDATED: Added notification logic for status changes
      */
     public RevisionRequest updateRevisionRequest(RevisionRequest revisionRequest) {
         RevisionRequest.RevisionStatus oldStatus = null;
 
-        // Get old status if exists
         if (revisionRequest.getId() != null) {
             Optional<RevisionRequest> existing = revisionRequestRepository.findById(revisionRequest.getId());
             if (existing.isPresent()) {
@@ -449,7 +438,6 @@ public class AssignmentService {
 
         RevisionRequest savedRequest = revisionRequestRepository.save(revisionRequest);
 
-        // ADDED: Send notifications based on status change
         if (oldStatus != null && oldStatus != savedRequest.getStatus()) {
             Assignment assignment = savedRequest.getAssignment();
 
@@ -518,6 +506,145 @@ public class AssignmentService {
         List<Assignment> revisionRequests = getAssignmentsByStatusForAdmin(
                 Assignment.AssignmentStatus.REVISION_REQUESTED, admin);
         return revisionRequests.size();
+    }
+
+    // ============================================
+    // NEW: APPROVE / REJECT / HANDOVER METHODS
+    // Called by the three new endpoints in AuthController
+    // ============================================
+
+    /**
+     * Approve a PENDING assignment without handover.
+     * - Sets status → APPROVED
+     * - Saves the price on the assignment
+     * - Sends a payment link email to the student
+     * - Sends an in-app notification to the student
+     *
+     * @param id            Assignment ID
+     * @param price         Price agreed by the reviewing admin
+     * @param currency      Currency code ("LKR" or "USD")
+     * @param reviewingAdmin The admin performing the action (for access control)
+     * @return The updated Assignment, or null if not found / access denied
+     */
+    public Assignment approveAssignment(Long id, double price, String currency, User reviewingAdmin) {
+        Optional<Assignment> assignmentOpt = getAssignmentByIdForAdmin(id, reviewingAdmin);
+        if (assignmentOpt.isEmpty()) return null;
+
+        Assignment assignment = assignmentOpt.get();
+
+        // Guard: only act on PENDING assignments
+        if (assignment.getStatus() != Assignment.AssignmentStatus.PENDING) return null;
+
+        assignment.setPrice(price);
+        assignment.setStatus(Assignment.AssignmentStatus.APPROVED);
+        Assignment saved = assignmentRepository.save(assignment);
+
+        // Notify student — email with payment link
+        try {
+            emailService.sendPaymentLinkToUser(saved, currency);
+        } catch (Exception e) {
+            System.err.println("⚠️ Failed to send payment email: " + e.getMessage());
+        }
+
+        // In-app notification
+        try {
+            notificationService.notifyUserAssignmentApproved(saved);
+        } catch (Exception e) {
+            System.err.println("⚠️ Failed to send approved notification: " + e.getMessage());
+        }
+
+        return saved;
+    }
+
+    /**
+     * Reject a PENDING assignment.
+     * - Sets status → REJECTED
+     * - Optionally stores the rejection reason in adminNotes
+     * - Notifies the student
+     *
+     * @param id            Assignment ID
+     * @param reason        Optional rejection reason shown to the student
+     * @param reviewingAdmin The admin performing the action (for access control)
+     * @return The updated Assignment, or null if not found / access denied
+     */
+    public Assignment rejectAssignment(Long id, String reason, User reviewingAdmin) {
+        Optional<Assignment> assignmentOpt = getAssignmentByIdForAdmin(id, reviewingAdmin);
+        if (assignmentOpt.isEmpty()) return null;
+
+        Assignment assignment = assignmentOpt.get();
+
+        // Guard: only act on PENDING assignments
+        if (assignment.getStatus() != Assignment.AssignmentStatus.PENDING) return null;
+
+        if (reason != null && !reason.isBlank()) {
+            assignment.setAdminNotes(reason);
+        }
+
+        assignment.setStatus(Assignment.AssignmentStatus.REJECTED);
+        Assignment saved = assignmentRepository.save(assignment);
+
+        // Notify student
+        try {
+            notificationService.notifyUserAssignmentRejected(saved);
+        } catch (Exception e) {
+            System.err.println("⚠️ Failed to send rejection notification: " + e.getMessage());
+        }
+
+        return saved;
+    }
+
+    /**
+     * Approve a PENDING assignment AND hand it over to a specific admin.
+     * - Sets status → IN_PROGRESS
+     * - Saves the price on the assignment
+     * - Sets assignedAdmin to the chosen admin
+     * - Sends a payment link email to the student
+     * - Notifies both the student (approved) and the assigned admin (new task)
+     *
+     * @param id             Assignment ID
+     * @param price          Price agreed by the reviewing admin
+     * @param currency       Currency code ("LKR" or "USD")
+     * @param assignedAdmin  The admin who will work on the assignment
+     * @param reviewingAdmin The admin performing the handover (for access control)
+     * @return The updated Assignment, or null if not found / access denied
+     */
+    public Assignment handoverAssignment(Long id, double price, String currency,
+                                         User assignedAdmin, User reviewingAdmin) {
+        Optional<Assignment> assignmentOpt = getAssignmentByIdForAdmin(id, reviewingAdmin);
+        if (assignmentOpt.isEmpty()) return null;
+
+        Assignment assignment = assignmentOpt.get();
+
+        // Guard: only act on PENDING assignments
+        if (assignment.getStatus() != Assignment.AssignmentStatus.PENDING) return null;
+
+        assignment.setPrice(price);
+        assignment.setAssignedAdmin(assignedAdmin);
+        assignment.setStatus(Assignment.AssignmentStatus.IN_PROGRESS);
+        Assignment saved = assignmentRepository.save(assignment);
+
+        // Notify student — payment email
+        try {
+            emailService.sendPaymentLinkToUser(saved, currency);
+        } catch (Exception e) {
+            System.err.println("⚠️ Failed to send payment email: " + e.getMessage());
+        }
+
+        // Notify student that assignment was approved
+        try {
+            notificationService.notifyUserAssignmentApproved(saved);
+        } catch (Exception e) {
+            System.err.println("⚠️ Failed to send approved notification: " + e.getMessage());
+        }
+
+        // Notify the assigned admin about their new task
+        try {
+            notificationService.notifyAdminAssignmentAssigned(saved, assignedAdmin);
+        } catch (Exception e) {
+            System.err.println("⚠️ Failed to send admin assignment notification: " + e.getMessage());
+        }
+
+        return saved;
     }
 
     // ============================================
@@ -595,7 +722,6 @@ public class AssignmentService {
         return getPerformanceMetrics(startDate, admin);
     }
 
-    // In AssignmentService.java, add:
     public Payment getPaymentByAssignment(Assignment assignment) {
         return paymentRepository.findByAssignment(assignment).orElse(null);
     }

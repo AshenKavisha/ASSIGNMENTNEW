@@ -542,4 +542,58 @@ public class NotificationService {
         }
     }
 
+    // ============================================================
+// ADD THIS METHOD TO NotificationService.java
+//
+// Place it just BEFORE the closing brace of the class (line 544),
+// right after the existing notifyAdminAssignmentHandover() method.
+// ============================================================
+
+    /**
+     * Notify a specific admin that an assignment has been assigned to them.
+     * Called by AssignmentService.handoverAssignment() after the reviewing
+     * admin hands the work over to another admin.
+     *
+     * Creates both an in-app notification AND sends a handover email via
+     * the existing notifyAdminAssignmentHandover() method.
+     *
+     * @param assignment    The assignment that was just handed over
+     * @param assignedAdmin The admin who will now work on it
+     */
+    public void notifyAdminAssignmentAssigned(Assignment assignment, User assignedAdmin) {
+        try {
+            // 1. In-app notification for the assigned admin
+            String title   = "📋 New Assignment Assigned to You";
+            String message = "Assignment '" + assignment.getTitle() + "' has been assigned to you by " +
+                    (assignment.getAssignedAdmin() != null
+                            ? assignment.getAssignedAdmin().getFullName()
+                            : "a super admin") +
+                    ". Please log in to your dashboard to start working on it.";
+
+            Notification notification = createAssignmentNotification(
+                    assignedAdmin, assignment, title, message,
+                    Notification.NotificationType.ADMIN
+            );
+            notification.setImportant(true);
+            notificationRepository.save(notification);
+
+            // 2. Email notification — reuse the existing handover email method.
+            //    The third parameter is the "super admin" who performed the handover;
+            //    we pass assignedAdmin as a fallback if the reviewing admin isn't tracked
+            //    on the assignment model.
+            User reviewingAdmin = (assignment.getAssignedAdmin() != null)
+                    ? assignment.getAssignedAdmin()   // already set on the entity by the service
+                    : assignedAdmin;                  // fallback: self-assignment edge case
+
+            notifyAdminAssignmentHandover(assignedAdmin, assignment, reviewingAdmin);
+
+            log.info("Assignment-assigned notification sent to admin: {}", assignedAdmin.getEmail());
+
+        } catch (Exception e) {
+            log.error("Failed to send assignment-assigned notification to admin: {}",
+                    assignedAdmin.getEmail(), e);
+            // Don't rethrow — AssignmentService.handoverAssignment already catches and logs this
+        }
+    }
+
 }

@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -1384,6 +1385,71 @@ public class AdminController {
         }
 
         return false;
+    }
+
+    @GetMapping("/api/admin/assignments")
+    @ResponseBody
+    public ResponseEntity<?> getAdminAssignmentsApi(
+            @RequestParam(required = false) String status) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        Optional<User> currentAdminOpt = userService.getUserByEmail(email);
+
+        if (!currentAdminOpt.isPresent()) {
+            return ResponseEntity.status(401).build();
+        }
+
+        User currentAdmin = currentAdminOpt.get();
+        List<Assignment> allAssignments = assignmentService.getAllAssignmentsByAdminSpecialization(currentAdmin);
+
+        // Filter by status if provided
+        if (status != null && !status.isEmpty()) {
+            allAssignments = allAssignments.stream()
+                    .filter(a -> a.getStatus().name().equals(status))
+                    .collect(Collectors.toList());
+        }
+
+        // Build response
+        List<Map<String, Object>> result = allAssignments.stream().map(a -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", a.getId());
+            map.put("title", a.getTitle());
+            map.put("subject", a.getSubject());
+            map.put("type", a.getType());
+            map.put("status", a.getStatus());
+            map.put("revisionsUsed", a.getRevisionRequests() != null ? a.getRevisionRequests().size() : 0);
+            map.put("maxRevisions", 2);
+
+            // User info
+            Map<String, Object> user = new HashMap<>();
+            user.put("fullName", a.getUser() != null ? a.getUser().getFullName() : "");
+            user.put("email", a.getUser() != null ? a.getUser().getEmail() : "");
+            map.put("user", user);
+
+            // Assigned admin info
+            if (a.getAssignedAdmin() != null) {
+                Map<String, Object> admin = new HashMap<>();
+                admin.put("id", a.getAssignedAdmin().getId());
+                admin.put("fullName", a.getAssignedAdmin().getFullName());
+                map.put("assignedAdmin", admin);
+            }
+
+            // Latest revision request
+            if (a.getRevisionRequests() != null && !a.getRevisionRequests().isEmpty()) {
+                var latestRevision = a.getRevisionRequests().get(0);
+                Map<String, Object> rev = new HashMap<>();
+                rev.put("id", latestRevision.getId());
+                rev.put("reason", latestRevision.getReason());
+                rev.put("requestedAt", latestRevision.getRequestedAt().toString());
+                rev.put("status", latestRevision.getStatus());
+                map.put("latestRevision", rev);
+            }
+
+            return map;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(result);
     }
 
 

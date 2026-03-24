@@ -10,20 +10,18 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import java.util.List;
-import java.util.Optional;
+import org.springframework.web.bind.annotation.PathVariable;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 public class AuthController {
@@ -38,7 +36,7 @@ public class AuthController {
     private NotificationService notificationService;
 
     // ==========================================
-    // REGISTRATION ENDPOINTS (Updated with Email Verification)
+    // REGISTRATION ENDPOINTS
     // ==========================================
 
     @GetMapping("/register")
@@ -57,21 +55,14 @@ public class AuthController {
         }
 
         try {
-            // Check if user already exists
             if (userService.getUserByEmail(user.getEmail()).isPresent()) {
                 model.addAttribute("error", "Email already registered");
                 return "register";
             }
 
-            // Register user (will send verification email automatically)
             userService.registerUser(user);
 
-            // Redirect to verification sent page
-            redirectAttributes.addFlashAttribute("email", user.getEmail());
-            redirectAttributes.addFlashAttribute("message",
-                    "Registration successful! Please check your email to verify your account.");
-
-            return "redirect:/verification-sent";
+            return "redirect:http://localhost:5173/verification-sent";
 
         } catch (RuntimeException e) {
             model.addAttribute("error", e.getMessage());
@@ -95,19 +86,13 @@ public class AuthController {
             boolean verified = userService.verifyEmail(token);
 
             if (verified) {
-                redirectAttributes.addFlashAttribute("message",
-                        "Email verified successfully! You can now login.");
-                return "redirect:/login";
+                return "redirect:http://localhost:5173/login?message=Email verified successfully! You can now login.";
             } else {
-                redirectAttributes.addFlashAttribute("error",
-                        "Invalid or expired verification link. Please request a new one.");
-                return "redirect:/resend-verification";
+                return "redirect:http://localhost:5173/resend-verification?error=Invalid or expired verification link. Please request a new one.";
             }
 
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error",
-                    "Verification failed: " + e.getMessage());
-            return "redirect:/login";
+            return "redirect:http://localhost:5173/login?error=Verification failed";
         }
     }
 
@@ -123,20 +108,13 @@ public class AuthController {
             boolean sent = userService.resendVerificationEmail(email);
 
             if (sent) {
-                redirectAttributes.addFlashAttribute("email", email);
-                redirectAttributes.addFlashAttribute("message",
-                        "Verification email sent! Please check your inbox.");
-                return "redirect:/verification-sent";
+                return "redirect:http://localhost:5173/verification-sent?message=Verification email sent! Please check your inbox.";
             } else {
-                redirectAttributes.addFlashAttribute("error",
-                        "Could not send verification email. Email may already be verified or not found.");
-                return "redirect:/resend-verification";
+                return "redirect:http://localhost:5173/resend-verification?error=Could not send verification email.";
             }
 
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error",
-                    "Error: " + e.getMessage());
-            return "redirect:/resend-verification";
+            return "redirect:http://localhost:5173/resend-verification?error=An error occurred. Please try again.";
         }
     }
 
@@ -154,16 +132,9 @@ public class AuthController {
                                         RedirectAttributes redirectAttributes) {
         try {
             userService.createPasswordResetToken(email);
-
-            redirectAttributes.addFlashAttribute("message",
-                    "If an account exists with that email, you will receive password reset instructions.");
-
-            return "redirect:/forgot-password";
-
+            return "redirect:http://localhost:5173/forgot-password?message=If an account exists with that email, you will receive password reset instructions.";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error",
-                    "An error occurred. Please try again.");
-            return "redirect:/forgot-password";
+            return "redirect:http://localhost:5173/forgot-password?error=An error occurred. Please try again.";
         }
     }
 
@@ -175,18 +146,13 @@ public class AuthController {
             boolean isValid = userService.validatePasswordResetToken(token);
 
             if (!isValid) {
-                redirectAttributes.addFlashAttribute("error",
-                        "Invalid or expired password reset link. Please request a new one.");
-                return "redirect:/forgot-password";
+                return "redirect:http://localhost:5173/forgot-password?error=Invalid or expired password reset link. Please request a new one.";
             }
 
-            model.addAttribute("token", token);
-            return "reset-password";
+            return "redirect:http://localhost:5173/reset-password?token=" + token;
 
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error",
-                    "An error occurred. Please try again.");
-            return "redirect:/forgot-password";
+            return "redirect:http://localhost:5173/forgot-password?error=An error occurred. Please try again.";
         }
     }
 
@@ -197,34 +163,23 @@ public class AuthController {
                                        RedirectAttributes redirectAttributes) {
         try {
             if (!password.equals(confirmPassword)) {
-                redirectAttributes.addFlashAttribute("error", "Passwords do not match");
-                redirectAttributes.addFlashAttribute("token", token);
-                return "redirect:/reset-password?token=" + token;
+                return "redirect:http://localhost:5173/reset-password?token=" + token + "&error=Passwords do not match";
             }
 
             if (password.length() < 6) {
-                redirectAttributes.addFlashAttribute("error",
-                        "Password must be at least 6 characters long");
-                redirectAttributes.addFlashAttribute("token", token);
-                return "redirect:/reset-password?token=" + token;
+                return "redirect:http://localhost:5173/reset-password?token=" + token + "&error=Password must be at least 6 characters long";
             }
 
             boolean success = userService.resetPassword(token, password);
 
             if (success) {
-                redirectAttributes.addFlashAttribute("message",
-                        "Password reset successfully! You can now login with your new password.");
-                return "redirect:/login";
+                return "redirect:http://localhost:5173/login?message=Password reset successfully! You can now login with your new password.";
             } else {
-                redirectAttributes.addFlashAttribute("error",
-                        "Invalid or expired reset link. Please request a new one.");
-                return "redirect:/forgot-password";
+                return "redirect:http://localhost:5173/forgot-password?error=Invalid or expired reset link. Please request a new one.";
             }
 
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error",
-                    "An error occurred: " + e.getMessage());
-            return "redirect:/forgot-password";
+            return "redirect:http://localhost:5173/forgot-password?error=An error occurred. Please try again.";
         }
     }
 
@@ -263,7 +218,6 @@ public class AuthController {
                             HttpSession session,
                             Model model) {
         try {
-            // Get the authenticated user from Spring Security context
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
             if (authentication != null && authentication.isAuthenticated()
@@ -274,16 +228,13 @@ public class AuthController {
                 if (userOptional.isPresent()) {
                     User user = userOptional.get();
 
-                    // Check if email is verified
                     if (!user.isEmailVerified()) {
-                        return "redirect:/login?unverified=true";
+                        return "redirect:http://localhost:5173/login?unverified=true";
                     }
 
-                    // Add user to model
                     model.addAttribute("user", user);
                     session.setAttribute("user", user);
 
-                    // ✅ FIXED: Load notifications separately to avoid lazy loading
                     List<Notification> notifications = notificationService.getRecentNotificationsByUserId(user.getId(), 10);
                     long unreadCount = notifications.stream()
                             .filter(n -> "UNREAD".equals(n.getStatus().name()))
@@ -292,7 +243,6 @@ public class AuthController {
                     model.addAttribute("notifications", notifications);
                     model.addAttribute("notificationCount", unreadCount);
 
-                    // ✅ FIXED: Load assignments separately to avoid lazy loading
                     List<Assignment> userAssignments = assignmentService.getByUserId(user.getId());
                     long deliveredCount = userAssignments.stream()
                             .filter(a -> "DELIVERED".equals(a.getStatus().name()))
@@ -300,7 +250,6 @@ public class AuthController {
 
                     model.addAttribute("deliveredCount", deliveredCount);
 
-                    // Add admin statistics if user is admin
                     if ("ADMIN".equals(user.getRole())) {
                         try {
                             long totalAssignments = assignmentService.countAll();
@@ -325,7 +274,7 @@ public class AuthController {
                 }
             }
 
-            return "redirect:/login";
+            return "redirect:http://localhost:5173/login";
 
         } catch (Exception e) {
             System.err.println("Dashboard Error: " + e.getMessage());
@@ -341,6 +290,465 @@ public class AuthController {
         if (auth != null) {
             new SecurityContextLogoutHandler().logout(request, null, auth);
         }
-        return "redirect:/login?logout=true";
+        return "redirect:http://localhost:5173/login?logout=true";
     }
+
+    // ==========================================
+    // REST API ENDPOINTS FOR REACT FRONTEND
+    // ==========================================
+
+    @GetMapping("/api/auth/me")
+    @ResponseBody
+    public ResponseEntity<?> getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()
+                || authentication.getPrincipal().equals("anonymousUser")) {
+            return ResponseEntity.status(401).build();
+        }
+
+        String email = authentication.getName();
+        Optional<User> userOpt = userService.getUserByEmail(email);
+
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            Map<String, Object> response = new HashMap<>();
+            response.put("email", user.getEmail());
+            response.put("role", user.getRole());
+            response.put("name", user.getFullName());
+            return ResponseEntity.ok(response);
+        }
+
+        return ResponseEntity.status(404).build();
+    }
+
+    @GetMapping("/api/admin/stats")
+    @ResponseBody
+    public ResponseEntity<?> getAdminStats() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
+            return ResponseEntity.status(401).build();
+        }
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalAssignments", assignmentService.countAll());
+        stats.put("pendingCount", assignmentService.countByStatus("PENDING"));
+        return ResponseEntity.ok(stats);
+    }
+
+    @GetMapping("/api/admin/assignments")
+    @ResponseBody
+    public ResponseEntity<?> getAdminAssignmentsApi(
+            @RequestParam(required = false) String status) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
+            return ResponseEntity.status(401).build();
+        }
+
+        String email = authentication.getName();
+        Optional<User> currentAdminOpt = userService.getUserByEmail(email);
+
+        if (!currentAdminOpt.isPresent()) {
+            return ResponseEntity.status(401).build();
+        }
+
+        User currentAdmin = currentAdminOpt.get();
+        List<Assignment> allAssignments = assignmentService.getAllAssignmentsByAdminSpecialization(currentAdmin);
+
+        if (status != null && !status.isEmpty()) {
+            allAssignments = allAssignments.stream()
+                    .filter(a -> a.getStatus().name().equals(status))
+                    .collect(Collectors.toList());
+        }
+
+        List<Map<String, Object>> result = allAssignments.stream().map(a -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", a.getId());
+            map.put("title", a.getTitle());
+            map.put("subject", a.getSubject());
+            map.put("type", a.getType());
+            map.put("status", a.getStatus());
+            map.put("price", a.getPrice());
+            map.put("deadline", a.getDeadline() != null ? a.getDeadline().toString() : null);
+            map.put("description", a.getDescription());
+            map.put("createdAt", a.getCreatedAt() != null ? a.getCreatedAt().toString() : null);
+            map.put("revisionsUsed", a.getRevisionRequests() != null ? a.getRevisionRequests().size() : 0);
+            map.put("maxRevisions", 2);
+
+            Map<String, Object> user = new HashMap<>();
+            user.put("fullName", a.getUser() != null ? a.getUser().getFullName() : "");
+            user.put("email", a.getUser() != null ? a.getUser().getEmail() : "");
+            map.put("user", user);
+
+            if (a.getAssignedAdmin() != null) {
+                Map<String, Object> admin = new HashMap<>();
+                admin.put("id", a.getAssignedAdmin().getId());
+                admin.put("fullName", a.getAssignedAdmin().getFullName());
+                map.put("assignedAdmin", admin);
+            }
+
+            if (a.getRevisionRequests() != null && !a.getRevisionRequests().isEmpty()) {
+                var latestRevision = a.getRevisionRequests().get(0);
+                Map<String, Object> rev = new HashMap<>();
+                rev.put("id", latestRevision.getId());
+                rev.put("reason", latestRevision.getReason());
+                rev.put("requestedAt", latestRevision.getRequestedAt().toString());
+                rev.put("status", latestRevision.getStatus());
+                map.put("latestRevision", rev);
+            }
+
+            return map;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/api/admin/assignments/{id}")
+    @ResponseBody
+    public ResponseEntity<?> getAssignmentById(@PathVariable Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
+            return ResponseEntity.status(401).build();
+        }
+
+        String email = authentication.getName();
+        Optional<User> currentAdminOpt = userService.getUserByEmail(email);
+        if (!currentAdminOpt.isPresent()) return ResponseEntity.status(401).build();
+
+        User currentAdmin = currentAdminOpt.get();
+        Optional<Assignment> assignmentOpt = assignmentService.getAssignmentByIdForAdmin(id, currentAdmin);
+
+        if (!assignmentOpt.isPresent()) return ResponseEntity.status(404).build();
+
+        Assignment a = assignmentOpt.get();
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", a.getId());
+        map.put("title", a.getTitle());
+        map.put("subject", a.getSubject());
+        map.put("type", a.getType());
+        map.put("status", a.getStatus());
+        map.put("price", a.getPrice());
+        map.put("deadline", a.getDeadline());
+        map.put("description", a.getDescription());
+        map.put("additionalRequirements", a.getAdditionalRequirements());
+        map.put("adminNotes", a.getAdminNotes());
+        map.put("createdAt", a.getCreatedAt() != null ? a.getCreatedAt().toString() : null);
+
+        Map<String, Object> user = new HashMap<>();
+        user.put("fullName", a.getUser() != null ? a.getUser().getFullName() : "");
+        user.put("email", a.getUser() != null ? a.getUser().getEmail() : "");
+        map.put("user", user);
+
+        if (a.getAssignedAdmin() != null) {
+            Map<String, Object> admin = new HashMap<>();
+            admin.put("fullName", a.getAssignedAdmin().getFullName());
+            map.put("assignedAdmin", admin);
+        }
+
+        if (a.getRevisionRequests() != null) {
+            List<Map<String, Object>> revisions = a.getRevisionRequests().stream().map(r -> {
+                Map<String, Object> rev = new HashMap<>();
+                rev.put("reason", r.getReason());
+                rev.put("requestedAt", r.getRequestedAt() != null ? r.getRequestedAt().toString() : "");
+                rev.put("status", r.getStatus());
+                return rev;
+            }).collect(Collectors.toList());
+            map.put("revisionRequests", revisions);
+        }
+
+        return ResponseEntity.ok(map);
+    }
+
+    // ==========================================
+    // NEW: APPROVE / REJECT / HANDOVER ENDPOINTS
+    // Called by PendingAssignments.jsx
+    // ==========================================
+
+    /**
+     * Approve a pending assignment (no handover).
+     * Sets status → APPROVED, saves the price, sends email payment link to the student.
+     *
+     * POST /api/admin/assignments/{id}/approve
+     * Body: { "price": 1500.00, "currency": "LKR" }
+     */
+    @PostMapping("/api/admin/assignments/{id}/approve")
+    @ResponseBody
+    public ResponseEntity<?> approveAssignment(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> body) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal().equals("anonymousUser"))
+            return ResponseEntity.status(401).build();
+
+        String email = authentication.getName();
+        Optional<User> adminOpt = userService.getUserByEmail(email);
+        if (!adminOpt.isPresent()) return ResponseEntity.status(401).build();
+
+        User currentAdmin = adminOpt.get();
+
+        try {
+            double price    = Double.parseDouble(body.getOrDefault("price", 0).toString());
+            String currency = body.getOrDefault("currency", "LKR").toString();
+
+            Assignment approved = assignmentService.approveAssignment(id, price, currency, currentAdmin);
+            if (approved == null) return ResponseEntity.status(404).body("Assignment not found or access denied.");
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", approved.getId());
+            response.put("status", approved.getStatus());
+            response.put("price", approved.getPrice());
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Failed to approve assignment: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Reject a pending assignment.
+     * Sets status → REJECTED, notifies the student.
+     *
+     * POST /api/admin/assignments/{id}/reject
+     * Body: (optional) { "reason": "Does not meet requirements" }
+     */
+    @PostMapping("/api/admin/assignments/{id}/reject")
+    @ResponseBody
+    public ResponseEntity<?> rejectAssignment(
+            @PathVariable Long id,
+            @RequestBody(required = false) Map<String, Object> body) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal().equals("anonymousUser"))
+            return ResponseEntity.status(401).build();
+
+        String email = authentication.getName();
+        Optional<User> adminOpt = userService.getUserByEmail(email);
+        if (!adminOpt.isPresent()) return ResponseEntity.status(401).build();
+
+        User currentAdmin = adminOpt.get();
+        String reason = (body != null) ? body.getOrDefault("reason", "").toString() : "";
+
+        try {
+            Assignment rejected = assignmentService.rejectAssignment(id, reason, currentAdmin);
+            if (rejected == null) return ResponseEntity.status(404).body("Assignment not found or access denied.");
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", rejected.getId());
+            response.put("status", rejected.getStatus());
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Failed to reject assignment: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Approve a pending assignment AND hand it over to a specific admin.
+     * Sets status → IN_PROGRESS, saves price, assigns the chosen admin, notifies both parties.
+     *
+     * POST /api/admin/assignments/{id}/handover
+     * Body: { "price": 1500.00, "currency": "LKR", "adminId": 3 }
+     */
+    @PostMapping("/api/admin/assignments/{id}/handover")
+    @ResponseBody
+    public ResponseEntity<?> handoverAssignment(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> body) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal().equals("anonymousUser"))
+            return ResponseEntity.status(401).build();
+
+        String email = authentication.getName();
+        Optional<User> adminOpt = userService.getUserByEmail(email);
+        if (!adminOpt.isPresent()) return ResponseEntity.status(401).build();
+
+        User currentAdmin = adminOpt.get();
+
+        try {
+            double price    = Double.parseDouble(body.getOrDefault("price", 0).toString());
+            String currency = body.getOrDefault("currency", "LKR").toString();
+            Long   assignedAdminId = Long.parseLong(body.getOrDefault("adminId", 0).toString());
+
+            Optional<User> assignedAdminOpt = userService.getUserById(assignedAdminId);
+            if (!assignedAdminOpt.isPresent())
+                return ResponseEntity.status(404).body("Target admin not found.");
+
+            User assignedAdmin = assignedAdminOpt.get();
+
+            Assignment handed = assignmentService.handoverAssignment(id, price, currency, assignedAdmin, currentAdmin);
+            if (handed == null) return ResponseEntity.status(404).body("Assignment not found or access denied.");
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", handed.getId());
+            response.put("status", handed.getStatus());
+            response.put("price", handed.getPrice());
+            response.put("assignedAdmin", assignedAdmin.getFullName());
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Failed to handover assignment: " + e.getMessage());
+        }
+    }
+
+    // ==========================================
+    // CUSTOMER & ADMIN LIST ENDPOINTS
+    // ==========================================
+
+    @GetMapping("/api/admin/customers")
+    @ResponseBody
+    public ResponseEntity<?> getCustomers() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal().equals("anonymousUser"))
+            return ResponseEntity.status(401).build();
+
+        String email = authentication.getName();
+        Optional<User> currentAdminOpt = userService.getUserByEmail(email);
+        if (!currentAdminOpt.isPresent()) return ResponseEntity.status(401).build();
+
+        List<User> allCustomers = userService.getAllCustomers();
+
+        List<Map<String, Object>> customerList = allCustomers.stream().map(c -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", c.getId());
+            map.put("fullName", c.getFullName());
+            map.put("email", c.getEmail());
+            map.put("createdAt", c.getCreatedAt() != null ? c.getCreatedAt().toString() : null);
+
+            List<Map<String, Object>> assignments = assignmentService.getByUserId(c.getId())
+                    .stream().map(a -> {
+                        Map<String, Object> am = new HashMap<>();
+                        am.put("id", a.getId());
+                        am.put("type", a.getType());
+                        am.put("status", a.getStatus());
+                        am.put("price", a.getPrice());
+                        return am;
+                    }).collect(Collectors.toList());
+            map.put("assignments", assignments);
+            return map;
+        }).collect(Collectors.toList());
+
+        long itCount = allCustomers.stream()
+                .filter(c -> assignmentService.getByUserId(c.getId()).stream()
+                        .anyMatch(a -> "IT".equals(String.valueOf(a.getType()))))
+                .count();
+        long qsCount = allCustomers.stream()
+                .filter(c -> assignmentService.getByUserId(c.getId()).stream()
+                        .anyMatch(a -> "QUANTITY_SURVEYING".equals(String.valueOf(a.getType()))))
+                .count();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("customers", customerList);
+        response.put("totalCustomers", allCustomers.size());
+        response.put("itCustomerCount", itCount);
+        response.put("qsCustomerCount", qsCount);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/api/admin/customers/{id}")
+    @ResponseBody
+    public ResponseEntity<?> getCustomerById(@PathVariable Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal().equals("anonymousUser"))
+            return ResponseEntity.status(401).build();
+
+        Optional<User> customerOpt = userService.getUserById(id);
+        if (!customerOpt.isPresent()) return ResponseEntity.status(404).build();
+
+        User c = customerOpt.get();
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", c.getId());
+        map.put("fullName", c.getFullName());
+        map.put("email", c.getEmail());
+        map.put("createdAt", c.getCreatedAt() != null ? c.getCreatedAt().toString() : null);
+        map.put("lastLogin", c.getLastLogin() != null ? c.getLastLogin().toString() : null);
+
+        List<Map<String, Object>> assignments = assignmentService.getByUserId(c.getId())
+                .stream().map(a -> {
+                    Map<String, Object> am = new HashMap<>();
+                    am.put("id", a.getId());
+                    am.put("title", a.getTitle());
+                    am.put("type", a.getType());
+                    am.put("status", a.getStatus());
+                    am.put("price", a.getPrice());
+                    am.put("createdAt", a.getCreatedAt() != null ? a.getCreatedAt().toString() : null);
+                    return am;
+                }).collect(Collectors.toList());
+        map.put("assignments", assignments);
+
+        return ResponseEntity.ok(map);
+    }
+
+    @GetMapping("/api/admin/admins")
+    @ResponseBody
+    public ResponseEntity<?> getAllAdmins() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal().equals("anonymousUser"))
+            return ResponseEntity.status(401).build();
+
+        List<User> allAdmins = userService.getAllAdmins();
+
+        List<Map<String, Object>> result = allAdmins.stream().map(a -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", a.getId());
+            map.put("fullName", a.getFullName());
+            map.put("email", a.getEmail());
+            map.put("specialization", a.getSpecialization());
+            map.put("createdAt", a.getCreatedAt() != null ? a.getCreatedAt().toString() : null);
+
+            List<Assignment> assignments = assignmentService.getAssignmentsByAssignedAdmin(a);
+            long itCount = assignments.stream().filter(x -> "IT".equals(String.valueOf(x.getType()))).count();
+            long qsCount = assignments.stream().filter(x -> "QUANTITY_SURVEYING".equals(String.valueOf(x.getType()))).count();
+            map.put("itCount", itCount);
+            map.put("qsCount", qsCount);
+            return map;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/api/user/profile")
+    @ResponseBody
+    public ResponseEntity<?> getUserProfile() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal().equals("anonymousUser"))
+            return ResponseEntity.status(401).build();
+
+        String email = authentication.getName();
+        Optional<User> userOpt = userService.getUserByEmail(email);
+        if (!userOpt.isPresent()) return ResponseEntity.status(404).build();
+
+        User user = userOpt.get();
+        Map<String, Object> map = new HashMap<>();
+        map.put("fullName", user.getFullName());
+        map.put("email", user.getEmail());
+        map.put("phoneNumber", user.getPhoneNumber());
+        map.put("birthDate", user.getBirthDate());
+        map.put("bio", user.getBio());
+        map.put("workExperience", user.getWorkExperience());
+        map.put("education", user.getEducation());
+        map.put("skills", user.getSkills());
+        map.put("location", user.getLocation());
+        map.put("website", user.getWebsite());
+        map.put("profilePicture", user.getProfilePicture());
+
+        // Real assignments
+        List<Map<String, Object>> assignments = assignmentService.getByUserId(user.getId())
+                .stream().map(a -> {
+                    Map<String, Object> am = new HashMap<>();
+                    am.put("id", a.getId());
+                    am.put("title", a.getTitle());
+                    am.put("description", a.getDescription());
+                    am.put("status", a.getStatus());
+                    am.put("createdAt", a.getCreatedAt() != null ? a.getCreatedAt().toLocalDate().toString() : "");
+                    return am;
+                }).collect(Collectors.toList());
+        map.put("assignments", assignments);
+        map.put("feedbacks", List.of()); // Add feedback service call if available
+
+        return ResponseEntity.ok(map);
+    }
+
 }

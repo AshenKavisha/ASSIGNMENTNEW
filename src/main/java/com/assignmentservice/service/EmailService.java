@@ -1329,5 +1329,143 @@ public class EmailService {
                 "</div></body></html>";
     }
 
+    // ============================================================
+// ADD THIS METHOD TO EmailService.java
+//
+// Place it just BEFORE the closing brace of the class (line 1332),
+// right after the existing sendPaymentConfirmationEmail() method.
+// ============================================================
+
+    /**
+     * Send payment link email directly from an Assignment (no Payment object needed).
+     * Called by AssignmentService.approveAssignment() and AssignmentService.handoverAssignment()
+     * when no Payment record has been created yet — the admin just approved and set a price.
+     *
+     * @param assignment The approved assignment (must have price set)
+     * @param currency   Currency code, e.g. "LKR" or "USD"
+     */
+    public void sendPaymentLinkToUser(Assignment assignment, String currency) {
+        if (!emailEnabled) {
+            System.out.println("Email disabled. Payment link would be sent to: "
+                    + assignment.getUser().getEmail());
+            return;
+        }
+
+        try {
+            MimeMessage message = emailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(assignment.getUser().getEmail());
+            helper.setSubject("✅ Assignment Approved - Complete Payment to Start Processing");
+            helper.setText(buildPaymentLinkToUserContent(assignment, currency), true);
+
+            emailSender.send(message);
+            System.out.println("Payment link email sent to: " + assignment.getUser().getEmail());
+
+        } catch (MessagingException e) {
+            System.err.println("Failed to send payment link email: " + e.getMessage());
+            // Don't rethrow — AssignmentService already catches and logs this
+        }
+    }
+
+    /**
+     * HTML template for sendPaymentLinkToUser().
+     * Directs the student to their assignments dashboard to complete payment.
+     */
+    private String buildPaymentLinkToUserContent(Assignment assignment, String currency) {
+        String currencySymbol = "LKR".equalsIgnoreCase(currency) ? "Rs." : "$";
+        String amount = assignment.getPrice() != null
+                ? String.format("%.2f", assignment.getPrice())
+                : "—";
+        String dashboardLink = appUrl + "/assignments/my-assignments";
+
+        return "<!DOCTYPE html>" +
+                "<html lang='en'>" +
+                "<head><meta charset='UTF-8'><title>Assignment Approved</title></head>" +
+                "<body style='margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f4f4f4;'>" +
+                "<table width='100%' cellpadding='0' cellspacing='0' style='background-color:#f4f4f4;padding:20px;'>" +
+                "<tr><td align='center'>" +
+                "<table width='600' cellpadding='0' cellspacing='0' " +
+                "style='background-color:#ffffff;border-radius:10px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,0.1);'>" +
+
+                "<!-- Header -->" +
+                "<tr><td style='background:linear-gradient(135deg,#28a745 0%,#20c997 100%);" +
+                "padding:40px 30px;text-align:center;'>" +
+                "<h1 style='color:#ffffff;margin:0;font-size:28px;'>🎉 Assignment Approved!</h1>" +
+                "<p style='color:#ffffff;margin:10px 0 0;font-size:16px;'>Complete your payment to get started</p>" +
+                "</td></tr>" +
+
+                "<!-- Body -->" +
+                "<tr><td style='padding:40px 30px;'>" +
+                "<p style='color:#333;font-size:16px;'>Dear <strong>" +
+                assignment.getUser().getFullName() + "</strong>,</p>" +
+                "<p style='color:#666;line-height:1.6;font-size:16px;'>" +
+                "Your assignment <strong>" + assignment.getTitle() + "</strong> has been reviewed and approved." +
+                "</p>" +
+
+                "<!-- Price Box -->" +
+                "<div style='background:#f8f9fa;border:2px solid #28a745;border-radius:10px;" +
+                "padding:25px;text-align:center;margin:25px 0;'>" +
+                "<p style='color:#666;margin:0 0 8px;font-size:14px;text-transform:uppercase;" +
+                "letter-spacing:1px;font-weight:bold;'>Amount Due</p>" +
+                "<div style='font-size:40px;font-weight:bold;color:#28a745;'>" +
+                currencySymbol + " " + amount + "</div>" +
+                "<p style='color:#999;margin:8px 0 0;font-size:12px;'>Currency: " + currency + "</p>" +
+                "</div>" +
+
+                "<!-- CTA Button -->" +
+                "<div style='text-align:center;margin:30px 0;'>" +
+                "<a href='" + dashboardLink + "' " +
+                "style='background:linear-gradient(135deg,#28a745 0%,#20c997 100%);" +
+                "color:#ffffff;padding:15px 40px;text-decoration:none;border-radius:8px;" +
+                "font-weight:bold;font-size:16px;display:inline-block;" +
+                "box-shadow:0 4px 6px rgba(0,0,0,0.1);'>" +
+                "💳 Complete Payment Now" +
+                "</a>" +
+                "</div>" +
+
+                "<!-- Assignment Details -->" +
+                "<div style='background:#f8f9fa;padding:20px;border-left:4px solid #28a745;" +
+                "border-radius:5px;margin:20px 0;'>" +
+                "<h3 style='color:#333;margin-top:0;font-size:16px;'>📋 Assignment Details</h3>" +
+                "<p style='margin:6px 0;color:#555;'><strong>Title:</strong> " + assignment.getTitle() + "</p>" +
+                "<p style='margin:6px 0;color:#555;'><strong>Subject:</strong> " +
+                (assignment.getSubject() != null ? assignment.getSubject() : "—") + "</p>" +
+                "<p style='margin:6px 0;color:#555;'><strong>Type:</strong> " + assignment.getType() + "</p>" +
+                (assignment.getDeadline() != null
+                        ? "<p style='margin:6px 0;color:#555;'><strong>Deadline:</strong> " +
+                        assignment.getDeadline() + "</p>"
+                        : "") +
+                "</div>" +
+
+                "<!-- Info Box -->" +
+                "<div style='background:#fff3cd;border-left:4px solid #ffc107;" +
+                "padding:15px;margin:20px 0;border-radius:5px;'>" +
+                "<p style='color:#856404;margin:0;font-size:14px;'>" +
+                "<strong>ℹ️ What happens next?</strong><br>" +
+                "Once payment is confirmed, our team will start working on your assignment immediately." +
+                "</p>" +
+                "</div>" +
+
+                "<p style='color:#999;font-size:13px;line-height:1.6;'>" +
+                "If you have any questions, please contact our support team." +
+                "</p>" +
+                "</td></tr>" +
+
+                "<!-- Footer -->" +
+                "<tr><td style='background-color:#f8f9fa;padding:25px;text-align:center;" +
+                "border-top:1px solid #e9ecef;'>" +
+                "<p style='color:#666;margin:0;font-size:14px;'><strong>Best regards,</strong><br>" +
+                "Assignment Service Team</p>" +
+                "<p style='color:#999;font-size:12px;margin:10px 0 0;'>" +
+                "This is an automated message. Please do not reply to this email." +
+                "</p>" +
+                "</td></tr>" +
+
+                "</table></td></tr></table>" +
+                "</body></html>";
+    }
+
 
 }

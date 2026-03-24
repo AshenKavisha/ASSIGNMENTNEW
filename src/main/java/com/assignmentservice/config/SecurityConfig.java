@@ -90,6 +90,10 @@ public class SecurityConfig {
                                 "/access-denied"
                         ).permitAll()
 
+                        // ✅ Auth API - accessible by ALL authenticated users (user + admin)
+                        .requestMatchers("/api/auth/**").authenticated()
+                        .requestMatchers("/api/user/**").authenticated()
+
                         // Admin endpoints - require ADMIN role
                         .requestMatchers(
                                 "/admin/**",
@@ -186,24 +190,37 @@ public class SecurityConfig {
                 .exceptionHandling(exception -> exception
                         .accessDeniedPage("/access-denied")
                         .authenticationEntryPoint((request, response, authException) -> {
-                            // Redirect to login with redirect parameter
-                            String redirectUrl = request.getRequestURI();
-                            if (request.getQueryString() != null) {
-                                redirectUrl += "?" + request.getQueryString();
+                            String requestURI = request.getRequestURI();
+                            // API requests return 401 JSON, not redirect
+                            if (requestURI.startsWith("/api/")) {
+                                response.setStatus(401);
+                                response.setContentType("application/json");
+                                response.getWriter().write("{\"error\":\"Unauthorized\"}");
+                            } else {
+                                String redirectUrl = requestURI;
+                                if (request.getQueryString() != null) {
+                                    redirectUrl += "?" + request.getQueryString();
+                                }
+                                response.sendRedirect("/login?redirect=" + java.net.URLEncoder.encode(redirectUrl, "UTF-8"));
                             }
-                            response.sendRedirect("/login?redirect=" + java.net.URLEncoder.encode(redirectUrl, "UTF-8"));
                         })
                 )
 
                 // CORS configuration
                 .cors(cors -> cors.configure(http))
 
-                // CSRF configuration (enabled for forms, disabled for APIs if needed)
+                // CSRF configuration
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers(
                                 "/api/**",
                                 "/h2-console/**",
-                                "/payment/notify"
+                                "/payment/notify",
+                                "/login",
+                                "/logout",
+                                "/register",
+                                "/forgot-password",
+                                "/reset-password",
+                                "/resend-verification"
                         )
                 )
 
@@ -225,20 +242,13 @@ public class SecurityConfig {
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring().requestMatchers(
-                // Ignore static resources
                 "/resources/**",
                 "/static/**",
                 "/uploads/**",
-
-                // H2 Console (for development only - remove in production)
                 "/h2-console/**",
-
-                // Swagger UI (if using)
                 "/swagger-ui/**",
                 "/v3/api-docs/**",
                 "/swagger-resources/**",
-
-                // Health check endpoints
                 "/actuator/health",
                 "/actuator/info"
         );
@@ -249,7 +259,7 @@ public class SecurityConfig {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
-        authProvider.setHideUserNotFoundExceptions(false); // Show proper error messages
+        authProvider.setHideUserNotFoundExceptions(false);
         return authProvider;
     }
 
@@ -268,7 +278,7 @@ public class SecurityConfig {
         TokenBasedRememberMeServices rememberMeServices =
                 new TokenBasedRememberMeServices("uniqueAndSecretKey", userDetailsService);
         rememberMeServices.setAlwaysRemember(false);
-        rememberMeServices.setTokenValiditySeconds(86400); // 24 hours
+        rememberMeServices.setTokenValiditySeconds(86400);
         rememberMeServices.setParameter("remember-me");
         return rememberMeServices;
     }
@@ -276,19 +286,16 @@ public class SecurityConfig {
     @Bean
     public AuthenticationSuccessHandler authenticationSuccessHandler() {
         return (request, response, authentication) -> {
-            // Update last login time
             if (authentication != null && authentication.isAuthenticated()) {
-                // You can add custom logic here, e.g., update user's last login
+                // Custom logic can go here
             }
 
-            // Check if there's a redirect URL in session
             String redirectUrl = (String) request.getSession().getAttribute("redirectUrl");
             if (redirectUrl != null && !redirectUrl.isEmpty()) {
                 request.getSession().removeAttribute("redirectUrl");
                 response.sendRedirect(redirectUrl);
             } else {
-                // Default redirect
-                response.sendRedirect("/dashboard");
+                response.sendRedirect("http://localhost:5173/dashboard");
             }
         };
     }

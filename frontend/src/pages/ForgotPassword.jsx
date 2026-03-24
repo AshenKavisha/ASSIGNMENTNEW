@@ -7,22 +7,30 @@ const ForgotPassword = () => {
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     setMessage(null);
 
-    // Mock API Call (Backend එකට connect කරනකම්)
-    setTimeout(() => {
+    try {
+      const formData = new URLSearchParams();
+      formData.append('email', email);
+
+      const response = await fetch('/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData,
+        credentials: 'include',
+      });
+
+      setMessage("If an account exists with this email, we've sent instructions to reset your password.");
+      setEmail('');
+    } catch (err) {
+      setError('Something went wrong. Please try again.');
+    } finally {
       setIsLoading(false);
-      if (email) {
-        setMessage("If an account exists with this email, we've sent instructions to reset your password.");
-        setEmail('');
-      } else {
-        setError('Please enter a valid email address.');
-      }
-    }, 1500);
+    }
   };
 
   return (
