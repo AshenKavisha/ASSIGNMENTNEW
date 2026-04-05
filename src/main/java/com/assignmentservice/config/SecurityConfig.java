@@ -17,6 +17,11 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -27,6 +32,19 @@ public class SecurityConfig {
 
     public SecurityConfig(UserDetailsService userDetailsService) {
         this.userDetailsService = userDetailsService;
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
     @Bean
@@ -90,7 +108,7 @@ public class SecurityConfig {
                                 "/access-denied"
                         ).permitAll()
 
-                        // ✅ Auth API - accessible by ALL authenticated users (user + admin)
+                        // Auth API - accessible by ALL authenticated users (user + admin)
                         .requestMatchers("/api/auth/**").authenticated()
                         .requestMatchers("/api/user/**").authenticated()
 
@@ -206,8 +224,8 @@ public class SecurityConfig {
                         })
                 )
 
-                // CORS configuration
-                .cors(cors -> cors.configure(http))
+                // CORS configuration — uses the corsConfigurationSource bean above
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 // CSRF configuration
                 .csrf(csrf -> csrf
