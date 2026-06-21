@@ -1,25 +1,20 @@
 package com.assignmentservice.controller;
 
 import com.assignmentservice.model.Assignment;
-import com.assignmentservice.model.Notification;
 import com.assignmentservice.model.User;
 import com.assignmentservice.service.AssignmentService;
 import com.assignmentservice.service.NotificationService;
 import com.assignmentservice.service.UserService;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.bind.annotation.PathVariable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -35,263 +30,132 @@ public class AuthController {
     @Autowired
     private NotificationService notificationService;
 
-    // ==========================================
-    // REGISTRATION ENDPOINTS
-    // ==========================================
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
-    @GetMapping("/register")
-    public String showRegisterForm(Model model) {
-        model.addAttribute("user", new User());
-        return "register";
-    }
+    // ==========================================
+    // REGISTRATION (POST only — React handles the form)
+    // ==========================================
 
     @PostMapping("/register")
     public String registerUser(@Valid @ModelAttribute User user,
-                               BindingResult result,
-                               Model model,
-                               RedirectAttributes redirectAttributes) {
+                                BindingResult result,
+                                RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
-            return "register";
+            return "redirect:" + frontendUrl + "/register?error=Please check your input.";
         }
 
         try {
             if (userService.getUserByEmail(user.getEmail()).isPresent()) {
-                model.addAttribute("error", "Email already registered");
-                return "register";
+                return "redirect:" + frontendUrl + "/register?error=Email already registered";
             }
 
             userService.registerUser(user);
-
-            return "redirect:http://localhost:5173/verification-sent";
+            return "redirect:" + frontendUrl + "/verification-sent";
 
         } catch (RuntimeException e) {
-            model.addAttribute("error", e.getMessage());
-            return "register";
+            return "redirect:" + frontendUrl + "/register?error=" + e.getMessage();
         }
     }
 
     // ==========================================
-    // EMAIL VERIFICATION ENDPOINTS
+    // EMAIL VERIFICATION (links clicked from email — must redirect to React)
     // ==========================================
 
-    @GetMapping("/verification-sent")
-    public String showVerificationSent(Model model) {
-        return "verification-sent";
-    }
-
     @GetMapping("/verify")
-    public String verifyEmail(@RequestParam("token") String token,
-                              RedirectAttributes redirectAttributes) {
+    public String verifyEmail(@RequestParam("token") String token) {
         try {
             boolean verified = userService.verifyEmail(token);
 
             if (verified) {
-                return "redirect:http://localhost:5173/login?message=Email verified successfully! You can now login.";
+                return "redirect:" + frontendUrl + "/login?message=Email verified successfully! You can now login.";
             } else {
-                return "redirect:http://localhost:5173/resend-verification?error=Invalid or expired verification link. Please request a new one.";
+                return "redirect:" + frontendUrl + "/resend-verification?error=Invalid or expired verification link. Please request a new one.";
             }
 
         } catch (Exception e) {
-            return "redirect:http://localhost:5173/login?error=Verification failed";
+            return "redirect:" + frontendUrl + "/login?error=Verification failed";
         }
     }
 
-    @GetMapping("/resend-verification")
-    public String showResendVerification() {
-        return "resend-verification";
-    }
-
     @PostMapping("/resend-verification")
-    public String resendVerification(@RequestParam("email") String email,
-                                     RedirectAttributes redirectAttributes) {
+    public String resendVerification(@RequestParam("email") String email) {
         try {
             boolean sent = userService.resendVerificationEmail(email);
 
             if (sent) {
-                return "redirect:http://localhost:5173/verification-sent?message=Verification email sent! Please check your inbox.";
+                return "redirect:" + frontendUrl + "/verification-sent?message=Verification email sent! Please check your inbox.";
             } else {
-                return "redirect:http://localhost:5173/resend-verification?error=Could not send verification email.";
+                return "redirect:" + frontendUrl + "/resend-verification?error=Could not send verification email.";
             }
 
         } catch (Exception e) {
-            return "redirect:http://localhost:5173/resend-verification?error=An error occurred. Please try again.";
+            return "redirect:" + frontendUrl + "/resend-verification?error=An error occurred. Please try again.";
         }
     }
 
     // ==========================================
-    // PASSWORD RESET ENDPOINTS
+    // PASSWORD RESET (links clicked from email — must redirect to React)
     // ==========================================
 
-    @GetMapping("/forgot-password")
-    public String showForgotPasswordForm() {
-        return "forgot-password";
-    }
-
     @PostMapping("/forgot-password")
-    public String processForgotPassword(@RequestParam("email") String email,
-                                        RedirectAttributes redirectAttributes) {
+    public String processForgotPassword(@RequestParam("email") String email) {
         try {
             userService.createPasswordResetToken(email);
-            return "redirect:http://localhost:5173/forgot-password?message=If an account exists with that email, you will receive password reset instructions.";
+            return "redirect:" + frontendUrl + "/forgot-password?message=If an account exists with that email, you will receive password reset instructions.";
         } catch (Exception e) {
-            return "redirect:http://localhost:5173/forgot-password?error=An error occurred. Please try again.";
+            return "redirect:" + frontendUrl + "/forgot-password?error=An error occurred. Please try again.";
         }
     }
 
     @GetMapping("/reset-password")
-    public String showResetPasswordForm(@RequestParam("token") String token,
-                                        Model model,
-                                        RedirectAttributes redirectAttributes) {
+    public String showResetPasswordForm(@RequestParam("token") String token) {
         try {
             boolean isValid = userService.validatePasswordResetToken(token);
 
             if (!isValid) {
-                return "redirect:http://localhost:5173/forgot-password?error=Invalid or expired password reset link. Please request a new one.";
+                return "redirect:" + frontendUrl + "/forgot-password?error=Invalid or expired password reset link. Please request a new one.";
             }
 
-            return "redirect:http://localhost:5173/reset-password?token=" + token;
+            return "redirect:" + frontendUrl + "/reset-password?token=" + token;
 
         } catch (Exception e) {
-            return "redirect:http://localhost:5173/forgot-password?error=An error occurred. Please try again.";
+            return "redirect:" + frontendUrl + "/forgot-password?error=An error occurred. Please try again.";
         }
     }
 
     @PostMapping("/reset-password")
     public String processResetPassword(@RequestParam("token") String token,
-                                       @RequestParam("password") String password,
-                                       @RequestParam("confirmPassword") String confirmPassword,
-                                       RedirectAttributes redirectAttributes) {
+                                        @RequestParam("password") String password,
+                                        @RequestParam("confirmPassword") String confirmPassword) {
         try {
             if (!password.equals(confirmPassword)) {
-                return "redirect:http://localhost:5173/reset-password?token=" + token + "&error=Passwords do not match";
+                return "redirect:" + frontendUrl + "/reset-password?token=" + token + "&error=Passwords do not match";
             }
 
             if (password.length() < 6) {
-                return "redirect:http://localhost:5173/reset-password?token=" + token + "&error=Password must be at least 6 characters long";
+                return "redirect:" + frontendUrl + "/reset-password?token=" + token + "&error=Password must be at least 6 characters long";
             }
 
             boolean success = userService.resetPassword(token, password);
 
             if (success) {
-                return "redirect:http://localhost:5173/login?message=Password reset successfully! You can now login with your new password.";
+                return "redirect:" + frontendUrl + "/login?message=Password reset successfully! You can now login with your new password.";
             } else {
-                return "redirect:http://localhost:5173/forgot-password?error=Invalid or expired reset link. Please request a new one.";
+                return "redirect:" + frontendUrl + "/forgot-password?error=Invalid or expired reset link. Please request a new one.";
             }
 
         } catch (Exception e) {
-            return "redirect:http://localhost:5173/forgot-password?error=An error occurred. Please try again.";
+            return "redirect:" + frontendUrl + "/forgot-password?error=An error occurred. Please try again.";
         }
     }
 
     // ==========================================
-    // LOGIN & LOGOUT ENDPOINTS
+    // NOTE: No GET /login, /dashboard, /logout, or /register here.
+    // - POST /login and POST /logout are handled by Spring Security's filters directly.
+    // - GET /login, /dashboard, /register are React Router routes, served as static
+    //   files by your frontend host (Vercel/Cloudflare/Vite dev server) — NOT by Spring Boot.
     // ==========================================
-
-    @GetMapping("/login")
-    public String showLoginForm(@RequestParam(value = "error", required = false) String error,
-                                @RequestParam(value = "logout", required = false) String logout,
-                                @RequestParam(value = "registered", required = false) String registered,
-                                @RequestParam(value = "redirect", required = false) String redirect,
-                                @RequestParam(value = "unverified", required = false) String unverified,
-                                Model model) {
-        if (error != null) {
-            model.addAttribute("error", "Invalid email or password!");
-        }
-        if (logout != null) {
-            model.addAttribute("message", "You have been logged out successfully.");
-        }
-        if (registered != null) {
-            model.addAttribute("message", "Registration successful! Please login.");
-        }
-        if (unverified != null) {
-            model.addAttribute("error", "Please verify your email before logging in.");
-        }
-        if (redirect != null) {
-            model.addAttribute("redirectUrl", redirect);
-        }
-        return "login";
-    }
-
-    @GetMapping("/dashboard")
-    public String dashboard(@RequestParam(value = "success", required = false) String success,
-                            @RequestParam(value = "error", required = false) String error,
-                            HttpSession session,
-                            Model model) {
-        try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-            if (authentication != null && authentication.isAuthenticated()
-                    && !authentication.getPrincipal().equals("anonymousUser")) {
-                String email = authentication.getName();
-
-                Optional<User> userOptional = userService.getUserByEmail(email);
-                if (userOptional.isPresent()) {
-                    User user = userOptional.get();
-
-                    if (!user.isEmailVerified()) {
-                        return "redirect:http://localhost:5173/login?unverified=true";
-                    }
-
-                    model.addAttribute("user", user);
-                    session.setAttribute("user", user);
-
-                    List<Notification> notifications = notificationService.getRecentNotificationsByUserId(user.getId(), 10);
-                    long unreadCount = notifications.stream()
-                            .filter(n -> "UNREAD".equals(n.getStatus().name()))
-                            .count();
-
-                    model.addAttribute("notifications", notifications);
-                    model.addAttribute("notificationCount", unreadCount);
-
-                    List<Assignment> userAssignments = assignmentService.getByUserId(user.getId());
-                    long deliveredCount = userAssignments.stream()
-                            .filter(a -> "DELIVERED".equals(a.getStatus().name()))
-                            .count();
-
-                    model.addAttribute("deliveredCount", deliveredCount);
-
-                    if ("ADMIN".equals(user.getRole())) {
-                        try {
-                            long totalAssignments = assignmentService.countAll();
-                            long pendingCount = assignmentService.countByStatus("PENDING");
-
-                            model.addAttribute("totalAssignments", totalAssignments);
-                            model.addAttribute("pendingAssignmentsCount", pendingCount);
-                        } catch (Exception e) {
-                            model.addAttribute("pendingAssignmentsCount", 0);
-                            model.addAttribute("totalAssignments", 0);
-                        }
-                    }
-
-                    if (success != null) {
-                        model.addAttribute("success", success);
-                    }
-                    if (error != null) {
-                        model.addAttribute("error", error);
-                    }
-
-                    return "dashboard";
-                }
-            }
-
-            return "redirect:http://localhost:5173/login";
-
-        } catch (Exception e) {
-            System.err.println("Dashboard Error: " + e.getMessage());
-            e.printStackTrace();
-            model.addAttribute("error", "Error loading dashboard: " + e.getMessage());
-            return "dashboard";
-        }
-    }
-
-    @GetMapping("/logout")
-    public String logout(HttpServletRequest request) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null) {
-            new SecurityContextLogoutHandler().logout(request, null, auth);
-        }
-        return "redirect:http://localhost:5173/login?logout=true";
-    }
 
     // ==========================================
     // REST API ENDPOINTS FOR REACT FRONTEND
@@ -460,18 +324,6 @@ public class AuthController {
         return ResponseEntity.ok(map);
     }
 
-    // ==========================================
-    // NEW: APPROVE / REJECT / HANDOVER ENDPOINTS
-    // Called by PendingAssignments.jsx
-    // ==========================================
-
-    /**
-     * Approve a pending assignment (no handover).
-     * Sets status → APPROVED, saves the price, sends email payment link to the student.
-     *
-     * POST /api/admin/assignments/{id}/approve
-     * Body: { "price": 1500.00, "currency": "LKR" }
-     */
     @PostMapping("/api/admin/assignments/{id}/approve")
     @ResponseBody
     public ResponseEntity<?> approveAssignment(
@@ -506,13 +358,6 @@ public class AuthController {
         }
     }
 
-    /**
-     * Reject a pending assignment.
-     * Sets status → REJECTED, notifies the student.
-     *
-     * POST /api/admin/assignments/{id}/reject
-     * Body: (optional) { "reason": "Does not meet requirements" }
-     */
     @PostMapping("/api/admin/assignments/{id}/reject")
     @ResponseBody
     public ResponseEntity<?> rejectAssignment(
@@ -544,13 +389,6 @@ public class AuthController {
         }
     }
 
-    /**
-     * Approve a pending assignment AND hand it over to a specific admin.
-     * Sets status → IN_PROGRESS, saves price, assigns the chosen admin, notifies both parties.
-     *
-     * POST /api/admin/assignments/{id}/handover
-     * Body: { "price": 1500.00, "currency": "LKR", "adminId": 3 }
-     */
     @PostMapping("/api/admin/assignments/{id}/handover")
     @ResponseBody
     public ResponseEntity<?> handoverAssignment(
@@ -592,10 +430,6 @@ public class AuthController {
             return ResponseEntity.status(500).body("Failed to handover assignment: " + e.getMessage());
         }
     }
-
-    // ==========================================
-    // CUSTOMER & ADMIN LIST ENDPOINTS
-    // ==========================================
 
     @GetMapping("/api/admin/customers")
     @ResponseBody
@@ -734,7 +568,6 @@ public class AuthController {
         map.put("website", user.getWebsite());
         map.put("profilePicture", user.getProfilePicture());
 
-        // Real assignments
         List<Map<String, Object>> assignments = assignmentService.getByUserId(user.getId())
                 .stream().map(a -> {
                     Map<String, Object> am = new HashMap<>();
@@ -746,9 +579,8 @@ public class AuthController {
                     return am;
                 }).collect(Collectors.toList());
         map.put("assignments", assignments);
-        map.put("feedbacks", List.of()); // Add feedback service call if available
+        map.put("feedbacks", List.of());
 
         return ResponseEntity.ok(map);
     }
-
 }

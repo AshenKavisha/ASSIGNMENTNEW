@@ -24,7 +24,7 @@ const Login = () => {
       formData.append('password', password);
 
       // Step 1 — Attempt login
-      await fetch('/login', {
+      await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData,
