@@ -161,6 +161,7 @@ public class AuthController {
     // REST API ENDPOINTS FOR REACT FRONTEND
     // ==========================================
 
+   
     @GetMapping("/api/auth/me")
     @ResponseBody
     public ResponseEntity<?> getCurrentUser() {
@@ -177,6 +178,7 @@ public class AuthController {
         if (userOpt.isPresent()) {
             User user = userOpt.get();
             Map<String, Object> response = new HashMap<>();
+            response.put("id", user.getId());
             response.put("email", user.getEmail());
             response.put("role", user.getRole());
             response.put("name", user.getFullName());
@@ -185,7 +187,6 @@ public class AuthController {
 
         return ResponseEntity.status(404).build();
     }
-
     @GetMapping("/api/admin/stats")
     @ResponseBody
     public ResponseEntity<?> getAdminStats() {
@@ -194,9 +195,29 @@ public class AuthController {
             return ResponseEntity.status(401).build();
         }
 
+        String email = authentication.getName();
+        Optional<User> adminOpt = userService.getUserByEmail(email);
+        if (!adminOpt.isPresent()) return ResponseEntity.status(401).build();
+        User admin = adminOpt.get();
+
+        // Scope every stat to this admin's specialization so the dashboard
+        // numbers agree with the "My Assignments" page.
+        List<Assignment> scoped = assignmentService.getAllAssignmentsByAdminSpecialization(admin);
+
+        long total      = scoped.size();
+        long pending    = scoped.stream().filter(a -> a.getStatus() == Assignment.AssignmentStatus.PENDING).count();
+        long inProgress = scoped.stream().filter(a ->
+                a.getStatus() == Assignment.AssignmentStatus.APPROVED ||
+                a.getStatus() == Assignment.AssignmentStatus.IN_PROGRESS).count();
+        long completed  = scoped.stream().filter(a -> a.getStatus() == Assignment.AssignmentStatus.DELIVERED).count();
+        long rejected   = scoped.stream().filter(a -> a.getStatus() == Assignment.AssignmentStatus.REJECTED).count();
+
         Map<String, Object> stats = new HashMap<>();
-        stats.put("totalAssignments", assignmentService.countAll());
-        stats.put("pendingCount", assignmentService.countByStatus("PENDING"));
+        stats.put("totalAssignments", total);
+        stats.put("pendingCount", pending);
+        stats.put("inProgressCount", inProgress);
+        stats.put("completedCount", completed);
+        stats.put("rejectedCount", rejected);
         return ResponseEntity.ok(stats);
     }
 

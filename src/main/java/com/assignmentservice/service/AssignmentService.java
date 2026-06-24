@@ -639,10 +639,10 @@ public class AssignmentService {
 
         // Notify the assigned admin about their new task
         try {
-            notificationService.notifyAdminAssignmentAssigned(saved, assignedAdmin);
-        } catch (Exception e) {
-            System.err.println("⚠️ Failed to send admin assignment notification: " + e.getMessage());
-        }
+    notificationService.notifyAdminAssignmentAssigned(saved, assignedAdmin, reviewingAdmin);
+} catch (Exception e) {
+    System.err.println("⚠️ Failed to send admin assignment notification: " + e.getMessage());
+}
 
         return saved;
     }

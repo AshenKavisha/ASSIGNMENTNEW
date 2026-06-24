@@ -138,7 +138,7 @@ const CreateAssignment = () => {
       descriptionFiles.forEach(file => payload.append('descriptionFiles', file));
       requirementFiles.forEach(file => payload.append('requirementFiles', file));
 
-      const res = await fetch('/assignments/submit', {
+     const res = await fetch('/api/assignments/submit', {
         method: 'POST',
         credentials: 'include',
         body: payload,

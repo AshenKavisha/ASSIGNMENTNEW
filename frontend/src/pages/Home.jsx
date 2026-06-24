@@ -56,6 +56,13 @@ const Home = () => {
     }
   };
 
+  const hiwSteps = [
+    { icon: 'bi-person-plus-fill', num: '01', title: 'Register Account', desc: "Create your free account in minutes. Provide basic information and you're ready to start.", grad: 'linear-gradient(135deg,#667eea,#764ba2)' },
+    { icon: 'bi-journal-text',      num: '02', title: 'Submit Details',   desc: 'Share your assignment requirements, deadline, and any specific instructions or files.',    grad: 'linear-gradient(135deg,#11998e,#38ef7d)' },
+    { icon: 'bi-patch-check-fill',  num: '03', title: 'Get Quote & Approve', desc: 'Receive a fair quote based on your requirements. Review and approve to proceed.',       grad: 'linear-gradient(135deg,#f7971e,#ffd200)' },
+    { icon: 'bi-rocket-takeoff-fill',num:'04', title: 'Pay & Receive',    desc: 'Complete secure payment and our experts start working. Get your assignment delivered on time.', grad: 'linear-gradient(135deg,#17a2b8,#48c9b0)' },
+  ];
+
   return (
       <div style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", color: '#333', lineHeight: 1.6 }}>
 
@@ -115,11 +122,11 @@ const Home = () => {
         </section>
 
         {/* ── PROGRAMS ── */}
-        <div style={{ textAlign: 'center', color: '#212EA0', fontSize: 15, fontWeight: 600, textTransform: 'uppercase', margin: '70px 0 30px' }}>
-          <p style={{ margin: 0 }}>Our Services</p>
-          <h2 style={{ fontSize: 32, color: '#000F38', marginTop: 5, textTransform: 'none' }}>What We Offer</h2>
+        <div style={{ textAlign: 'center', margin: '70px 0 30px', fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" }}>
+          <span style={{ display: 'inline-block', background: 'linear-gradient(135deg,#667eea,#764ba2)', color: '#fff', fontSize: 11, fontWeight: 700, letterSpacing: 3, padding: '6px 18px', borderRadius: 20, marginBottom: 16 }}>OUR SERVICES</span>
+          <h2 style={{ margin: 0, fontSize: 36, fontWeight: 800, color: '#212529' }}>What We Offer</h2>
         </div>
-        <section style={{ margin: '0 auto 80px', width: '90%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
+        <section style={{ margin: '0 auto 40px', width: '90%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
           {[
             { img: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800', icon: 'https://img.icons8.com/ios-filled/50/ffffff/laptop.png', label: 'IT Assignments' },
             { img: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800', icon: 'https://img.icons8.com/ios-filled/50/ffffff/calculator.png', label: 'QS Assignments' },
@@ -152,7 +159,6 @@ const Home = () => {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 28, marginBottom: 60 }}>
-              {/* IT Card */}
               <ServiceCard
                   iconBg="linear-gradient(135deg,#667eea,#764ba2)"
                   icon="bi-laptop" tag="Technology" tagColor="#667eea" tagBg="rgba(102,126,234,0.08)"
@@ -164,7 +170,6 @@ const Home = () => {
                   btnBg="linear-gradient(135deg,#667eea,#764ba2)" btnShadow="rgba(102,126,234,0.3)"
                   btnLabel="Get IT Help"
               />
-              {/* QS Card */}
               <ServiceCard
                   iconBg="linear-gradient(135deg,#11998e,#38ef7d)"
                   icon="bi-calculator" tag="Construction" tagColor="#11998e" tagBg="rgba(17,153,142,0.08)"
@@ -194,37 +199,35 @@ const Home = () => {
         </section>
 
         {/* ── HOW IT WORKS ── */}
-        <section id="how-it-works" style={{ padding: '100px 0', background: '#f8f9fa', position: 'relative' }}>
+        <section id="how-it-works" style={{ padding: '100px 0', background: '#f8f9fa', position: 'relative', overflow: 'hidden' }}>
+          {/* Background shape */}
+          <div style={{ position: 'absolute', top: -120, right: -120, width: 400, height: 400, borderRadius: '50%', background: 'linear-gradient(135deg,rgba(102,126,234,0.08),rgba(118,75,162,0.08))', pointerEvents: 'none' }}></div>
+
           <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
-            <div style={{ textAlign: 'center', marginBottom: 60 }}>
+
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: 70 }}>
               <span style={{ display: 'inline-block', background: 'linear-gradient(135deg,#667eea,#764ba2)', color: '#fff', fontSize: 11, fontWeight: 700, letterSpacing: 3, padding: '6px 18px', borderRadius: 20, marginBottom: 16 }}>SIMPLE PROCESS</span>
               <h2 style={{ fontSize: 40, fontWeight: 800, color: '#212529', marginBottom: 12 }}>How It Works</h2>
               <p style={{ fontSize: 16, color: '#6c757d' }}>Four easy steps to get your assignment done professionally and on time</p>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 24 }}>
-              {[
-                { icon: 'bi-person-plus-fill', bg: 'linear-gradient(135deg,#667eea,#764ba2)', num: '01', title: 'Register Account', desc: "Create your free account in minutes. Provide basic information and you're ready to start." },
-                { icon: 'bi-journal-text', bg: 'linear-gradient(135deg,#11998e,#38ef7d)', num: '02', title: 'Submit Details', desc: 'Share your assignment requirements, deadline, and any specific instructions or files.' },
-                { icon: 'bi-patch-check-fill', bg: 'linear-gradient(135deg,#f7971e,#ffd200)', num: '03', title: 'Get Quote & Approve', desc: 'Receive a fair quote based on your requirements. Review and approve to proceed.' },
-                { icon: 'bi-rocket-takeoff-fill', bg: 'linear-gradient(135deg,#17a2b8,#48c9b0)', num: '04', title: 'Pay & Receive', desc: 'Complete secure payment and our experts start working. Get your assignment delivered on time.' },
-              ].map((step, i) => (
-                  <div key={i} style={{ background: '#fff', borderRadius: 20, padding: '40px 24px', textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', transition: 'all 0.3s ease', position: 'relative' }}
-                       onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.boxShadow = '0 16px 40px rgba(0,0,0,0.12)'; }}
-                       onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.05)'; }}>
-                    <div style={{ position: 'relative', display: 'inline-block', marginBottom: 24 }}>
-                      <div style={{ width: 80, height: 80, borderRadius: '50%', background: step.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, color: '#fff', margin: '0 auto', boxShadow: '0 8px 20px rgba(0,0,0,0.15)' }}>
-                        <i className={`bi ${step.icon}`}></i>
-                      </div>
-                      <span style={{ position: 'absolute', bottom: -6, right: -6, width: 28, height: 28, borderRadius: '50%', background: '#212529', color: '#fff', fontSize: 10, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{step.num}</span>
-                    </div>
-                    <h4 style={{ fontSize: 18, fontWeight: 700, color: '#212529', marginBottom: 12 }}>{step.title}</h4>
-                    <p style={{ color: '#6c757d', fontSize: 14, margin: 0 }}>{step.desc}</p>
-                  </div>
+
+            {/* Steps */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 0, position: 'relative' }}>
+              {hiwSteps.map((step, i) => (
+                <HiwStep key={i} step={step} isLast={i === hiwSteps.length - 1} />
               ))}
             </div>
-            <div style={{ textAlign: 'center', marginTop: 50 }}>
-              <p style={{ color: '#6c757d', marginBottom: 16 }}>Ready to get started?</p>
-              <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'linear-gradient(135deg,#667eea,#764ba2)', color: '#fff', padding: '14px 32px', borderRadius: 12, fontWeight: 700, textDecoration: 'none', boxShadow: '0 6px 20px rgba(102,126,234,0.3)', transition: 'all 0.3s ease' }}>
+
+            {/* CTA */}
+            <div style={{ textAlign: 'center', marginTop: 60 }}>
+              <p style={{ color: '#6c757d', marginBottom: 16, fontSize: 16 }}>Ready to get started?</p>
+              <Link
+                to="/register"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'linear-gradient(135deg,#667eea,#764ba2)', color: '#fff', padding: '14px 32px', borderRadius: 12, fontWeight: 700, textDecoration: 'none', boxShadow: '0 6px 20px rgba(102,126,234,0.3)', fontSize: 15, transition: 'all 0.3s ease' }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 30px rgba(102,126,234,0.45)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(102,126,234,0.3)'; }}
+              >
                 Start Now <i className="bi bi-arrow-right"></i>
               </Link>
             </div>
@@ -318,8 +321,7 @@ const Home = () => {
                   { icon: 'bi-globe2', bg: 'linear-gradient(135deg,#43e97b,#38f9d7)', label: 'Location', value: 'Available Worldwide — Remote Services' },
                   { icon: 'bi-clock-fill', bg: 'linear-gradient(135deg,#fa709a,#fee140)', label: 'Support Hours', value: '24/7 Customer Support' },
                 ].map((item, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 14, background: 'rgba(255,255,255,0.1)', borderRadius: 14, marginBottom: 14, border: '1px solid rgba(255,255,255,0.15)', transition: 'all 0.3s', textDecoration: 'none', color: '#fff' }}
-                         {...(item.href ? { as: 'a', href: item.href } : {})}>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 14, background: 'rgba(255,255,255,0.1)', borderRadius: 14, marginBottom: 14, border: '1px solid rgba(255,255,255,0.15)', transition: 'all 0.3s', textDecoration: 'none', color: '#fff' }}>
                       <div style={{ width: 46, height: 46, borderRadius: 12, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
                         <i className={`bi ${item.icon}`}></i>
                       </div>
@@ -393,8 +395,6 @@ const Home = () => {
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: 'linear-gradient(90deg,#667eea,#764ba2,#667eea)', backgroundSize: '200% 100%', animation: 'gradientShift 3s ease infinite' }}></div>
           <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0 20px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 40, paddingBottom: 40, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-
-              {/* Brand */}
               <div>
                 <h3 style={{ fontSize: 28, fontWeight: 700, marginBottom: 15, background: 'linear-gradient(135deg,#fff,#a8c0ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Assignment Service</h3>
                 <p style={{ color: 'rgba(255,255,255,0.8)', lineHeight: 1.6, marginBottom: 20, fontSize: 14 }}>Professional IT & Quantity Surveying assignment help. We deliver quality solutions tailored to your academic needs.</p>
@@ -408,8 +408,6 @@ const Home = () => {
                   ))}
                 </div>
               </div>
-
-              {/* Quick Links */}
               <div>
                 <h4 style={{ fontSize: 18, fontWeight: 600, marginBottom: 20, paddingBottom: 10, borderBottom: '3px solid', borderImage: 'linear-gradient(90deg,#667eea,#764ba2) 1' }}>Quick Links</h4>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -424,8 +422,6 @@ const Home = () => {
                   ))}
                 </ul>
               </div>
-
-              {/* Services */}
               <div>
                 <h4 style={{ fontSize: 18, fontWeight: 600, marginBottom: 20, paddingBottom: 10, borderBottom: '3px solid', borderImage: 'linear-gradient(90deg,#667eea,#764ba2) 1' }}>Our Services</h4>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -440,8 +436,6 @@ const Home = () => {
                   ))}
                 </ul>
               </div>
-
-              {/* Contact */}
               <div>
                 <h4 style={{ fontSize: 18, fontWeight: 600, marginBottom: 20, paddingBottom: 10, borderBottom: '3px solid', borderImage: 'linear-gradient(90deg,#667eea,#764ba2) 1' }}>Get In Touch</h4>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -468,17 +462,15 @@ const Home = () => {
                 </ul>
               </div>
             </div>
-
-            {/* Footer Bottom */}
             <div style={{ padding: '24px 0', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
               <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, margin: 0 }}>&copy; 2026 Assignment Service. All rights reserved.</p>
               <div style={{ display: 'flex', gap: 20 }}>
-                {[['Privacy Policy','/privacy-policy.html'],['Terms & Conditions','/terms-and-conditions.html'],['Return Policy','/return-policy.html']].map(([label, href], i) => (
-                    <a key={i} href={href} style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: 14, transition: 'color 0.2s' }}
+                {[['Privacy Policy','/privacy-policy'],['Terms & Conditions','/terms-and-conditions'],['Return Policy','/return-policy']].map(([label, href], i) => (
+                    <Link key={i} to={href} style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: 14, transition: 'color 0.2s' }}
                        onMouseEnter={e => e.currentTarget.style.color = '#fff'}
                        onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.7)'}>
                       {label}
-                    </a>
+                    </Link>
                 ))}
               </div>
             </div>
@@ -493,20 +485,100 @@ const Home = () => {
         </footer>
 
         <style>{`
-        @keyframes gradientShift { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
-        @keyframes pulseWA { 0%,100%{box-shadow:0 8px 25px rgba(37,211,102,0.4)} 50%{box-shadow:0 8px 35px rgba(37,211,102,0.7)} }
-        @keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
-        * { box-sizing: border-box; }
-        input, textarea { font-family: inherit; }
-        @media (max-width: 768px) {
-          nav > div { flex-direction: column; align-items: flex-start; }
-        }
-      `}</style>
+          @keyframes gradientShift { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+          @keyframes pulseWA { 0%,100%{box-shadow:0 8px 25px rgba(37,211,102,0.4)} 50%{box-shadow:0 8px 35px rgba(37,211,102,0.7)} }
+          @keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+          * { box-sizing: border-box; }
+          input, textarea { font-family: inherit; }
+          @media (max-width: 768px) {
+            nav > div { flex-direction: column; align-items: flex-start; }
+            .hiw-connector { display: none !important; }
+          }
+        `}</style>
       </div>
   );
 };
 
-/* ── Helper Components ── */
+/* ── How It Works Step Component ── */
+const HiwStep = ({ step, isLast }) => {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ position: 'relative', padding: '0 16px 0 0', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+    >
+      {/* Connector line between steps */}
+      {!isLast && (
+        <div
+          className="hiw-connector"
+          style={{
+            position: 'absolute',
+            top: 40,
+            left: 'calc(50% + 40px)',
+            right: '-16px',
+            height: 3,
+            background: 'linear-gradient(90deg,#667eea,#764ba2)',
+            borderRadius: 2,
+            opacity: 0.3,
+            zIndex: 0,
+          }}
+        />
+      )}
+
+      {/* Icon + badge */}
+      <div style={{ position: 'relative', marginBottom: 28, zIndex: 1 }}>
+        <div style={{
+          width: 80, height: 80, borderRadius: '50%',
+          background: step.grad,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 32, color: '#fff',
+          boxShadow: hovered ? '0 12px 30px rgba(0,0,0,0.2)' : '0 6px 18px rgba(0,0,0,0.12)',
+          transform: hovered ? 'scale(1.1)' : 'scale(1)',
+          transition: 'all 0.35s ease',
+        }}>
+          <i className={`bi ${step.icon}`}></i>
+        </div>
+        {/* Step number badge */}
+        <div style={{
+          position: 'absolute', bottom: -6, right: -6,
+          width: 28, height: 28, borderRadius: '50%',
+          background: '#212529', color: '#fff',
+          fontSize: 10, fontWeight: 800,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          border: '2px solid #f8f9fa',
+        }}>
+          {step.num}
+        </div>
+      </div>
+
+      {/* Content card */}
+      <div style={{
+        background: '#fff', borderRadius: 20, padding: '28px 24px',
+        textAlign: 'center', width: '100%',
+        boxShadow: hovered ? '0 16px 40px rgba(0,0,0,0.1)' : '0 4px 20px rgba(0,0,0,0.05)',
+        transform: hovered ? 'translateY(-6px)' : 'none',
+        transition: 'all 0.35s ease',
+        borderTop: `3px solid transparent`,
+        backgroundImage: hovered
+          ? `linear-gradient(#fff,#fff), ${step.grad}`
+          : 'none',
+        backgroundOrigin: 'border-box',
+        backgroundClip: hovered ? 'padding-box, border-box' : 'unset',
+        border: hovered ? '3px solid transparent' : '3px solid transparent',
+      }}>
+        <h4 style={{ fontSize: 18, fontWeight: 700, color: '#212529', marginBottom: 10 }}>
+          {step.title}
+        </h4>
+        <p style={{ color: '#6c757d', fontSize: 14, lineHeight: 1.7, margin: 0 }}>
+          {step.desc}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+/* ── ServiceCard ── */
 const ServiceCard = ({ iconBg, icon, tag, tagColor, tagBg, borderTop, title, desc, items, checkBg, checkColor, btnBg, btnShadow, btnLabel }) => {
   const [hovered, setHovered] = useState(false);
   return (
@@ -536,6 +608,7 @@ const ServiceCard = ({ iconBg, icon, tag, tagColor, tagBg, borderTop, title, des
   );
 };
 
+/* ── PricingCard ── */
 const PricingCard = ({ icon, name, desc, price, currency, period, perPerson, featured, badge, plus, features }) => {
   const [hovered, setHovered] = useState(false);
   return (

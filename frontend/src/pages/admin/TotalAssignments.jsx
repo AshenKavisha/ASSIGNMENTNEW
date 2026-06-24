@@ -19,27 +19,41 @@ const TotalAssignments = () => {
         .catch(() => navigate('/login'));
   }, []);
 
-  // Fetch assignments when tab changes
-  useEffect(() => {
-    setLoading(true);
-    const url = activeTab === 'ALL'
-        ? '/api/admin/assignments'
-        : `/api/admin/assignments?status=${activeTab}`;
-
-    fetch(url, { credentials: 'include' })
-        .then(res => { if (!res.ok) navigate('/login'); return res.json(); })
-        .then(data => { setAssignments(data); setLoading(false); })
-        .catch(() => { setAssignments([]); setLoading(false); });
-  }, [activeTab]);
-
-  // Count per tab from all assignments
+  // ── Fetch the FULL assignment list once. This is now the single source
+  //    of truth for both the tab badge counts AND the tab body list,
+  //    so they can never disagree with each other again. ──────────────
   const [allAssignments, setAllAssignments] = useState([]);
+  const [allLoaded, setAllLoaded] = useState(false);
+
   useEffect(() => {
     fetch('/api/admin/assignments', { credentials: 'include' })
-        .then(res => res.json())
-        .then(data => setAllAssignments(data))
-        .catch(() => {});
+        .then(res => { if (!res.ok) navigate('/login'); return res.json(); })
+        .then(data => { setAllAssignments(data); setAllLoaded(true); })
+        .catch(() => { setAllAssignments([]); setAllLoaded(true); });
   }, []);
+
+  // ── Derive the list shown in the body from allAssignments + activeTab.
+  //    Uses the SAME multi-status match for "APPROVED" that the badge
+  //    counts use below, so the numbers and the list always match. ────
+  useEffect(() => {
+    if (!allLoaded) return;
+
+    setLoading(true);
+
+    let filtered;
+    if (activeTab === 'ALL') {
+      filtered = allAssignments;
+    } else if (activeTab === 'APPROVED') {
+      filtered = allAssignments.filter(a =>
+          ['APPROVED', 'IN_PROGRESS', 'READY_FOR_DELIVERY'].includes(a.status)
+      );
+    } else {
+      filtered = allAssignments.filter(a => a.status === activeTab);
+    }
+
+    setAssignments(filtered);
+    setLoading(false);
+  }, [activeTab, allAssignments, allLoaded]);
 
   const tabStats = {
     ALL: allAssignments.length,
@@ -47,6 +61,7 @@ const TotalAssignments = () => {
     APPROVED: allAssignments.filter(a => ['APPROVED', 'IN_PROGRESS', 'READY_FOR_DELIVERY'].includes(a.status)).length,
     DELIVERED: allAssignments.filter(a => a.status === 'DELIVERED').length,
     REVISION_REQUESTED: allAssignments.filter(a => a.status === 'REVISION_REQUESTED').length,
+    REJECTED: allAssignments.filter(a => a.status === 'REJECTED').length,
   };
 
   return (
@@ -77,7 +92,8 @@ const TotalAssignments = () => {
                   { label: 'Pending Approval', val: 'PENDING', icon: 'bi-hourglass-split' },
                   { label: 'Approved / In Progress', val: 'APPROVED', icon: 'bi-check-circle' },
                   { label: 'Delivered', val: 'DELIVERED', icon: 'bi-send-check' },
-                  { label: 'Revision Requests', val: 'REVISION_REQUESTED', icon: 'bi-arrow-repeat' }
+                  { label: 'Revision Requests', val: 'REVISION_REQUESTED', icon: 'bi-arrow-repeat' },
+                  { label: 'Rejected', val: 'REJECTED', icon: 'bi-x-circle' }
                 ].map((tab) => (
                     <button
                         key={tab.val}
@@ -118,17 +134,24 @@ const TotalAssignments = () => {
                               <i className="bi bi-person"></i> {item.user?.fullName} • <i className="bi bi-envelope"></i> {item.user?.email}
                             </p>
                             <div className="flex gap-2 mt-3">
-                        <span className={`px-4 py-1 rounded-full text-[10px] font-bold text-white flex items-center gap-1 ${item.type === 'IT' ? 'bg-gradient-to-r from-[#4361ee] to-[#3a0ca3]' : 'bg-gradient-to-r from-[#10b981] to-[#059669]'}`}>
-                          <i className={`bi ${item.type === 'IT' ? 'bi-code-slash' : 'bi-calculator'}`}></i> {item.type}
-                        </span>
+                              <span className={`px-4 py-1 rounded-full text-[10px] font-bold text-white flex items-center gap-1 ${item.type === 'IT' ? 'bg-gradient-to-r from-[#4361ee] to-[#3a0ca3]' : 'bg-gradient-to-r from-[#10b981] to-[#059669]'}`}>
+                                <i className={`bi ${item.type === 'IT' ? 'bi-code-slash' : 'bi-calculator'}`}></i> {item.type}
+                              </span>
                               <span className={`px-4 py-1 rounded-full text-[10px] font-bold text-white flex items-center gap-1 ${
                                   item.status === 'PENDING' ? 'bg-yellow-500' :
                                       item.status === 'APPROVED' ? 'bg-blue-500' :
                                           item.status === 'DELIVERED' ? 'bg-green-500' :
-                                              item.status === 'REVISION_REQUESTED' ? 'bg-orange-500' : 'bg-gray-500'
+                                              item.status === 'REVISION_REQUESTED' ? 'bg-orange-500' :
+                                                  item.status === 'REJECTED' ? 'bg-red-500' : 'bg-gray-500'
                               }`}>
-                          {item.status}
-                        </span>
+                                {item.status}
+                              </span>
+                              {/* Assigned-to-you badge, matching the Thymeleaf version */}
+                              {item.assignedAdmin && currentAdmin && item.assignedAdmin.id === currentAdmin.id && (
+                                  <span className="px-4 py-1 rounded-full text-[10px] font-bold text-white flex items-center gap-1 bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] animate-pulse">
+                                    <i className="bi bi-person-check"></i> Assigned to You
+                                  </span>
+                              )}
                             </div>
                           </div>
                           <div className="text-right">
@@ -176,6 +199,16 @@ const TotalAssignments = () => {
                                 <p className="text-sm text-gray-800 italic">"{item.latestRevision.reason}"</p>
                               </div>
                           )}
+
+                          {/* Rejection reason, shown only on the Rejected tab/cards */}
+                          {item.status === 'REJECTED' && item.adminNotes && (
+                              <div className="bg-gradient-to-r from-[#fee2e2] to-[#fecaca] border-l-4 border-[#ef4444] rounded-lg p-4 mt-4">
+                                <div className="flex items-center gap-2 mb-2 font-bold text-[#991b1b]">
+                                  <i className="bi bi-x-circle-fill"></i> Rejection Reason
+                                </div>
+                                <p className="text-sm text-gray-800 italic">"{item.adminNotes}"</p>
+                              </div>
+                          )}
                         </div>
 
                         <div className="bg-[#f8fafc] border-t border-[#e2e8f0] p-6 flex flex-wrap gap-3">
@@ -190,7 +223,7 @@ const TotalAssignments = () => {
                                 <i className="bi bi-check-circle"></i> Approve
                               </button>
                           )}
-                          {item.status === 'APPROVED' && (
+                          {['APPROVED', 'IN_PROGRESS', 'READY_FOR_DELIVERY'].includes(item.status) && (
                               <button className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#10b981] to-[#059669] text-white text-sm font-bold flex items-center gap-2 hover:-translate-y-1 transition-all shadow-md">
                                 <i className="bi bi-send-check"></i> Deliver Solution
                               </button>
