@@ -64,6 +64,14 @@ const TotalAssignments = () => {
     REJECTED: allAssignments.filter(a => a.status === 'REJECTED').length,
   };
 
+  // ── Handler for the "Deliver Solution" button. Previously this button
+  //    had no onClick at all, which is why it appeared unclickable.
+  //    Adjust the destination route below if your app uses a different
+  //    path for the delivery flow. ──────────────────────────────────────
+  const handleDeliverSolution = (assignmentId) => {
+    navigate(`/admin/assignments/${assignmentId}/deliver`);
+  };
+
   return (
       <div className="flex min-h-screen bg-gradient-to-br from-[#f0f4ff] to-[#f8fafc]">
         <Sidebar />
@@ -224,7 +232,10 @@ const TotalAssignments = () => {
                               </button>
                           )}
                           {['APPROVED', 'IN_PROGRESS', 'READY_FOR_DELIVERY'].includes(item.status) && (
-                              <button className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#10b981] to-[#059669] text-white text-sm font-bold flex items-center gap-2 hover:-translate-y-1 transition-all shadow-md">
+                              <button
+                                  onClick={() => handleDeliverSolution(item.id)}
+                                  className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#10b981] to-[#059669] text-white text-sm font-bold flex items-center gap-2 hover:-translate-y-1 transition-all shadow-md"
+                              >
                                 <i className="bi bi-send-check"></i> Deliver Solution
                               </button>
                           )}
