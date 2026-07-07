@@ -40,6 +40,9 @@ public class AssignmentService {
     private NotificationService notificationService;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private PaymentRepository paymentRepository;
 
     // ============================================
@@ -583,6 +586,12 @@ public class AssignmentService {
         assignment.setStatus(Assignment.AssignmentStatus.REJECTED);
         Assignment saved = assignmentRepository.save(assignment);
 
+         try {
+        emailService.sendAssignmentRejectionEmail(saved, reason);
+    } catch (Exception e) {
+        System.err.println("⚠️ Failed to send rejection email: " + e.getMessage());
+    }
+
         // Notify student
         try {
             notificationService.notifyUserAssignmentRejected(saved);
@@ -647,20 +656,41 @@ public class AssignmentService {
         return saved;
     }
 
+    /**
+ * Hand over an assignment that is already assigned to an admin, to a
+ * different admin. Only the current owner (or a super admin) may call
+ * this. A non-blank reason is mandatory. Ownership transfers immediately.
+ * Notifies the new admin AND the super admin(s).
+ */
+
+
+
     // ============================================
     // HELPER METHODS FOR ACCESS CONTROL
     // ============================================
 
     public boolean canAdminAccessAssignment(User admin, Assignment assignment) {
-        if (admin.getSpecialization() == User.Specialization.BOTH) {
-            return true;
-        } else if (admin.getSpecialization() == User.Specialization.IT) {
-            return assignment.getType() == Assignment.AssignmentType.IT;
-        } else if (admin.getSpecialization() == User.Specialization.QUANTITY_SURVEYING) {
-            return assignment.getType() == Assignment.AssignmentType.QUANTITY_SURVEYING;
-        }
-        return false;
+    // Super admin always has access
+    if (admin.getSpecialization() == User.Specialization.BOTH) {
+        return true;
     }
+
+    // 🔒 If this assignment is already owned by a specific admin,
+    // ONLY that admin (or super admin, handled above) may access it —
+    // regardless of specialization match.
+    if (assignment.getAssignedAdmin() != null) {
+        return assignment.getAssignedAdmin().getId().equals(admin.getId());
+    }
+
+    // Not yet assigned to anyone — fall back to specialization matching
+    // (covers PENDING assignments still up for grabs)
+    if (admin.getSpecialization() == User.Specialization.IT) {
+        return assignment.getType() == Assignment.AssignmentType.IT;
+    } else if (admin.getSpecialization() == User.Specialization.QUANTITY_SURVEYING) {
+        return assignment.getType() == Assignment.AssignmentType.QUANTITY_SURVEYING;
+    }
+    return false;
+}
 
     public boolean canAdminAccessAssignmentType(User admin, Assignment.AssignmentType type) {
         if (admin.getSpecialization() == User.Specialization.BOTH) {
@@ -766,6 +796,64 @@ public class AssignmentService {
                         assignment.getAssignedAdmin() != null &&
                         assignment.getAssignedAdmin().getId().equals(admin.getId()))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Hand over an assignment that is already assigned to an admin, to a
+     * different admin. Only the current owner (or a super admin) may call
+     * this. A non-blank reason is mandatory. Ownership transfers immediately.
+     * Notifies the new admin AND the super admin(s).
+     */
+    public Assignment reassignAssignment(Long id, Long newAdminId, String reason, User requestingAdmin) {
+        Optional<Assignment> assignmentOpt = getAssignmentByIdForAdmin(id, requestingAdmin);
+        if (assignmentOpt.isEmpty()) {
+            throw new RuntimeException("Assignment not found or you don't have permission to access it.");
+        }
+
+        Assignment assignment = assignmentOpt.get();
+
+        boolean isCurrentOwner = assignment.getAssignedAdmin() != null
+                && assignment.getAssignedAdmin().getId().equals(requestingAdmin.getId());
+        boolean isSuper = isSuperAdmin(requestingAdmin);
+
+        if (!isCurrentOwner && !isSuper) {
+            throw new RuntimeException("Only the assigned admin or a super admin can hand over this assignment.");
+        }
+
+        if (reason == null || reason.isBlank()) {
+            throw new RuntimeException("A reason for the handover is required.");
+        }
+
+        User previousAdmin = assignment.getAssignedAdmin();
+
+        User newAdmin = userService.getUserById(newAdminId)
+                .orElseThrow(() -> new RuntimeException("Selected admin not found."));
+
+        if (!"ADMIN".equals(newAdmin.getRole())) {
+            throw new RuntimeException("Selected user is not an admin.");
+        }
+        if (newAdmin.getId().equals(requestingAdmin.getId())) {
+            throw new RuntimeException("Cannot hand over an assignment to yourself.");
+        }
+        if (!canAdminAccessAssignmentType(newAdmin, assignment.getType())) {
+            throw new RuntimeException("Selected admin's specialization does not match this assignment's type.");
+        }
+
+        assignment.setAssignedAdmin(newAdmin);
+        Assignment saved = assignmentRepository.save(assignment);
+
+        try {
+            notificationService.notifyHandoverBetweenAdmins(
+                    saved,
+                    previousAdmin != null ? previousAdmin : requestingAdmin,
+                    newAdmin,
+                    reason
+            );
+        } catch (Exception e) {
+            System.err.println("⚠️ Failed to send handover notifications: " + e.getMessage());
+        }
+
+        return saved;
     }
 
 }

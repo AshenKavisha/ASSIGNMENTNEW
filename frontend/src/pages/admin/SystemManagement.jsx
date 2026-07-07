@@ -3,9 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/admin/Sidebar';
 
 const SystemManagement = () => {
-  const [activeTab, setActiveTab] = useState('add-admin');
+  const [activeTab, setActiveTab] = useState('manage-admin');
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentAdmin, setCurrentAdmin] = useState(null);
+  const [roleLoading, setRoleLoading] = useState(true);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -19,7 +21,22 @@ const SystemManagement = () => {
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
+  const isSuperAdmin = currentAdmin?.isSuperAdmin === true;
+
   useEffect(() => {
+    // Fetch the logged-in admin's own profile to determine their role
+    fetch('/api/admin/me', { credentials: 'include' })
+        .then(res => {
+          if (res.status === 401) { navigate('/login'); return null; }
+          if (!res.ok) return null;
+          return res.json();
+        })
+        .then(data => {
+          if (data) setCurrentAdmin(data);
+          setRoleLoading(false);
+        })
+        .catch(() => setRoleLoading(false));
+
     fetch('/api/admin/admins', { credentials: 'include' })
         .then(res => {
           if (res.status === 401) { navigate('/login'); return null; }
@@ -33,6 +50,13 @@ const SystemManagement = () => {
         .catch(() => setLoading(false));
   }, []);
 
+  // If a non-super-admin somehow lands on the add-admin tab, bounce them to a safe tab
+  useEffect(() => {
+    if (!roleLoading && !isSuperAdmin && activeTab === 'add-admin') {
+      setActiveTab('manage-admin');
+    }
+  }, [roleLoading, isSuperAdmin, activeTab]);
+
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -41,6 +65,12 @@ const SystemManagement = () => {
     e.preventDefault();
     setFormError(null);
     setFormMessage(null);
+
+    // Defense in depth: block submission client-side even if the tab were reached
+    if (!isSuperAdmin) {
+      setFormError('Only Super Administrators can register new administrators.');
+      return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
       setFormError('Passwords do not match!');
@@ -78,6 +108,8 @@ const SystemManagement = () => {
             .then(res => res.json())
             .then(data => setAdmins(data))
             .catch(() => {});
+      } else if (response.status === 403) {
+        setFormError('You are not authorized to register new administrators.');
       } else {
         setFormError('Failed to create admin. Email may already be registered.');
       }
@@ -87,6 +119,12 @@ const SystemManagement = () => {
       setSubmitting(false);
     }
   };
+
+  const tabs = [
+    { id: 'add-admin', label: 'Add New Admin', icon: 'bi-person-plus', superOnly: true },
+    { id: 'manage-admin', label: 'Manage Administrators', icon: 'bi-people', superOnly: false },
+    { id: 'roles', label: 'Role Permissions', icon: 'bi-shield-check', superOnly: false }
+  ].filter(tab => !tab.superOnly || isSuperAdmin);
 
   return (
       <div className="flex min-h-screen bg-[#f5f7fa]">
@@ -111,11 +149,7 @@ const SystemManagement = () => {
             {/* Navigation Tabs */}
             <div className="bg-white rounded-t-2xl shadow-md border border-gray-100 overflow-hidden">
               <div className="flex bg-gray-50 border-b-2 border-gray-100">
-                {[
-                  { id: 'add-admin', label: 'Add New Admin', icon: 'bi-person-plus' },
-                  { id: 'manage-admin', label: 'Manage Administrators', icon: 'bi-people' },
-                  { id: 'roles', label: 'Role Permissions', icon: 'bi-shield-check' }
-                ].map((tab) => (
+                {tabs.map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
@@ -133,8 +167,8 @@ const SystemManagement = () => {
               {/* Tab Content */}
               <div className="p-8">
 
-                {/* Tab 1: Add New Admin */}
-                {activeTab === 'add-admin' && (
+                {/* Tab 1: Add New Admin (Super Admin only) */}
+                {activeTab === 'add-admin' && isSuperAdmin && (
                     <div className="max-w-3xl mx-auto animate-fadeIn">
                       <div className="border-2 border-blue-100 rounded-2xl overflow-hidden shadow-sm">
                         <div className="bg-[#3498db] p-4 text-white">

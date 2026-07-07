@@ -11,6 +11,15 @@ const TotalAssignments = () => {
   const [selectedAssignmentId, setSelectedAssignmentId] = useState(null);
   const navigate = useNavigate();
 
+  // ── Handover modal state ────────────────────────────────────────────
+  const [showHandoverModal, setShowHandoverModal] = useState(false);
+  const [handoverAssignmentId, setHandoverAssignmentId] = useState(null);
+  const [handoverReason, setHandoverReason] = useState('');
+  const [eligibleAdmins, setEligibleAdmins] = useState([]);
+  const [selectedNewAdminId, setSelectedNewAdminId] = useState(null);
+  const [handoverSubmitting, setHandoverSubmitting] = useState(false);
+  const [handoverError, setHandoverError] = useState('');
+
   // Fetch current admin info
   useEffect(() => {
     fetch('/api/auth/me', { credentials: 'include' })
@@ -70,6 +79,77 @@ const TotalAssignments = () => {
   //    path for the delivery flow. ──────────────────────────────────────
   const handleDeliverSolution = (assignmentId) => {
     navigate(`/admin/assignments/${assignmentId}/deliver`);
+  };
+
+  // ── Handover: open modal + fetch eligible admins for this assignment ──
+  const openHandoverModal = async (assignmentId) => {
+    setHandoverAssignmentId(assignmentId);
+    setHandoverReason('');
+    setSelectedNewAdminId(null);
+    setHandoverError('');
+    setEligibleAdmins([]);
+    setShowHandoverModal(true);
+
+    try {
+      const res = await fetch(`/api/admin/assignments/${assignmentId}/eligible-admins`, {
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Failed to load eligible admins');
+      const data = await res.json();
+      setEligibleAdmins(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setHandoverError('Could not load eligible admins. Please try again.');
+    }
+  };
+
+  const closeHandoverModal = () => {
+    setShowHandoverModal(false);
+    setHandoverAssignmentId(null);
+    setHandoverReason('');
+    setSelectedNewAdminId(null);
+    setEligibleAdmins([]);
+    setHandoverError('');
+  };
+
+  const submitHandover = async () => {
+    setHandoverError('');
+
+    if (!handoverReason.trim()) {
+      setHandoverError('Please explain why you are handing over this assignment.');
+      return;
+    }
+    if (!selectedNewAdminId) {
+      setHandoverError('Please select an admin to hand over to.');
+      return;
+    }
+
+    setHandoverSubmitting(true);
+    try {
+      const res = await fetch(`/api/admin/assignments/${handoverAssignmentId}/reassign`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          newAdminId: selectedNewAdminId,
+          reason: handoverReason.trim(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to hand over assignment.');
+      }
+
+      // Remove it from this admin's view immediately — they no longer own it
+      setAllAssignments(prev => prev.filter(a => a.id !== handoverAssignmentId));
+      closeHandoverModal();
+
+    } catch (err) {
+      setHandoverError(err.message);
+    } finally {
+      setHandoverSubmitting(false);
+    }
   };
 
   return (
@@ -252,6 +332,19 @@ const TotalAssignments = () => {
                                 </button>
                               </>
                           )}
+
+                          {/* Handover button — only visible to the current owner,
+                              and only while the assignment is still active work
+                              (not yet delivered or rejected). */}
+                          {item.assignedAdmin && currentAdmin && item.assignedAdmin.id === currentAdmin.id &&
+                            !['DELIVERED', 'REJECTED'].includes(item.status) && (
+                              <button
+                                  onClick={() => openHandoverModal(item.id)}
+                                  className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#d97706] text-white text-sm font-bold flex items-center gap-2 hover:-translate-y-1 transition-all shadow-md"
+                              >
+                                <i className="bi bi-person-rolodex"></i> Handover
+                              </button>
+                          )}
                         </div>
                       </div>
                   ))}
@@ -288,10 +381,112 @@ const TotalAssignments = () => {
             </div>
         )}
 
+        {/* Handover Modal */}
+        {showHandoverModal && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn">
+              <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+                <div className="bg-gradient-to-r from-[#f59e0b] to-[#d97706] p-4 text-white flex justify-between items-center">
+                  <h5 className="text-lg font-bold flex items-center gap-2">
+                    <i className="bi bi-person-rolodex"></i> Hand Over Assignment
+                  </h5>
+                  <button onClick={closeHandoverModal} className="text-white">
+                    <i className="bi bi-x-lg"></i>
+                  </button>
+                </div>
+
+                <div className="p-6">
+                  {handoverError && (
+                      <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3 mb-4">
+                        {handoverError}
+                      </div>
+                  )}
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Reason for handover <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                        rows="3"
+                        value={handoverReason}
+                        onChange={(e) => setHandoverReason(e.target.value)}
+                        className="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-[#f59e0b] focus:outline-none transition-all"
+                        placeholder="Why can't you handle this assignment? (e.g. workload, expertise, unavailability)"
+                        disabled={handoverSubmitting}
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Hand over to <span className="text-red-500">*</span>
+                    </label>
+                    {eligibleAdmins.length === 0 ? (
+                        <p className="text-gray-400 text-sm text-center py-4">
+                          No eligible admins available for this assignment type.
+                        </p>
+                    ) : (
+                        <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                          {eligibleAdmins.map(admin => (
+                              <label
+                                  key={admin.id}
+                                  className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all ${
+                                      selectedNewAdminId === admin.id
+                                          ? 'border-[#f59e0b] bg-[#f59e0b]/10'
+                                          : 'border-gray-200 hover:border-gray-300'
+                                  }`}
+                              >
+                                <div>
+                                  <p className="font-bold text-gray-800 m-0 text-sm">{admin.fullName}</p>
+                                  <p className="text-xs text-gray-500 m-0">{admin.email}</p>
+                                </div>
+                                <input
+                                    type="radio"
+                                    name="handoverAdmin"
+                                    checked={selectedNewAdminId === admin.id}
+                                    onChange={() => setSelectedNewAdminId(admin.id)}
+                                    disabled={handoverSubmitting}
+                                    className="w-4 h-4 text-[#f59e0b] cursor-pointer"
+                                />
+                              </label>
+                          ))}
+                        </div>
+                    )}
+                  </div>
+
+                  <p className="text-[10px] text-gray-400 flex items-center gap-1 mb-0">
+                    <i className="bi bi-info-circle"></i> The Super Admin will be notified of this handover along with your reason.
+                  </p>
+                </div>
+
+                <div className="border-t border-gray-100 p-4 bg-gray-50 flex justify-end gap-3">
+                  <button
+                      onClick={closeHandoverModal}
+                      disabled={handoverSubmitting}
+                      className="px-6 py-2 rounded-xl bg-gray-100 text-gray-600 font-bold hover:bg-gray-200 transition-all disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                      onClick={submitHandover}
+                      disabled={handoverSubmitting}
+                      className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#d97706] text-white font-bold hover:-translate-y-1 transition-all shadow-lg disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {handoverSubmitting ? (
+                        <><i className="bi bi-arrow-repeat animate-spin"></i> Submitting...</>
+                    ) : (
+                        <><i className="bi bi-person-check"></i> Confirm Handover</>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+        )}
+
         <style>{`
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .animate-fadeIn { animation: fadeIn 0.3s ease-out; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .animate-spin { animation: spin 0.8s linear infinite; }
       `}</style>
       </div>
   );

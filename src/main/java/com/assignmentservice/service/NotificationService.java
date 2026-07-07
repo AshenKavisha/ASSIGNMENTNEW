@@ -582,5 +582,58 @@ public class NotificationService {
         log.error("Failed to send assignment-assigned notification to admin: {}",
                 assignedAdmin.getEmail(), e);
     }
+
+    
+
 }
+
+    /**
+ * Fired when Admin A hands over an in-progress assignment to Admin B.
+ * Notifies Admin B (new owner) AND every Super Admin (BOTH specialization).
+ * The mandatory reason is included in both messages.
+ */
+public void notifyHandoverBetweenAdmins(Assignment assignment, User fromAdmin, User toAdmin, String reason) {
+    // Notify the new admin
+    try {
+        String title = "📋 Assignment Handed Over to You";
+        String message = fromAdmin.getFullName() + " handed over assignment '" +
+                assignment.getTitle() + "' to you.\nReason: " + reason;
+
+        Notification notification = createAssignmentNotification(
+                toAdmin, assignment, title, message,
+                Notification.NotificationType.ADMIN
+        );
+        notification.setImportant(true);
+        notification.setRelatedUserId(fromAdmin.getId());
+        notificationRepository.save(notification);
+
+        log.info("Handover notification sent to new admin: {}", toAdmin.getEmail());
+    } catch (Exception e) {
+        log.error("Failed to notify new admin about handover", e);
+    }
+
+    // Notify Super Admin(s) only
+    try {
+        List<User> superAdmins = userRepository.findByRoleAndSpecialization("ADMIN", User.Specialization.BOTH);
+
+        String title = "🔔 Assignment Handover Occurred";
+        String message = fromAdmin.getFullName() + " handed over assignment '" + assignment.getTitle() +
+                "' to " + toAdmin.getFullName() + ".\nReason: " + reason;
+
+        for (User superAdmin : superAdmins) {
+            Notification notification = createAssignmentNotification(
+                    superAdmin, assignment, title, message,
+                    Notification.NotificationType.ADMIN
+            );
+            notification.setImportant(true);
+            notification.setRelatedUserId(fromAdmin.getId());
+            notificationRepository.save(notification);
+        }
+
+        log.info("Handover notification sent to {} super admin(s)", superAdmins.size());
+    } catch (Exception e) {
+        log.error("Failed to notify super admin(s) about handover", e);
+    }
+}
+
 }

@@ -1,8 +1,4 @@
 package com.assignmentservice.controller;
-import com.assignmentservice.model.RevisionRequest;
-import com.assignmentservice.model.Payment;
-import com.assignmentservice.service.PayHereService;
-
 import com.assignmentservice.dto.AdminPerformanceDto;
 import com.assignmentservice.dto.AdminRegistrationDto;
 import com.assignmentservice.model.*;
@@ -31,7 +27,7 @@ import java.util.stream.Collectors;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import jakarta.mail.MessagingException;
-import java.util.Arrays;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -1420,6 +1416,7 @@ public class AdminController {
             map.put("status", a.getStatus());
             map.put("revisionsUsed", a.getRevisionRequests() != null ? a.getRevisionRequests().size() : 0);
             map.put("maxRevisions", 2);
+            map.put("adminNotes", a.getAdminNotes());
 
             // User info
             Map<String, Object> user = new HashMap<>();
@@ -1451,6 +1448,125 @@ public class AdminController {
 
         return ResponseEntity.ok(result);
     }
+
+    /**
+ * List admins eligible to receive a handover for this assignment
+ * (matching specialization, excluding the current admin).
+ */
+@GetMapping("/api/admin/assignments/{id}/eligible-admins")
+@ResponseBody
+public ResponseEntity<?> getEligibleHandoverAdmins(@PathVariable Long id) {
+    Optional<User> currentAdminOpt = getCurrentAdmin();
+    if (currentAdminOpt.isEmpty()) {
+        return ResponseEntity.status(401).build();
+    }
+    User currentAdmin = currentAdminOpt.get();
+
+    Optional<Assignment> assignmentOpt = assignmentService.getAssignmentByIdForAdmin(id, currentAdmin);
+    if (assignmentOpt.isEmpty()) {
+        return ResponseEntity.status(404).body(Map.of("error", "Assignment not found or access denied"));
+    }
+    Assignment assignment = assignmentOpt.get();
+
+    List<Map<String, Object>> eligible = userService.getAllAdmins().stream()
+            .filter(a -> !a.getId().equals(currentAdmin.getId()))
+            .filter(a -> canAdminHandleAssignmentType(a, assignment.getType()))
+            .map(a -> {
+                Map<String, Object> m = new HashMap<>();
+                m.put("id", a.getId());
+                m.put("fullName", a.getFullName());
+                m.put("email", a.getEmail());
+                m.put("specialization", a.getSpecialization());
+                return m;
+            })
+            .collect(Collectors.toList());
+
+    return ResponseEntity.ok(eligible);
+}
+
+/**
+ * Hand over an already-assigned (in-progress) assignment to another admin.
+ * Only the current owner or a super admin may call this. Reason is mandatory.
+ * Notifies the new admin + all super admins.
+ */
+@PostMapping("/api/admin/assignments/{id}/reassign")
+@ResponseBody
+public ResponseEntity<?> reassignAssignmentApi(
+        @PathVariable Long id,
+        @RequestBody Map<String, Object> body) {
+
+    Optional<User> currentAdminOpt = getCurrentAdmin();
+    if (currentAdminOpt.isEmpty()) {
+        return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
+    }
+    User currentAdmin = currentAdminOpt.get();
+
+    Object newAdminIdObj = body.get("newAdminId");
+    String reason = body.get("reason") != null ? String.valueOf(body.get("reason")) : null;
+
+    if (newAdminIdObj == null) {
+        return ResponseEntity.badRequest().body(Map.of("error", "newAdminId is required"));
+    }
+    if (reason == null || reason.isBlank()) {
+        return ResponseEntity.badRequest().body(Map.of("error", "A reason for the handover is required"));
+    }
+
+    Long newAdminId;
+    try {
+        newAdminId = Long.valueOf(String.valueOf(newAdminIdObj));
+    } catch (NumberFormatException e) {
+        return ResponseEntity.badRequest().body(Map.of("error", "Invalid newAdminId"));
+    }
+
+    try {
+        Assignment updated = assignmentService.reassignAssignment(id, newAdminId, reason.trim(), currentAdmin);
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", updated.getId());
+        response.put("status", updated.getStatus());
+        response.put("assignedAdminId", updated.getAssignedAdmin().getId());
+        response.put("assignedAdminName", updated.getAssignedAdmin().getFullName());
+        response.put("message", "Assignment handed over to " + updated.getAssignedAdmin().getFullName());
+        return ResponseEntity.ok(response);
+    } catch (RuntimeException e) {
+        return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+    }
+}
+
+/**
+ * REST endpoint: reject a PENDING assignment with a mandatory reason.
+ * Called by PendingAssignments.jsx. Reason is stored on adminNotes and
+ * emailed to the student via AssignmentService.rejectAssignment(...).
+ */
+@PostMapping("/api/admin/assignments/{id}/reject")
+@ResponseBody
+public ResponseEntity<?> rejectAssignmentApi(
+        @PathVariable Long id,
+        @RequestBody(required = false) Map<String, Object> body) {
+
+    Optional<User> currentAdminOpt = getCurrentAdmin();
+    if (currentAdminOpt.isEmpty()) {
+        return ResponseEntity.status(401).build();
+    }
+    User currentAdmin = currentAdminOpt.get();
+
+    String reason = (body != null && body.get("reason") != null)
+            ? String.valueOf(body.get("reason")).trim()
+            : null;
+
+    Assignment updated = assignmentService.rejectAssignment(id, reason, currentAdmin);
+
+    if (updated == null) {
+        return ResponseEntity.badRequest().body(Map.of(
+                "error", "Assignment not found, not pending, or you don't have permission to reject it."
+        ));
+    }
+
+    Map<String, Object> response = new HashMap<>();
+    response.put("id", updated.getId());
+    response.put("status", updated.getStatus());
+    response.put("adminNotes", updated.getAdminNotes());
+    return ResponseEntity.ok(response);
+}
 
 
 }

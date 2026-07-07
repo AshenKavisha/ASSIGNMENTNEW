@@ -1,50 +1,128 @@
-import React, { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/admin/Sidebar';
 
 const SolutionDelivery = () => {
-  const { id } = useParams(); // URL eken assignment ID eka gannawa
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  const [assignment, setAssignment] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [isSending, setIsSending] = useState(false);
   const [adminNotes, setAdminNotes] = useState("");
+  const [submitError, setSubmitError] = useState(null);
 
-  // Mock Assignment Data (Backend eka connect karana kan)
-  const assignment = {
-    title: "Java OOP Assignment",
-    user: { fullName: "Ashen Kaveesha", email: "ashen@example.com" },
-    type: "IT",
-    subject: "Object Oriented Programming",
-    status: "APPROVED"
-  };
+  // Load the real assignment (via the existing /api/admin/assignments list endpoint)
+  useEffect(() => {
+    fetch('/api/admin/assignments', { credentials: 'include' })
+        .then(res => {
+          if (res.status === 401) { navigate('/login'); return null; }
+          if (!res.ok) throw new Error('Failed to load assignment');
+          return res.json();
+        })
+        .then(data => {
+          if (!data) return;
+          const match = data.find(a => String(a.id) === String(id));
+          if (!match) {
+            setLoadError('Assignment not found or you do not have permission to view it.');
+          } else {
+            setAssignment(match);
+          }
+          setLoading(false);
+        })
+        .catch(() => {
+          setLoadError('Failed to load assignment details.');
+          setLoading(false);
+        });
+  }, [id, navigate]);
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     setSelectedFiles(files);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    setSubmitError(null);
+
     if (selectedFiles.length === 0) {
-      alert('Please select at least one file!');
+      setSubmitError('Please select at least one file!');
       return;
     }
 
-    // File size validation (25MB)
     for (let file of selectedFiles) {
       if (file.size > 25 * 1024 * 1024) {
-        alert(`File "${file.name}" is too large. Maximum size is 25MB.`);
+        setSubmitError(`File "${file.name}" is too large. Maximum size is 25MB.`);
         return;
       }
     }
 
     setIsSending(true);
-    // Mocking API call
-    setTimeout(() => {
-      alert("Solution delivered successfully via email!");
+
+    try {
+      const formData = new FormData();
+      selectedFiles.forEach(file => formData.append('solutionFiles', file));
+      if (adminNotes.trim()) {
+        formData.append('adminNotes', adminNotes.trim());
+      }
+
+      // This endpoint is a Spring MVC redirect-based handler (not JSON),
+      // so success is detected via response.ok / response.redirected,
+      // matching the same pattern used elsewhere in this app (see SystemManagement.jsx).
+      const response = await fetch(`/admin/assignments/${id}/deliver-solution`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+
+      if (response.ok || response.redirected) {
+        alert('Solution delivered successfully via email!');
+        navigate('/admin/assignments?status=DELIVERED');
+      } else if (response.status === 401) {
+        navigate('/login');
+      } else {
+        setSubmitError('Failed to deliver solution. Please try again.');
+      }
+    } catch (err) {
+      setSubmitError('Something went wrong. Please try again.');
+    } finally {
       setIsSending(false);
-    }, 2000);
+    }
   };
+
+  if (loading) {
+    return (
+        <div className="flex min-h-screen bg-[#f8f9fa]">
+          <Sidebar />
+          <div className="flex-1 ml-64 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin border-4 border-green-500 border-t-transparent rounded-full w-12 h-12 mx-auto mb-4"></div>
+              <p className="text-gray-500">Loading assignment...</p>
+            </div>
+          </div>
+        </div>
+    );
+  }
+
+  if (loadError || !assignment) {
+    return (
+        <div className="flex min-h-screen bg-[#f8f9fa]">
+          <Sidebar />
+          <div className="flex-1 ml-64 flex items-center justify-center">
+            <div className="text-center bg-white p-10 rounded-2xl shadow-md border border-gray-100">
+              <i className="bi bi-exclamation-triangle text-5xl text-red-400 mb-4 block"></i>
+              <p className="text-gray-600 mb-6">{loadError || 'Assignment not found.'}</p>
+              <Link to="/admin/assignments" className="bg-[#6c757d] hover:bg-[#5a6268] text-white px-6 py-2 rounded-xl font-bold no-underline">
+                Back to Assignments
+              </Link>
+            </div>
+          </div>
+        </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-[#f8f9fa]">
@@ -61,7 +139,7 @@ const SolutionDelivery = () => {
               </h1>
               <p className="text-gray-500 mt-2 text-lg">Send finalized assignment solution to student</p>
             </div>
-            <Link to="/admin/assignments" className="bg-[#6c757d] hover:bg-[#5a6268] text-white px-6 py-2 rounded-xl font-bold flex items-center gap-2 transition-all">
+            <Link to="/admin/assignments" className="bg-[#6c757d] hover:bg-[#5a6268] text-white px-6 py-2 rounded-xl font-bold flex items-center gap-2 transition-all no-underline">
               <i className="bi bi-arrow-left"></i> Back to Assignments
             </Link>
           </div>
@@ -77,8 +155,8 @@ const SolutionDelivery = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-gray-700">
                 <div className="space-y-3">
                   <p><strong>Title:</strong> {assignment.title}</p>
-                  <p><strong>Student:</strong> {assignment.user.fullName}</p>
-                  <p><strong>Email:</strong> <span className="text-blue-600">{assignment.user.email}</span></p>
+                  <p><strong>Student:</strong> {assignment.user?.fullName}</p>
+                  <p><strong>Email:</strong> <span className="text-blue-600">{assignment.user?.email}</span></p>
                 </div>
                 <div className="space-y-3">
                   <p className="flex items-center gap-2">
@@ -102,6 +180,13 @@ const SolutionDelivery = () => {
               </h4>
             </div>
             <div className="p-8">
+
+              {submitError && (
+                  <div className="bg-red-50 border-l-4 border-red-500 text-red-800 p-4 rounded-xl mb-6 flex items-center gap-2">
+                    <i className="bi bi-exclamation-triangle-fill"></i> {submitError}
+                  </div>
+              )}
+
               <form onSubmit={handleSubmit}>
                 
                 {/* Solution Files Upload Area */}
@@ -158,7 +243,7 @@ const SolutionDelivery = () => {
                     <i className="bi bi-envelope-check"></i> What will happen:
                   </h5>
                   <ul className="list-disc ml-5 space-y-1 text-sm">
-                    <li>Solution files will be sent via email to: <strong>{assignment.user.email}</strong></li>
+                    <li>Solution files will be sent via email to: <strong>{assignment.user?.email}</strong></li>
                     <li>Assignment status will change to "DELIVERED"</li>
                     <li>Student can download files from the email</li>
                   </ul>

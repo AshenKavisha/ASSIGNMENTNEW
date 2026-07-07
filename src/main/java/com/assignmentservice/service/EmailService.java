@@ -1467,5 +1467,92 @@ public class EmailService {
                 "</body></html>";
     }
 
+    /**
+     * Send assignment rejection notification to user (initial PENDING rejection,
+     * not to be confused with sendRevisionRejectionEmail which is for revision requests).
+     */
+    public void sendAssignmentRejectionEmail(Assignment assignment, String reason) {
+        if (!emailEnabled) {
+            System.out.println("Email disabled. Assignment rejected for: " + assignment.getUser().getEmail());
+            return;
+        }
+
+        try {
+            MimeMessage message = emailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(assignment.getUser().getEmail());
+            helper.setSubject("Assignment Update - " + assignment.getTitle());
+            helper.setText(buildAssignmentRejectionEmail(assignment, reason), true);
+
+            emailSender.send(message);
+            System.out.println("Assignment rejection email sent to: " + assignment.getUser().getEmail());
+
+        } catch (MessagingException e) {
+            System.err.println("Failed to send assignment rejection email: " + e.getMessage());
+            // Don't throw exception - log and continue, matching other rejection-email methods
+        }
+    }
+
+    private String buildAssignmentRejectionEmail(Assignment assignment, String reason) {
+        String safeReason = (reason != null && !reason.isBlank())
+                ? reason
+                : "No specific reason was provided. Please contact support for more details.";
+
+        return "<!DOCTYPE html>" +
+                "<html lang='en'>" +
+                "<head><meta charset='UTF-8'><title>Assignment Update</title></head>" +
+                "<body style='margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;'>" +
+                "<table width='100%' cellpadding='0' cellspacing='0' style='background-color: #f4f4f4; padding: 20px;'>" +
+                "<tr><td align='center'>" +
+                "<table width='600' cellpadding='0' cellspacing='0' style='background-color: #ffffff; border-radius: 10px; overflow: hidden;'>" +
+
+                "<!-- Header -->" +
+                "<tr><td style='background: #dc3545; padding: 30px; text-align: center;'>" +
+                "<h1 style='color: #ffffff; margin: 0; font-size: 24px;'>Assignment Not Approved</h1>" +
+                "</td></tr>" +
+
+                "<!-- Body -->" +
+                "<tr><td style='padding: 30px;'>" +
+                "<p style='color: #666; line-height: 1.6; font-size: 16px;'>" +
+                "Dear " + assignment.getUser().getFullName() + "," +
+                "</p>" +
+
+                "<p style='color: #666; line-height: 1.6; font-size: 16px;'>" +
+                "We've reviewed your assignment submission <strong>" + assignment.getTitle() + "</strong>, " +
+                "and unfortunately we're unable to proceed with it at this time." +
+                "</p>" +
+
+                "<div style='background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 5px;'>" +
+                "<p style='color: #856404; margin: 0 0 10px; font-weight: bold;'>Reason:</p>" +
+                "<p style='color: #856404; margin: 0;'>" + safeReason + "</p>" +
+                "</div>" +
+
+                "<p style='color: #666; line-height: 1.6; font-size: 16px;'>" +
+                "You're welcome to review the feedback above and resubmit a revised assignment through your dashboard." +
+                "</p>" +
+
+                "<div style='text-align: center; margin: 25px 0;'>" +
+                "<a href='" + appUrl + "/assignments/my-assignments' " +
+                "style='background: #4361ee; color: #ffffff; padding: 12px 30px; text-decoration: none; " +
+                "border-radius: 5px; font-weight: bold; display: inline-block;'>" +
+                "View Your Assignments</a>" +
+                "</div>" +
+
+                "<p style='color: #999; font-size: 14px;'>" +
+                "If you have any questions, please contact our support team." +
+                "</p>" +
+                "</td></tr>" +
+
+                "<!-- Footer -->" +
+                "<tr><td style='background-color: #f8f9fa; padding: 20px; text-align: center;'>" +
+                "<p style='color: #999; margin: 0; font-size: 12px;'>© 2026 Assignment Service. All rights reserved.</p>" +
+                "</td></tr>" +
+
+                "</table></td></tr></table>" +
+                "</body></html>";
+    }
+
 
 }

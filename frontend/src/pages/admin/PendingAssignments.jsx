@@ -5,22 +5,24 @@ import Sidebar from '../../components/admin/Sidebar';
 const PendingAssignments = () => {
   const currencySymbols = { LKR: "Rs.", USD: "$" };
 
-  // ─── State ─────────────────────────────────────────────────────────────────
   const [pendingList, setPendingList]   = useState([]);
   const [admins, setAdmins]             = useState([]);
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState(null);
-  const [actionLoading, setActionLoading] = useState(null); // tracks which assignment id is being actioned
+  const [actionLoading, setActionLoading] = useState(null);
 
-  // Per-card amount/currency state: { [assignmentId]: { amount, currency } }
   const [priceInputs, setPriceInputs] = useState({});
 
-  // Modal state
   const [isModalOpen, setIsModalOpen]           = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
   const [handoverData, setHandoverData]           = useState({ amount: '', currency: 'LKR', adminId: null });
 
-  // ─── Fetch pending assignments + admins on mount ───────────────────────────
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectAssignmentId, setRejectAssignmentId] = useState(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejectError, setRejectError] = useState('');
+  const [rejectSubmitting, setRejectSubmitting] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -40,7 +42,6 @@ const PendingAssignments = () => {
         setPendingList(assignData);
         setAdmins(Array.isArray(adminData) ? adminData : []);
 
-        // Initialise per-card price inputs
         const inputs = {};
         assignData.forEach(a => {
           inputs[a.id] = { amount: a.price || '', currency: 'LKR' };
@@ -57,7 +58,6 @@ const PendingAssignments = () => {
     fetchData();
   }, []);
 
-  // ─── Per-card price helpers ────────────────────────────────────────────────
   const handleAmountChange = (id, value) => {
     setPriceInputs(prev => ({ ...prev, [id]: { ...prev[id], amount: value } }));
   };
@@ -68,7 +68,6 @@ const PendingAssignments = () => {
 
   const getPrice = (id) => priceInputs[id] || { amount: '', currency: 'LKR' };
 
-  // ─── Approve (no handover) ────────────────────────────────────────────────
   const handleApprove = async (id) => {
     const { amount, currency } = getPrice(id);
     if (!amount) {
@@ -98,31 +97,52 @@ const PendingAssignments = () => {
     }
   };
 
-  // ─── Reject ───────────────────────────────────────────────────────────────
-  const handleReject = async (id) => {
-    if (!window.confirm('Are you sure you want to reject this assignment?')) return;
+  const openRejectModal = (id) => {
+    setRejectAssignmentId(id);
+    setRejectReason('');
+    setRejectError('');
+    setShowRejectModal(true);
+  };
 
-    setActionLoading(id);
+  const closeRejectModal = () => {
+    setShowRejectModal(false);
+    setRejectAssignmentId(null);
+    setRejectReason('');
+    setRejectError('');
+  };
+
+  const submitReject = async () => {
+    if (!rejectReason.trim()) {
+      setRejectError('Please provide a reason for rejecting this assignment.');
+      return;
+    }
+
+    setRejectSubmitting(true);
+    setRejectError('');
+
     try {
-      const res = await fetch(`/api/admin/assignments/${id}/reject`, {
+      const res = await fetch(`/api/admin/assignments/${rejectAssignmentId}/reject`, {
         method: 'POST',
         credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: rejectReason.trim() }),
       });
 
+      const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
-        const msg = await res.text();
-        throw new Error(msg || 'Failed to reject assignment.');
+        throw new Error(data.error || 'Failed to reject assignment.');
       }
 
-      setPendingList(prev => prev.filter(item => item.id !== id));
+      setPendingList(prev => prev.filter(item => item.id !== rejectAssignmentId));
+      closeRejectModal();
     } catch (err) {
-      alert(`Error: ${err.message}`);
+      setRejectError(err.message);
     } finally {
-      setActionLoading(null);
+      setRejectSubmitting(false);
     }
   };
 
-  // ─── Handover modal ───────────────────────────────────────────────────────
   const openHandoverModal = (assignment) => {
     const { amount, currency } = getPrice(assignment.id);
     setSelectedAssignment(assignment);
@@ -172,7 +192,6 @@ const PendingAssignments = () => {
     }
   };
 
-  // ─── Loading / Error ───────────────────────────────────────────────────────
   if (loading) {
     return (
         <div className="flex min-h-screen bg-[#fffdf5]">
@@ -208,7 +227,6 @@ const PendingAssignments = () => {
     );
   }
 
-  // ─── Main render ───────────────────────────────────────────────────────────
   return (
       <div className="flex min-h-screen bg-[#fffdf5] font-sans relative">
 
@@ -216,7 +234,6 @@ const PendingAssignments = () => {
 
         <div className="flex-1 ml-64 p-8 overflow-x-hidden">
 
-          {/* Page Header */}
           <div className="bg-[#f39c12] rounded-xl p-6 flex justify-between items-center text-white mb-8 shadow-md">
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-3 m-0">
@@ -229,7 +246,6 @@ const PendingAssignments = () => {
             </Link>
           </div>
 
-          {/* Assignment Cards */}
           {pendingList.length > 0 ? (
               <div className="space-y-8 max-w-4xl mx-auto">
                 {pendingList.map((item) => {
@@ -292,7 +308,6 @@ const PendingAssignments = () => {
                             <p className="m-0 text-sm text-gray-700">{item.description || 'No description provided.'}</p>
                           </div>
 
-                          {/* Amount & Currency Approve Section */}
                           <div className="flex gap-2 items-stretch mb-2">
                             <div className="flex bg-[#28a745] text-white px-3 items-center rounded-l-lg font-bold border border-[#28a745] min-w-[50px] justify-center">
                               {currencySymbols[price.currency] || 'Rs.'}
@@ -344,7 +359,7 @@ const PendingAssignments = () => {
                             </button>
 
                             <button
-                                onClick={() => handleReject(item.id)}
+                                onClick={() => openRejectModal(item.id)}
                                 disabled={isBusy}
                                 className="w-full bg-[#dc3545] hover:bg-[#c82333] disabled:opacity-50 text-white font-bold py-2 rounded-lg transition-colors flex justify-center items-center gap-2 border-none cursor-pointer"
                             >
@@ -367,13 +382,69 @@ const PendingAssignments = () => {
 
         </div>
 
-        {/* ── HANDOVER MODAL ─────────────────────────────────────────────────── */}
+        {showRejectModal && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn">
+              <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+                <div className="bg-gradient-to-r from-[#ef4444] to-[#dc2626] p-4 text-white flex justify-between items-center">
+                  <h5 className="text-lg font-bold flex items-center gap-2">
+                    <i className="bi bi-x-circle-fill"></i> Reject Assignment
+                  </h5>
+                  <button onClick={closeRejectModal} className="text-white" disabled={rejectSubmitting}>
+                    <i className="bi bi-x-lg"></i>
+                  </button>
+                </div>
+                <div className="p-6">
+                  {rejectError && (
+                      <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3 mb-4">
+                        {rejectError}
+                      </div>
+                  )}
+                  <div className="mb-2">
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Reason for Rejection <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                        rows="4"
+                        value={rejectReason}
+                        onChange={(e) => setRejectReason(e.target.value)}
+                        className="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-[#ef4444] focus:outline-none transition-all"
+                        placeholder="Explain why this assignment is being rejected..."
+                        disabled={rejectSubmitting}
+                    />
+                  </div>
+                  <p className="text-[10px] text-gray-400 flex items-center gap-1 mb-0">
+                    <i className="bi bi-envelope"></i> This reason will be emailed to the student.
+                  </p>
+                </div>
+                <div className="flex gap-3 justify-end p-4 border-t border-gray-100 bg-gray-50">
+                  <button
+                      onClick={closeRejectModal}
+                      disabled={rejectSubmitting}
+                      className="px-6 py-2 rounded-xl bg-gray-100 text-gray-600 font-bold hover:bg-gray-200 transition-all disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                      onClick={submitReject}
+                      disabled={rejectSubmitting}
+                      className="px-6 py-2 rounded-xl bg-[#ef4444] text-white font-bold hover:bg-[#dc2626] transition-all shadow-lg disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {rejectSubmitting ? (
+                        <><i className="bi bi-arrow-repeat animate-spin"></i> Rejecting...</>
+                    ) : (
+                        <>Reject Request</>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+        )}
+
         {isModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn">
 
               <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden animate-slideUp">
 
-                {/* Modal Header */}
                 <div className="bg-[#f97316] text-white px-5 py-4 flex justify-between items-center">
                   <h3 className="font-bold m-0 flex items-center gap-2 text-lg">
                     <i className="bi bi-person-rolodex"></i> Handover Assignment
@@ -383,10 +454,8 @@ const PendingAssignments = () => {
                   </button>
                 </div>
 
-                {/* Modal Body */}
                 <div className="p-6">
 
-                  {/* Set Price */}
                   <div className="mb-6">
                     <label className="block text-sm font-bold text-gray-800 mb-2">
                       Set Price <span className="text-red-500">*</span>
@@ -416,7 +485,6 @@ const PendingAssignments = () => {
                     </div>
                   </div>
 
-                  {/* Select Admin */}
                   <div className="mb-4">
                     <label className="block text-sm font-bold text-gray-800 mb-2">
                       Select Admin <span className="text-red-500">*</span>
@@ -457,7 +525,6 @@ const PendingAssignments = () => {
 
                 </div>
 
-                {/* Modal Footer */}
                 <div className="border-t border-gray-100 p-4 bg-gray-50 flex justify-end gap-3 rounded-b-xl">
                   <button
                       onClick={closeHandoverModal}
