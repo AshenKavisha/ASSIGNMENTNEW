@@ -37,7 +37,7 @@ const Home = () => {
     e.preventDefault();
     setFormStatus({ loading: true, message: null, type: '' });
     try {
-      const res = await fetch('/api/contact/submit', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/contact/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
