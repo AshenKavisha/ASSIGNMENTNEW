@@ -27,6 +27,9 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     // Find assignments by type
     List<Assignment> findByType(Assignment.AssignmentType type);
 
+    // Find assignments by type with pagination
+    Page<Assignment> findByType(Assignment.AssignmentType type, Pageable pageable);
+
     // Find assignments by type and status with pagination
     Page<Assignment> findByTypeAndStatus(Assignment.AssignmentType type,
                                          Assignment.AssignmentStatus status,
@@ -37,6 +40,9 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
 
     // Count assignments by status (for statistics)
     long countByStatus(Assignment.AssignmentStatus status);
+
+    // Count assignments by type
+    long countByType(Assignment.AssignmentType type);
 
     // Count assignments by type and status
     long countByTypeAndStatus(Assignment.AssignmentType type,
@@ -60,6 +66,15 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     long countByStatusAndCreatedAtAfter(Assignment.AssignmentStatus status,
                                         LocalDateTime startDate);
 
+    // NEW: Count by type and date
+    long countByTypeAndCreatedAtAfter(Assignment.AssignmentType type,
+                                      LocalDateTime startDate);
+
+    // NEW: Count by type, status and date
+    long countByTypeAndStatusAndCreatedAtAfter(Assignment.AssignmentType type,
+                                               Assignment.AssignmentStatus status,
+                                               LocalDateTime startDate);
+
     // Revenue queries
     @Query("SELECT SUM(a.price) FROM Assignment a WHERE a.status = :status AND a.createdAt >= :startDate")
     Double sumPriceByStatusAndCreatedAtAfter(@Param("status") Assignment.AssignmentStatus status,
@@ -69,4 +84,29 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     Double sumPriceByTypeStatusAndCreatedAtAfter(@Param("type") Assignment.AssignmentType type,
                                                  @Param("status") Assignment.AssignmentStatus status,
                                                  @Param("startDate") LocalDateTime startDate);
+
+    // ============ NEW METHODS FOR FETCHING ASSIGNMENTS BY EXCLUDING STATUSES ============
+    // These methods allow querying for assignments excluding certain statuses
+    // Useful for showing all "active" assignments (excluding PENDING and REJECTED)
+
+    /**
+     * Find all assignments whose status is NOT in the provided list
+     * Example: Fetch all assignments except PENDING and REJECTED
+     */
+    Page<Assignment> findByStatusNotIn(List<Assignment.AssignmentStatus> statuses, Pageable pageable);
+
+    /**
+     * Find assignments by type, excluding certain statuses
+     * Example: Fetch all IT assignments except PENDING and REJECTED
+     */
+    Page<Assignment> findByTypeAndStatusNotIn(Assignment.AssignmentType type,
+                                              List<Assignment.AssignmentStatus> statuses,
+                                              Pageable pageable);
+
+    /**
+     * Count assignments by type, excluding certain statuses
+     * Example: Count all QS assignments except PENDING and REJECTED
+     */
+    long countByTypeAndStatusNotIn(Assignment.AssignmentType type,
+                                   List<Assignment.AssignmentStatus> statuses);
 }

@@ -19,7 +19,7 @@ public class FeedbackService {
     }
 
     public List<Feedback> getAllFeedbacks() {
-        return feedbackRepository.findAllByOrderByCreatedAtDesc();
+        return feedbackRepository.findAllWithUserOrderByCreatedAtDesc();
     }
 
     public List<Feedback> getRecentFeedbacks() {

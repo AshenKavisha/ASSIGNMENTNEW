@@ -1,0 +1,15 @@
+{
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://api.assignmentservice.net/api/:path*" },
+    { "source": "/logout", "destination": "https://api.assignmentservice.net/logout" },
+    { "source": "/register", "destination": "https://api.assignmentservice.net/register" },
+    { "source": "/verify", "destination": "https://api.assignmentservice.net/verify" },
+    { "source": "/forgot-password", "destination": "https://api.assignmentservice.net/forgot-password" },
+    { "source": "/resend-verification", "destination": "https://api.assignmentservice.net/resend-verification" },
+    { "source": "/reset-password", "destination": "https://api.assignmentservice.net/reset-password" },
+    { "source": "/profile/:path*", "destination": "https://api.assignmentservice.net/profile/:path*" },
+    { "source": "/assignments/:path*", "destination": "https://api.assignmentservice.net/assignments/:path*" },
+    { "source": "/admin/management/:path*", "destination": "https://api.assignmentservice.net/admin/management/:path*" },
+    { "source": "/admin/assignments/:path*", "destination": "https://api.assignmentservice.net/admin/assignments/:path*" }
+  ]
+}

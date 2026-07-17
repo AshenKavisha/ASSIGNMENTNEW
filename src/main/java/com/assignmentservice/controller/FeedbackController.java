@@ -14,6 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -39,8 +40,16 @@ public class FeedbackController {
 
             // Add recent feedbacks and average rating to model
             model.addAttribute("feedback", new Feedback());
-            model.addAttribute("recentFeedbacks", feedbackService.getRecentFeedbacks());
+
+            // ✅ FIXED: Changed "recentFeedbacks" to "pastFeedbacks"
+            List<Feedback> recentFeedbacks = feedbackService.getRecentFeedbacks();
+            model.addAttribute("pastFeedbacks", recentFeedbacks);
+
             model.addAttribute("averageRating", feedbackService.getAverageRating());
+
+            // DEBUG - Remove after testing
+            System.out.println("✅ Loaded " + recentFeedbacks.size() + " feedbacks for display");
+
             return "submit-feedback";
         }
 
@@ -64,6 +73,8 @@ public class FeedbackController {
                 User user = userOptional.get();
 
                 if (result.hasErrors()) {
+                    // ✅ ALSO ADD HERE: Re-populate feedbacks on validation error
+                    model.addAttribute("pastFeedbacks", feedbackService.getRecentFeedbacks());
                     return "submit-feedback";
                 }
 

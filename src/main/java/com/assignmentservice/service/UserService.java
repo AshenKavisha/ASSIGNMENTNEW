@@ -1,8 +1,12 @@
 package com.assignmentservice.service;
 
 import com.assignmentservice.dto.AdminPerformanceDto;
+import com.assignmentservice.model.PasswordResetToken;
 import com.assignmentservice.model.User;
+import com.assignmentservice.model.VerificationToken;
+import com.assignmentservice.repository.PasswordResetTokenRepository;
 import com.assignmentservice.repository.UserRepository;
+import com.assignmentservice.repository.VerificationTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,6 +26,18 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private VerificationTokenRepository verificationTokenRepository;
+
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Autowired
+    private EmailService emailService;
+
+    /**
+     * Register a new user and send verification email
+     */
     public User registerUser(User user) {
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new RuntimeException("Email already exists");
@@ -31,20 +47,220 @@ public class UserService {
         user.setPassword(hashedPassword);
         user.setRole("USER");
         user.setSpecialization(User.Specialization.NONE);
+        user.setEmailVerified(false);
+        user.setVerificationSentAt(LocalDateTime.now());
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        // Create verification token
+        String token = UUID.randomUUID().toString();
+        VerificationToken verificationToken = new VerificationToken(token, savedUser, 24);
+        verificationTokenRepository.save(verificationToken);
+
+        // Send verification email
+        try {
+            emailService.sendVerificationEmail(
+                    savedUser.getEmail(),
+                    savedUser.getFullName(),
+                    token
+            );
+        } catch (Exception e) {
+            System.err.println("Failed to send verification email: " + e.getMessage());
+            // Continue registration even if email fails
+        }
+
+        return savedUser;
     }
 
+    /**
+     * Verify user email with token
+     */
+    @Transactional
+    public boolean verifyEmail(String token) {
+        Optional<VerificationToken> tokenOptional = verificationTokenRepository.findByToken(token);
+
+        if (tokenOptional.isEmpty()) {
+            return false;
+        }
+
+        VerificationToken verificationToken = tokenOptional.get();
+
+        // Check if token is expired
+        if (verificationToken.isExpired()) {
+            return false;
+        }
+
+        // Check if token is already used
+        if (verificationToken.isUsed()) {
+            return false;
+        }
+
+        // Mark token as used
+        verificationToken.setUsed(true);
+        verificationTokenRepository.save(verificationToken);
+
+        // Verify user email
+        User user = verificationToken.getUser();
+        user.setEmailVerified(true);
+        userRepository.save(user);
+
+        return true;
+    }
+
+    /**
+     * Create password reset token and send email
+     */
+    @Transactional
+    public boolean createPasswordResetToken(String email) {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+
+        if (userOptional.isEmpty()) {
+            // Don't reveal if email exists (security best practice)
+            return true;
+        }
+
+        User user = userOptional.get();
+
+        // Delete any existing reset tokens for this user
+        passwordResetTokenRepository.deleteByUser(user);
+
+        // Create new reset token
+        String token = UUID.randomUUID().toString();
+        PasswordResetToken resetToken = new PasswordResetToken(token, user, 1); // 1 hour expiry
+        passwordResetTokenRepository.save(resetToken);
+
+        // Send reset email
+        try {
+            emailService.sendPasswordResetEmail(
+                    user.getEmail(),
+                    user.getFullName(),
+                    token
+            );
+            return true;
+        } catch (Exception e) {
+            System.err.println("Failed to send password reset email: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Validate password reset token
+     */
+    public boolean validatePasswordResetToken(String token) {
+        Optional<PasswordResetToken> tokenOptional = passwordResetTokenRepository.findByToken(token);
+
+        if (tokenOptional.isEmpty()) {
+            return false;
+        }
+
+        PasswordResetToken resetToken = tokenOptional.get();
+
+        return !resetToken.isExpired() && !resetToken.isUsed();
+    }
+
+    /**
+     * Reset password using token
+     */
+    @Transactional
+    public boolean resetPassword(String token, String newPassword) {
+        Optional<PasswordResetToken> tokenOptional = passwordResetTokenRepository.findByToken(token);
+
+        if (tokenOptional.isEmpty()) {
+            return false;
+        }
+
+        PasswordResetToken resetToken = tokenOptional.get();
+
+        // Validate token
+        if (resetToken.isExpired() || resetToken.isUsed()) {
+            return false;
+        }
+
+        // Update password
+        User user = resetToken.getUser();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        // Mark token as used
+        resetToken.setUsed(true);
+        passwordResetTokenRepository.save(resetToken);
+
+        return true;
+    }
+
+    /**
+     * Resend verification email
+     */
+    @Transactional
+    public boolean resendVerificationEmail(String email) {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+
+        if (userOptional.isEmpty()) {
+            return false;
+        }
+
+        User user = userOptional.get();
+
+        if (user.isEmailVerified()) {
+            return false; // Already verified
+        }
+
+        // Delete old verification tokens
+        verificationTokenRepository.deleteByUser(user);
+
+        // Create new token
+        String token = UUID.randomUUID().toString();
+        VerificationToken verificationToken = new VerificationToken(token, user, 24);
+        verificationTokenRepository.save(verificationToken);
+
+        // Update sent time
+        user.setVerificationSentAt(LocalDateTime.now());
+        userRepository.save(user);
+
+        // Send email
+        try {
+            emailService.sendVerificationEmail(
+                    user.getEmail(),
+                    user.getFullName(),
+                    token
+            );
+            return true;
+        } catch (Exception e) {
+            System.err.println("Failed to resend verification email: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Authenticate user - only if email is verified
+     */
     public Optional<User> authenticateUser(String email, String password) {
         Optional<User> userOptional = userRepository.findByEmail(email);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
+
+            // Check if email is verified
+            if (!user.isEmailVerified()) {
+                throw new RuntimeException("Please verify your email before logging in");
+            }
+
             if (passwordEncoder.matches(password, user.getPassword())) {
                 return Optional.of(user);
             }
         }
         return Optional.empty();
     }
+
+    /**
+     * Clean up expired tokens (should be run periodically)
+     */
+    @Transactional
+    public void cleanupExpiredTokens() {
+        verificationTokenRepository.deleteAllExpiredTokens(LocalDateTime.now());
+        passwordResetTokenRepository.deleteAllExpiredTokens(LocalDateTime.now());
+    }
+
+    // EXISTING METHODS BELOW (unchanged)
 
     public Optional<User> getUserById(Long id) {
         return userRepository.findById(id);
@@ -58,17 +274,22 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
-    // NEW METHODS FOR ADMIN MANAGEMENT
-
     public User saveUser(User user) {
         return userRepository.save(user);
+    }
+
+    /**
+     * Get all users (both USER and ADMIN roles)
+     * FIXED: Added missing method required by NotificationService
+     */
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 
     public List<User> getAllAdmins() {
         return userRepository.findByRole("ADMIN");
     }
 
-    // ADD THIS METHOD - Get all customers (users with role USER)
     public List<User> getAllCustomers() {
         return userRepository.findByRole("USER");
     }
@@ -87,11 +308,10 @@ public class UserService {
         user.setPassword(hashedPassword);
         user.setRole("ADMIN");
         user.setSpecialization(specialization);
+        user.setEmailVerified(true); // Admins are auto-verified
 
         return userRepository.save(user);
     }
-
-    // REPORT METHODS
 
     public Map<String, Object> getUserStatistics(LocalDateTime startDate) {
         Map<String, Object> stats = new HashMap<>();
@@ -99,14 +319,13 @@ public class UserService {
         long totalUsers = userRepository.countByCreatedAtAfter(startDate);
         long totalAdmins = userRepository.countByRoleAndCreatedAtAfter("ADMIN", startDate);
 
-        // Get active users (those who have logged in)
         List<User> activeUsersList = userRepository.findTopActiveUsers();
         long activeUsers = activeUsersList.size();
 
         stats.put("totalUsers", totalUsers);
         stats.put("totalAdmins", totalAdmins);
         stats.put("activeUsers", activeUsers);
-        stats.put("newUsers", totalUsers); // For simplicity
+        stats.put("newUsers", totalUsers);
 
         return stats;
     }
@@ -126,7 +345,6 @@ public class UserService {
                 dto.setSpecialization("NONE");
             }
 
-            // Get assignment counts
             if (admin.getAssignments() != null) {
                 dto.setAssignedCount(admin.getAssignments().size());
 
@@ -145,9 +363,8 @@ public class UserService {
                 dto.setPendingCount(0);
             }
 
-            // Calculate average time and rating (simplified for now)
-            dto.setAvgTime(24.5); // Example value
-            dto.setRating(4.5); // Example value
+            dto.setAvgTime(24.5);
+            dto.setRating(4.5);
 
             performanceList.add(dto);
         }
@@ -165,5 +382,58 @@ public class UserService {
     public long getTotalAdminCount() {
         return userRepository.countAdmins();
     }
+
+    /**
+     * Count the number of admin users in the system
+     */
+    public long countAdmins() {
+        return userRepository.countByRole("ADMIN");
+    }
+
+    /**
+     * HARD DELETE - Permanently removes user and all associated data
+     * This allows the email to be reused for new accounts
+     */
+    @Transactional
+    public void deleteUserById(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Log the deletion for audit purposes
+        System.out.println("═══════════════════════════════════════════════════════════");
+        System.out.println("⚠️  HARD DELETE - Permanently deleting user account");
+        System.out.println("═══════════════════════════════════════════════════════════");
+        System.out.println("Email: " + user.getEmail());
+        System.out.println("User ID: " + userId);
+        System.out.println("Full Name: " + user.getFullName());
+        System.out.println("Role: " + user.getRole());
+        System.out.println("───────────────────────────────────────────────────────────");
+        System.out.println("Data to be deleted:");
+        System.out.println("  ✓ User profile and credentials");
+        System.out.println("  ✓ Assignments: " + user.getAssignments().size());
+        System.out.println("  ✓ Feedbacks: " + user.getFeedbacks().size());
+        System.out.println("  ✓ Notifications: " + user.getNotifications().size());
+        System.out.println("───────────────────────────────────────────────────────────");
+
+        // Delete the user (cascade will handle related entities)
+        userRepository.deleteById(userId);
+
+        System.out.println("✅ User account PERMANENTLY deleted");
+        System.out.println("✅ Email is now available for reuse: " + user.getEmail());
+        System.out.println("═══════════════════════════════════════════════════════════");
+    }
+
+    /**
+     * Delete user by email
+     */
+    @Transactional
+    public void deleteUserByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+
+        deleteUserById(user.getId());
+    }
+
+
 
 }

@@ -3,38 +3,1806 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Assignment Service - Home</title>
+  <title>Assignment Service - Professional IT & QS Assignment Help</title>
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    .hero-section {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 4rem 0;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
-    .assignment-card {
-      transition: transform 0.2s;
-      border: 1px solid #dee2e6;
-      border-radius: 0.5rem;
-      height: 100%;
+
+    html {
+      scroll-behavior: smooth;
     }
-    .assignment-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #333;
     }
+
+    /* Navigation Styles */
+    nav.navbar {
+      transition: all 0.5s ease;
+      padding: 10px 0;
+    }
+
+    nav.navbar.scrolled {
+      background-color: #212529 !important;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .navbar-brand {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff !important;
+    }
+
+    .nav-link {
+      color: #fff !important;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .nav-link:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 5px;
+    }
+
+    .started{
+      font-family: 'Poppins', sans-serif;
+      font-weight: 700;
+      letter-spacing: 2px;
+      background: #fbf9f9;
+      color: #212211;
+      padding: 14px 25px;
+      font-size: 16px;
+      border-radius: 30px;
+      cursor: pointer;
+      border: 0;
+      outline: 0;
+      display: inline-flex;
+      align-items:center;
+      justify-content: center;
+
+    }
+
+    .started:hover {
+      background: #f0f0f0;
+      transform: translateY(-2px);
+      color: #212529;
+    }
+
+    .fancy-btn {
+      position: relative;
+      gap: 10px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+      transition: all 0.4s ease;
+      overflow: hidden;
+    }
+
+    .fancy-btn i {
+      font-size: 18px;
+      transition: transform 0.4s ease;
+    }
+
+    .fancy-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+              120deg,
+              transparent,
+              rgba(255, 255, 255, 0.3),
+              transparent
+      );
+      transform: translateX(-100%);
+      transition: transform 0.6s ease;
+    }
+
+    .fancy-btn:hover::before {
+      transform: translateX(100%);
+    }
+
+    .fancy-btn:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 15px 35px rgba(102, 126, 234, 0.6);
+    }
+
+    .fancy-btn:hover i {
+      transform: translateX(6px);
+    }
+
+
+    .btn-auth {
+      background: #fff;
+      color: #212529;
+      padding: 8px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-left: 10px;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-auth:hover {
+      background: #f0f0f0;
+      transform: translateY(-2px);
+      color: #212529;
+    }
+
+    .btn-register {
+      background: #667eea;
+      color: #fff;
+    }
+
+    .btn-register:hover {
+      background: #764ba2;
+      color: #fff;
+    }
+
+    /* Hero Section */
+    .hero {
+      width: 100%;
+      min-height: 100vh;
+      background: linear-gradient(rgba(8, 0, 58, 0.7), rgba(8, 0, 58, 0.7)),
+      url('/images/hero.png');
+      background-size: cover;
+      background-position: center;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .hero-text {
+      max-width: 800px;
+      padding: 0 20px;
+    }
+
+    .hero-text h1 {
+      font-size: 60px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .hero-text p {
+      max-width: 700px;
+      margin: 10px auto 30px;
+      line-height: 1.6;
+      font-size: 18px;
+    }
+
+    /* Title Component */
+    .title {
+      text-align: center;
+      color: #212EA0;
+      font-size: 15px;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin: 70px 0 30px;
+    }
+
+    .title h2 {
+      font-size: 32px;
+      color: #000F38;
+      margin-top: 5px;
+      text-transform: none;
+    }
+
+    /* Programs Section */
+    .programs {
+      margin: 80px auto;
+      width: 90%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .program {
+      flex-basis: 31%;
+      position: relative;
+      overflow: hidden;
+      border-radius: 10px;
+    }
+
+    .program img {
+      width: 100%;
+      border-radius: 10px;
+      display: block;
+      height: 300px;
+      object-fit: cover;
+    }
+
+    .caption {
+      border-radius: 10px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      background: rgba(0, 15, 152, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: #fff;
+      cursor: pointer;
+      opacity: 0;
+      padding-top: 70%;
+      transition: 0.4s;
+    }
+
+    .caption img {
+      width: 60px;
+      margin-bottom: 10px;
+      height: auto;
+    }
+
+    .caption p {
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .program:hover .caption {
+      opacity: 1;
+      padding-top: 0;
+    }
+
+
+    /* Services Section */
+    .services-section {
+      padding: 100px 0;
+      background: #ffffff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Subtle background decoration */
+    .services-section::before {
+      content: '';
+      position: absolute;
+      top: -200px; right: -200px;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(102,126,234,0.05) 0%, transparent 65%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .services-section::after {
+      content: '';
+      position: absolute;
+      bottom: -150px; left: -150px;
+      width: 450px; height: 450px;
+      background: radial-gradient(circle, rgba(17,153,142,0.05) 0%, transparent 65%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .services-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Header */
+    .services-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .services-label {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      padding: 6px 18px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+
+    .services-header h2 {
+      font-size: 40px;
+      font-weight: 800;
+      color: #212529;
+      margin-bottom: 14px;
+    }
+
+    .services-header p {
+      font-size: 16px;
+      color: #6c757d;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* Cards Grid */
+    .services-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      margin-bottom: 60px;
+    }
+
+    /* Service Card */
+    .service-card {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 40px 36px;
+      border: 1.5px solid #f0f0f0;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.05);
+    }
+
+    /* Decorative background blob inside card */
+    .service-card-bg {
+      position: absolute;
+      top: -80px; right: -80px;
+      width: 220px; height: 220px;
+      background: radial-gradient(circle, rgba(102,126,234,0.07) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      transition: transform 0.5s ease;
+    }
+
+    .qs-bg {
+      background: radial-gradient(circle, rgba(17,153,142,0.07) 0%, transparent 70%);
+    }
+
+    .service-card:hover .service-card-bg {
+      transform: scale(1.4);
+    }
+
+    /* Top border accent on hover */
+    .service-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      border-radius: 24px 24px 0 0;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .it-card::before {
+      background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+
+    .qs-card::before {
+      background: linear-gradient(90deg, #11998e, #38ef7d);
+    }
+
+    .service-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.1);
+      border-color: transparent;
+    }
+
+    .service-card:hover::before {
+      opacity: 1;
+    }
+
+    /* Top row */
+    .service-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    /* Icon */
+    .service-icon-wrap {
+      width: 64px; height: 64px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      color: #ffffff;
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .service-card:hover .service-icon-wrap {
+      transform: rotate(-8deg) scale(1.1);
+    }
+
+    .it-icon  { background: linear-gradient(135deg, #667eea, #764ba2); }
+    .qs-icon  { background: linear-gradient(135deg, #11998e, #38ef7d); }
+
+    /* Tag */
+    .service-tag {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 20px;
+      background: rgba(102,126,234,0.08);
+      color: #667eea;
+    }
+
+    .qs-tag {
+      background: rgba(17,153,142,0.08);
+      color: #11998e;
+    }
+
+    /* Title */
+    .service-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: #212529;
+      margin-bottom: 12px;
+    }
+
+    /* Description */
+    .service-desc {
+      font-size: 14.5px;
+      color: #6c757d;
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+
+    /* List */
+    .service-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 30px;
+      border-top: 1px solid #f0f0f0;
+      padding-top: 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .service-list li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13.5px;
+      color: #495057;
+      font-weight: 500;
+    }
+
+    .scheck {
+      width: 22px; height: 22px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .it-check { background: rgba(102,126,234,0.1); color: #667eea; }
+    .qs-check { background: rgba(17,153,142,0.1); color: #11998e; }
+
+    /* Button */
+    .service-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 28px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .it-btn {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #ffffff;
+      box-shadow: 0 6px 20px rgba(102,126,234,0.3);
+    }
+
+    .it-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(102,126,234,0.5);
+      color: #ffffff;
+    }
+
+    .qs-btn {
+      background: linear-gradient(135deg, #11998e, #38ef7d);
+      color: #ffffff;
+      box-shadow: 0 6px 20px rgba(17,153,142,0.3);
+    }
+
+    .qs-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(17,153,142,0.5);
+      color: #ffffff;
+    }
+
+    .service-btn i {
+      transition: transform 0.3s ease;
+    }
+
+    .service-btn:hover i {
+      transform: translateX(5px);
+    }
+
+    /* Stats Bar */
+    .services-stats {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      background: linear-gradient(135deg, #0f0c29, #302b63);
+      border-radius: 20px;
+      padding: 32px 40px;
+      flex-wrap: wrap;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .stat-num {
+      font-size: 34px;
+      font-weight: 800;
+      color: #ffffff;
+      background: linear-gradient(135deg, #667eea, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-txt {
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .stat-divider {
+      width: 1px;
+      height: 50px;
+      background: rgba(255,255,255,0.1);
+      flex-shrink: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .services-grid { grid-template-columns: 1fr; }
+      .service-list  { grid-template-columns: 1fr; }
+      .services-stats { gap: 20px; }
+      .stat-divider { display: none; }
+    }
+
+    @media (max-width: 576px) {
+      .services-header h2 { font-size: 28px; }
+      .service-card { padding: 28px 22px; }
+      .services-stats { padding: 24px 20px; }
+      .stat-num { font-size: 26px; }
+    }
+
+    /* Step Cards */
     .step-card {
       border: none;
       text-align: center;
       padding: 2rem 1rem;
+      background: #fff;
+      transition: all 0.3s ease;
     }
+
+    .step-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .step-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+
+    /* Testimonials Section */
+    .testimonials-section {
+      padding: 100px 0;
+      background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Background orbs */
+    .testi-bg-orb {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .testi-orb-1 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(102,126,234,0.12) 0%, transparent 70%);
+      top: -150px; right: -100px;
+    }
+
+    .testi-orb-2 {
+      width: 350px; height: 350px;
+      background: radial-gradient(circle, rgba(118,75,162,0.1) 0%, transparent 70%);
+      bottom: -100px; left: -80px;
+    }
+
+    /* Header */
+    .testi-header {
+      text-align: center;
+      margin-bottom: 60px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .testi-label {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      padding: 6px 18px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+
+    .testi-header h2 {
+      font-size: 40px;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 12px;
+    }
+
+    .testi-header p {
+      font-size: 16px;
+      color: rgba(255,255,255,0.6);
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* Container */
+    .testimonials-container {
+      position: relative;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 70px;
+      z-index: 2;
+    }
+
+    /* Slider */
+    .testimonial-slider { overflow: hidden; }
+
+    .slider-wrapper {
+      display: flex;
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .testimonial-slide {
+      min-width: 100%;
+      flex-shrink: 0;
+      padding: 0 10px;
+    }
+
+    /* Card */
+    .testimonial-card {
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 24px;
+      padding: 44px 40px 36px;
+      position: relative;
+      transition: all 0.4s ease;
+      overflow: hidden;
+    }
+
+    .testimonial-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #667eea, #764ba2, #f5576c);
+      border-radius: 24px 24px 0 0;
+    }
+
+    .testimonial-card:hover {
+      background: rgba(255,255,255,0.09);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+
+    /* Quote icon */
+    .testi-quote-icon {
+      font-size: 52px;
+      line-height: 1;
+      color: rgba(102,126,234,0.4);
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    /* Text */
+    .testimonial-text {
+      font-size: 16px;
+      line-height: 1.8;
+      color: rgba(255,255,255,0.85);
+      font-style: italic;
+      margin-bottom: 30px;
+    }
+
+    /* Footer */
+    .testimonial-footer {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .testimonial-avatar {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      border: 3px solid rgba(102,126,234,0.6);
+      flex-shrink: 0;
+      object-fit: cover;
+    }
+
+    .testimonial-info {
+      flex: 1;
+    }
+
+    .testimonial-info h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+
+    .testimonial-info .rating {
+      color: #ffc107;
+      font-size: 14px;
+      letter-spacing: 2px;
+    }
+
+    .testimonial-date {
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+      margin: 0;
+      margin-left: auto;
+      white-space: nowrap;
+    }
+
+    /* Slider Buttons */
+    .slider-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10px);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.15);
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      z-index: 10;
+    }
+
+    .slider-btn:hover {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-color: transparent;
+      transform: translateY(-50%) scale(1.1);
+      box-shadow: 0 8px 20px rgba(102,126,234,0.5);
+    }
+
+    .slider-btn.prev { left: 0; }
+    .slider-btn.next { right: 0; }
+
+    /* Average Rating */
+    .average-rating {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 16px;
+      color: rgba(255,255,255,0.7);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .average-rating i {
+      color: #ffc107;
+    }
+
+    .average-rating .stars {
+      color: #ffc107;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .testimonials-container { padding: 0 50px; }
+      .testimonial-card { padding: 30px 24px; }
+      .testi-header h2 { font-size: 28px; }
+      .testimonial-text { font-size: 14px; }
+      .testimonial-footer { flex-wrap: wrap; }
+      .testimonial-date { margin-left: 0; }
+    }
+
+    @media (max-width: 480px) {
+      .testimonials-container { padding: 0 40px; }
+      .slider-btn { width: 36px; height: 36px; font-size: 14px; }
+    }
+
+    /* Contact Section */
+    .contact-section {
+      padding: 100px 0;
+      background: linear-gradient(135deg, #f0f4ff 0%, #fafbff 50%, #f0f4ff 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Background orbs */
+    .contact-bg-orb {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .contact-orb-1 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(102,126,234,0.1) 0%, transparent 70%);
+      top: -200px; left: -150px;
+    }
+
+    .contact-orb-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(118,75,162,0.08) 0%, transparent 70%);
+      bottom: -150px; right: -100px;
+    }
+
+    .contact-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Header */
+    .contact-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .contact-label {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      padding: 6px 18px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+
+    .contact-header h2 {
+      font-size: 40px;
+      font-weight: 800;
+      color: #212529;
+      margin-bottom: 12px;
+    }
+
+    .contact-header p {
+      font-size: 16px;
+      color: #6c757d;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* Grid */
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 30px;
+      align-items: start;
+    }
+
+    /* Info Panel */
+    .contact-info-panel {
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      border-radius: 24px;
+      padding: 44px 36px;
+      color: #ffffff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .contact-info-panel::before {
+      content: '';
+      position: absolute;
+      top: -80px; right: -80px;
+      width: 200px; height: 200px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 50%;
+    }
+
+    .contact-info-panel::after {
+      content: '';
+      position: absolute;
+      bottom: -60px; left: -60px;
+      width: 160px; height: 160px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 50%;
+    }
+
+    .info-intro {
+      margin-bottom: 36px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .info-intro h3 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #ffffff;
+    }
+
+    .info-intro p {
+      font-size: 14px;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.7;
+    }
+
+    .info-items {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-bottom: 36px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .info-icon {
+      width: 46px; height: 46px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      transition: transform 0.3s ease;
+    }
+
+    .info-item:hover .info-icon {
+      transform: scale(1.1) rotate(5deg);
+    }
+
+    .email-icon  { background: linear-gradient(135deg, #f093fb, #f5576c); }
+    .phone-icon  { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+    .globe-icon  { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+    .clock-icon  { background: linear-gradient(135deg, #fa709a, #fee140); }
+
+    .info-detail {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .info-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+    }
+
+    .info-value {
+      font-size: 14px;
+      font-weight: 500;
+      color: #ffffff;
+    }
+
+    /* Social */
+    .contact-social {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .contact-social span {
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .csocial-btn {
+      width: 38px; height: 38px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 16px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .csocial-btn:hover {
+      background: rgba(255,255,255,0.2);
+      transform: translateY(-3px);
+      color: #ffffff;
+    }
+
+    .csocial-btn.whatsapp:hover {
+      background: #25D366;
+      border-color: #25D366;
+    }
+
+    /* Form Panel */
+    .contact-form-panel {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 44px 40px;
+      box-shadow: 0 10px 50px rgba(102,126,234,0.1);
+      border: 1px solid rgba(102,126,234,0.08);
+    }
+
+    .contact-form-panel h3 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #212529;
+      margin-bottom: 28px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 8px;
+      letter-spacing: 0.3px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #adb5bd;
+      font-size: 15px;
+      pointer-events: none;
+      transition: color 0.3s ease;
+    }
+
+    .input-wrap.textarea-wrap i {
+      top: 16px;
+      transform: none;
+    }
+
+    .input-wrap input,
+    .input-wrap textarea {
+      width: 100%;
+      padding: 12px 16px 12px 42px;
+      border: 1.5px solid #e9ecef;
+      border-radius: 12px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #212529;
+      background: #f8f9ff;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .input-wrap input:focus,
+    .input-wrap textarea:focus {
+      border-color: #667eea;
+      background: #ffffff;
+      box-shadow: 0 0 0 4px rgba(102,126,234,0.1);
+    }
+
+    .input-wrap input:focus ~ i,
+    .input-wrap textarea:focus ~ i,
+    .input-wrap:focus-within i {
+      color: #667eea;
+    }
+
+    .input-wrap textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    /* Submit Button */
+    .contact-submit-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 36px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #ffffff;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 25px rgba(102,126,234,0.35);
+      width: 100%;
+      justify-content: center;
+    }
+
+    .contact-submit-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 35px rgba(102,126,234,0.5);
+    }
+
+    .contact-submit-btn:active {
+      transform: translateY(0);
+    }
+
+    .contact-submit-btn i {
+      transition: transform 0.3s ease;
+    }
+
+    .contact-submit-btn:hover i {
+      transform: translateX(4px) rotate(15deg);
+    }
+
+    .contact-submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Form message */
+    .form-message {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 10px;
+      display: none;
+      font-size: 14px;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .form-message.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      display: block;
+    }
+
+    .form-message.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      display: block;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .contact-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      .contact-form-panel,
+      .contact-info-panel {
+        padding: 30px 20px;
+      }
+      .contact-header h2 { font-size: 30px; }
+    }
+
+    /* Footer */
+    footer {
+      background: #212529;
+      color: #fff;
+      padding: 40px 0;
+      text-align: center;
+    }
+
+    footer p {
+      margin: 5px 0;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 992px) {
+      .hero-text h1 {
+        font-size: 40px;
+      }
+
+      .contact-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .testimonials-container {
+        padding: 0 40px;
+      }
+
+      .programs {
+        flex-direction: column;
+      }
+
+      .program {
+        width: 100%;
+        margin-bottom: 30px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .hero {
+        padding: 20px;
+      }
+
+      .hero-text h1 {
+        font-size: 30px;
+      }
+
+      .hero-text p {
+        font-size: 16px;
+      }
+
+      .section-title h2 {
+        font-size: 28px;
+      }
+
+      .testimonials-container {
+        padding: 0 20px;
+      }
+
+      .slider-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+      }
+
+      .slider-btn.prev {
+        left: 10px;
+      }
+
+      .slider-btn.next {
+        right: 10px;
+      }
+
+      .title h2 {
+        font-size: 26px;
+      }
+    }
+
+    /* Pricing Section */
+    .pricing-section {
+      padding: 80px 0;
+      background: linear-gradient(180deg, #ffffff 0%, #f0f4ff 100%);
+    }
+
+    .pricing-subtitle {
+      color: #6c757d;
+      font-size: 16px;
+      max-width: 600px;
+      margin: 10px auto 0;
+      line-height: 1.6;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+      align-items: center;
+      margin-top: 50px;
+    }
+
+    .pricing-card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 40px 30px;
+      border: 1px solid #e0e7ff;
+      position: relative;
+      transition: all 0.4s ease;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    .pricing-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 20px 50px rgba(102, 126, 234, 0.2);
+      border-color: #667eea;
+    }
+
+    .pricing-card.featured {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      color: #ffffff;
+      transform: scale(1.05);
+      border: none;
+      box-shadow: 0 20px 60px rgba(15, 52, 96, 0.5);
+      z-index: 2;
+    }
+
+    .pricing-card.featured:hover {
+      transform: scale(1.05) translateY(-10px);
+      box-shadow: 0 30px 70px rgba(15, 52, 96, 0.6);
+    }
+
+    .pricing-badge {
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      padding: 6px 20px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+
+    .pricing-icon {
+      width: 55px;
+      height: 55px;
+      background: rgba(102, 126, 234, 0.1);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: #667eea;
+      margin-bottom: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .pricing-card.featured .pricing-icon {
+      background: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+    }
+
+    .pricing-card:hover .pricing-icon {
+      transform: rotate(10deg) scale(1.1);
+    }
+
+    .pricing-name {
+      font-size: 22px;
+      font-weight: 700;
+      color: #212529;
+      margin-bottom: 6px;
+    }
+
+    .pricing-card.featured .pricing-name {
+      color: #ffffff;
+    }
+
+    .pricing-desc {
+      font-size: 13px;
+      color: #6c757d;
+      margin-bottom: 20px;
+    }
+
+    .pricing-card.featured .pricing-desc {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .pricing-price {
+      font-size: 42px;
+      font-weight: 800;
+      color: #212529;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .pricing-card.featured .pricing-price {
+      color: #ffffff;
+    }
+
+    .pricing-price .currency {
+      font-size: 22px;
+      font-weight: 600;
+      vertical-align: top;
+      margin-top: 8px;
+      display: inline-block;
+    }
+
+    .pricing-price .plus {
+      font-size: 28px;
+    }
+
+    .pricing-price .per-person {
+      font-size: 14px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.7);
+      display: block;
+      margin-top: 2px;
+    }
+
+    .pricing-period {
+      font-size: 12px;
+      color: #6c757d;
+      margin-bottom: 24px;
+      font-style: italic;
+    }
+
+    .pricing-card.featured .pricing-period {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .pricing-features {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 30px;
+      border-top: 1px solid rgba(0,0,0,0.07);
+      padding-top: 20px;
+    }
+
+    .pricing-card.featured .pricing-features {
+      border-top-color: rgba(255,255,255,0.15);
+    }
+
+    .pricing-features li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: #495057;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .pricing-card.featured .pricing-features li {
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .pricing-features li i {
+      color: #667eea;
+      font-size: 16px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .pricing-card.featured .pricing-features li i {
+      color: #a8c0ff;
+    }
+
+    .pricing-btn {
+      display: block;
+      text-align: center;
+      padding: 14px 20px;
+      background: transparent;
+      border: 2px solid #667eea;
+      border-radius: 10px;
+      color: #667eea;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .pricing-btn:hover {
+      background: #667eea;
+      color: #ffffff;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .pricing-btn.featured-btn {
+      background: #ffffff;
+      border-color: #ffffff;
+      color: #1a1a2e;
+    }
+
+    .pricing-btn.featured-btn:hover {
+      background: transparent;
+      color: #ffffff;
+      box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .pricing-grid {
+        grid-template-columns: 1fr;
+        max-width: 450px;
+        margin: 50px auto 0;
+      }
+
+      .pricing-card.featured {
+        transform: scale(1);
+      }
+
+      .pricing-card.featured:hover {
+        transform: translateY(-10px);
+      }
+    }
+
+
+    .how-it-works-section {
+      padding: 100px 0;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Decorative background blob */
+    .hiw-bg-shape {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(102,126,234,0.15) 0%, transparent 70%);
+      top: -150px;
+      right: -150px;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .how-it-works-section::after {
+      content: '';
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(118,75,162,0.12) 0%, transparent 70%);
+      bottom: -100px;
+      left: -100px;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    /* Header */
+    .hiw-header {
+      text-align: center;
+      margin-bottom: 70px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hiw-label {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      padding: 6px 18px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+
+    .hiw-header h2 {
+      font-size: 42px;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 14px;
+    }
+
+    .hiw-header p {
+      font-size: 16px;
+      color: rgba(255,255,255,0.6);
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* Steps Grid */
+    .hiw-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      position: relative;
+      z-index: 2;
+      margin-bottom: 60px;
+    }
+
+    /* Each Step */
+    .hiw-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      padding: 0 10px;
+    }
+
+    /* Connector line between steps */
+    .hiw-connector {
+      position: absolute;
+      top: 40px;
+      left: 50%;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(102,126,234,0.6), rgba(118,75,162,0.6));
+      z-index: 0;
+    }
+
+    /* Icon wrapper */
+    .hiw-icon-wrap {
+      position: relative;
+      margin-bottom: 24px;
+      z-index: 1;
+    }
+
+    .hiw-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      color: #ffffff;
+      position: relative;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .hiw-step:hover .hiw-icon {
+      transform: translateY(-8px) scale(1.08);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+
+    /* Icon gradient colors */
+    .bg-step-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .bg-step-2 { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+    .bg-step-3 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .bg-step-4 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+
+    /* Step number badge */
+    .hiw-step-number {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      width: 26px;
+      height: 26px;
+      background: #ffffff;
+      border-radius: 50%;
+      font-size: 10px;
+      font-weight: 800;
+      color: #302b63;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    /* Step content */
+    .hiw-content h4 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 10px;
+    }
+
+    .hiw-content p {
+      font-size: 13.5px;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.6;
+      max-width: 200px;
+      margin: 0 auto;
+    }
+
+    /* CTA at bottom */
+    .hiw-cta {
+      text-align: center;
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .hiw-cta p {
+      color: rgba(255,255,255,0.7);
+      font-size: 16px;
+      margin: 0;
+    }
+
+    .hiw-cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 32px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #ffffff;
+      border-radius: 50px;
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 25px rgba(102,126,234,0.4);
+    }
+
+    .hiw-cta-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 35px rgba(102,126,234,0.6);
+      color: #ffffff;
+    }
+
+    .hiw-cta-btn i {
+      transition: transform 0.3s ease;
+    }
+
+    .hiw-cta-btn:hover i {
+      transform: translateX(5px);
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .hiw-steps {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 40px;
+      }
+      .hiw-connector { display: none; }
+    }
+
+    @media (max-width: 576px) {
+      .hiw-steps {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+      .hiw-header h2 { font-size: 30px; }
+    }
+
+
   </style>
 </head>
 <body>
 <!-- Navigation -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
   <div class="container">
     <a class="navbar-brand" href="/">
       <i class="bi bi-journal-text"></i> Assignment Service
@@ -45,165 +1813,1313 @@
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav me-auto">
         <li class="nav-item">
-          <a class="nav-link active" href="/">Home</a>
+          <a class="nav-link active" href="#hero">Home</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/about">About</a>
+          <a class="nav-link" href="#services">Services</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/contact">Contact</a>
+          <a class="nav-link" href="#how-it-works">How It Works</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#testimonials">Testimonials</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#contact">Contact</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#pricing">Pricing</a>
         </li>
       </ul>
       <ul class="navbar-nav">
         <li class="nav-item">
-          <a class="nav-link" href="/login">Login</a>
+          <a class="btn-auth" href="/login">Login</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/register">Register</a>
+          <a class="btn-auth btn-register" href="/register">Register</a>
         </li>
+
       </ul>
     </div>
   </div>
 </nav>
 
 <!-- Hero Section -->
-<section class="hero-section">
-  <div class="container">
-    <div class="row align-items-center">
-      <div class="col-lg-6">
-        <h1 class="display-4 fw-bold mb-4">Professional Assignment Help</h1>
-        <p class="lead mb-4">
-          Get expert help with your IT and Quantity Surveying assignments.
-          Our team of professionals is here to assist you in achieving academic success.
-        </p>
-        <div class="d-flex gap-3">
-          <a href="/register" class="btn btn-light btn-lg">
-            <i class="bi bi-person-plus"></i> Get Started
-          </a>
-          <a href="/about" class="btn btn-outline-light btn-lg">
-            Learn More
-          </a>
-        </div>
-      </div>
-      <div class="col-lg-6 text-center">
-        <i class="bi bi-journal-text display-1 text-light opacity-75"></i>
-      </div>
+<section class="hero" id="hero">
+  <div class="hero-text">
+    <h1>Professional Assignment Help for IT & QS Students</h1>
+    <p>We are committed to providing top-quality assignment assistance and helping students achieve academic excellence. Our experienced team specializes in IT programming and Quantity Surveying projects, ensuring timely delivery and exceptional results.</p>
+    <a href="/register" class="started fancy-btn">
+      Get Started Today
+      <i class="bi bi-chevron-right"></i>
+    </a>
+
+  </div>
+</section>
+
+<!-- Programs Section -->
+<div class="title" id="programs">
+  <p>Our Services</p>
+  <h2>What We Offer</h2>
+</div>
+
+<section class="programs container">
+  <div class="program">
+    <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80" alt="IT Assignments">
+    <div class="caption">
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/laptop.png" alt="IT Icon">
+      <p>IT Assignments</p>
+    </div>
+  </div>
+  <div class="program">
+    <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80" alt="Quantity Surveying">
+    <div class="caption">
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/calculator.png" alt="QS Icon">
+      <p>QS Assignments</p>
+    </div>
+  </div>
+  <div class="program">
+    <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80" alt="Expert Support">
+    <div class="caption">
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/online-support.png" alt="Support Icon">
+      <p>24/7 Support</p>
     </div>
   </div>
 </section>
+
 
 <!-- Services Section -->
-<section class="py-5">
-  <div class="container">
-    <div class="row text-center mb-5">
-      <div class="col">
-        <h2 class="display-5 fw-bold">Our Services</h2>
-        <p class="lead text-muted">We specialize in two main areas</p>
+<section class="services-section" id="services">
+
+  <div class="services-wrapper">
+
+    <div class="services-header">
+      <span class="services-label">WHAT WE OFFER</span>
+      <h2>Our Specialized Services</h2>
+      <p>Expert help in two main academic areas — delivered by professionals who know your field</p>
+    </div>
+
+    <div class="services-grid">
+
+      <!-- Card 1: IT Assignments -->
+      <div class="service-card it-card">
+        <div class="service-card-bg"></div>
+
+        <div class="service-top">
+          <div class="service-icon-wrap it-icon">
+            <i class="bi bi-laptop"></i>
+          </div>
+          <div class="service-tag">Technology</div>
+        </div>
+
+        <h3 class="service-title">IT Assignments</h3>
+        <p class="service-desc">
+          From programming challenges to complex software projects, we provide
+          comprehensive assistance across all IT disciplines. Our experts ensure
+          your code is clean, efficient, and well-documented.
+        </p>
+
+        <ul class="service-list">
+          <li><span class="scheck it-check"><i class="bi bi-check2"></i></span> Java, Python, C++, JavaScript</li>
+          <li><span class="scheck it-check"><i class="bi bi-check2"></i></span> Web Development (HTML, CSS, React)</li>
+          <li><span class="scheck it-check"><i class="bi bi-check2"></i></span> Database Design & SQL</li>
+          <li><span class="scheck it-check"><i class="bi bi-check2"></i></span> Mobile App Development</li>
+          <li><span class="scheck it-check"><i class="bi bi-check2"></i></span> Data Structures & Algorithms</li>
+          <li><span class="scheck it-check"><i class="bi bi-check2"></i></span> Software Engineering Projects</li>
+        </ul>
+
+        <a href="/register" class="service-btn it-btn">
+          Get IT Help <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+
+      <!-- Card 2: QS Assignments -->
+      <div class="service-card qs-card">
+        <div class="service-card-bg qs-bg"></div>
+
+        <div class="service-top">
+          <div class="service-icon-wrap qs-icon">
+            <i class="bi bi-calculator"></i>
+          </div>
+          <div class="service-tag qs-tag">Construction</div>
+        </div>
+
+        <h3 class="service-title">Quantity Surveying</h3>
+        <p class="service-desc">
+          Professional assistance with construction cost management, project planning,
+          and all aspects of quantity surveying. Get accurate calculations and
+          detailed reports that meet industry standards.
+        </p>
+
+        <ul class="service-list">
+          <li><span class="scheck qs-check"><i class="bi bi-check2"></i></span> Cost Estimation & Budgeting</li>
+          <li><span class="scheck qs-check"><i class="bi bi-check2"></i></span> Construction Management</li>
+          <li><span class="scheck qs-check"><i class="bi bi-check2"></i></span> Project Planning & Scheduling</li>
+          <li><span class="scheck qs-check"><i class="bi bi-check2"></i></span> Quantity Take-off & Measurement</li>
+          <li><span class="scheck qs-check"><i class="bi bi-check2"></i></span> Contract Administration</li>
+          <li><span class="scheck qs-check"><i class="bi bi-check2"></i></span> Bill of Quantities (BOQ)</li>
+        </ul>
+
+        <a href="/register" class="service-btn qs-btn">
+          Get QS Help <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Bottom Stats Bar -->
+    <div class="services-stats">
+      <div class="stat-item">
+        <span class="stat-num">500+</span>
+        <span class="stat-txt">Projects Completed</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-num">98%</span>
+        <span class="stat-txt">Satisfaction Rate</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-num">24/7</span>
+        <span class="stat-txt">Support Available</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-num">100%</span>
+        <span class="stat-txt">On-time Delivery</span>
       </div>
     </div>
-    <div class="row g-4">
-      <div class="col-md-6">
-        <div class="card assignment-card">
-          <div class="card-body text-center p-4">
-            <i class="bi bi-laptop display-4 text-primary mb-3"></i>
-            <h3 class="card-title">IT Assignments</h3>
-            <p class="card-text">
-              Programming, Web Development, Database Design,
-              Software Engineering, Networking, and more.
-            </p>
-            <ul class="list-unstyled text-start">
-              <li><i class="bi bi-check text-success"></i> Java, Python, C++</li>
-              <li><i class="bi bi-check text-success"></i> Web Development</li>
-              <li><i class="bi bi-check text-success"></i> Database Projects</li>
-              <li><i class="bi bi-check text-success"></i> Mobile Apps</li>
-            </ul>
+
+  </div>
+</section>
+
+
+<!-- How It Works -->
+<section class="how-it-works-section" id="how-it-works">
+  <div class="hiw-bg-shape"></div>
+  <div class="container">
+
+    <div class="hiw-header">
+      <span class="hiw-label">SIMPLE PROCESS</span>
+      <h2>How It Works</h2>
+      <p>Four easy steps to get your assignment done professionally and on time</p>
+    </div>
+
+    <div class="hiw-steps">
+
+      <!-- Step 1 -->
+      <div class="hiw-step" data-step="1">
+        <div class="hiw-connector"></div>
+        <div class="hiw-icon-wrap">
+          <div class="hiw-icon bg-step-1">
+            <i class="bi bi-person-plus-fill"></i>
           </div>
+          <div class="hiw-step-number">01</div>
+        </div>
+        <div class="hiw-content">
+          <h4>Register Account</h4>
+          <p>Create your free account in minutes. Provide basic information and you're ready to start.</p>
         </div>
       </div>
-      <div class="col-md-6">
-        <div class="card assignment-card">
-          <div class="card-body text-center p-4">
-            <i class="bi bi-calculator display-4 text-success mb-3"></i>
-            <h3 class="card-title">QS Assignments</h3>
-            <p class="card-text">
-              Quantity Surveying, Construction Management,
-              Cost Estimation, and related assignments.
-            </p>
-            <ul class="list-unstyled text-start">
-              <li><i class="bi bi-check text-success"></i> Cost Estimation</li>
-              <li><i class="bi bi-check text-success"></i> Construction Management</li>
-              <li><i class="bi bi-check text-success"></i> Project Planning</li>
-              <li><i class="bi bi-check text-success"></i> Quantity Take-off</li>
-            </ul>
+
+      <!-- Step 2 -->
+      <div class="hiw-step" data-step="2">
+        <div class="hiw-connector"></div>
+        <div class="hiw-icon-wrap">
+          <div class="hiw-icon bg-step-2">
+            <i class="bi bi-journal-text"></i>
           </div>
+          <div class="hiw-step-number">02</div>
+        </div>
+        <div class="hiw-content">
+          <h4>Submit Details</h4>
+          <p>Share your assignment requirements, deadline, and any specific instructions or files.</p>
         </div>
       </div>
+
+      <!-- Step 3 -->
+      <div class="hiw-step" data-step="3">
+        <div class="hiw-connector"></div>
+        <div class="hiw-icon-wrap">
+          <div class="hiw-icon bg-step-3">
+            <i class="bi bi-patch-check-fill"></i>
+          </div>
+          <div class="hiw-step-number">03</div>
+        </div>
+        <div class="hiw-content">
+          <h4>Get Quote & Approve</h4>
+          <p>Receive a fair quote based on your requirements. Review and approve to proceed.</p>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="hiw-step" data-step="4">
+        <div class="hiw-icon-wrap">
+          <div class="hiw-icon bg-step-4">
+            <i class="bi bi-rocket-takeoff-fill"></i>
+          </div>
+          <div class="hiw-step-number">04</div>
+        </div>
+        <div class="hiw-content">
+          <h4>Pay & Receive</h4>
+          <p>Complete secure payment and our experts start working. Get your assignment delivered on time.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom CTA -->
+    <div class="hiw-cta">
+      <p>Ready to get started?</p>
+      <a href="/register" class="hiw-cta-btn">
+        Start Now <i class="bi bi-arrow-right"></i>
+      </a>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- Pricing Section -->
+<section class="pricing-section" id="pricing">
+  <div class="container">
+    <div class="section-title">
+      <p>PRICING</p>
+      <h2>Popular Packages</h2>
+      <p class="pricing-subtitle">Transparent pricing for exceptional work. Every project is unique, but these packages give you a starting point.</p>
+    </div>
+
+    <div class="pricing-grid">
+
+      <!-- Card 1: Basic -->
+      <div class="pricing-card">
+        <div class="pricing-icon">
+          <i class="bi bi-lightning-fill"></i>
+        </div>
+        <h3 class="pricing-name">Basic Assignment</h3>
+        <p class="pricing-desc">Perfect for simple tasks & small assignments</p>
+        <div class="pricing-price">
+          <span class="currency">Rs</span>1,500
+        </div>
+        <p class="pricing-period">one-time</p>
+        <ul class="pricing-features">
+          <li><i class="bi bi-check2"></i> Single subject assignment</li>
+          <li><i class="bi bi-check2"></i> Up to 10 pages</li>
+          <li><i class="bi bi-check2"></i> Basic documentation</li>
+          <li><i class="bi bi-check2"></i> 1 revision included</li>
+          <li><i class="bi bi-check2"></i> 3-5 day delivery</li>
+        </ul>
+        <a href="/login" class="pricing-btn">GET STARTED</a>
+      </div>
+
+      <!-- Card 2: University Project (Featured) -->
+      <div class="pricing-card featured">
+        <div class="pricing-badge">Most Popular</div>
+        <div class="pricing-icon">
+          <i class="bi bi-stars"></i>
+        </div>
+        <h3 class="pricing-name">University Project</h3>
+        <p class="pricing-desc">For businesses ready to stand out</p>
+        <div class="pricing-price">
+          <span class="currency">Rs</span>3,500
+          <span class="per-person">Per Person</span>
+        </div>
+        <p class="pricing-period">one-time</p>
+        <ul class="pricing-features">
+          <li><i class="bi bi-check2"></i> Phase-based development with digital agreement</li>
+          <li><i class="bi bi-check2"></i> Customized project according to university guidelines</li>
+          <li><i class="bi bi-check2"></i> Complete documentation and source code</li>
+          <li><i class="bi bi-check2"></i> Regular progress updates and reviews</li>
+        </ul>
+        <a href="/login" class="pricing-btn featured-btn">GET STARTED</a>
+      </div>
+
+      <!-- Card 3: Custom Website -->
+      <div class="pricing-card">
+        <div class="pricing-icon">
+          <i class="bi bi-trophy-fill"></i>
+        </div>
+        <h3 class="pricing-name">Custom Website</h3>
+        <p class="pricing-desc">Complex applications & systems</p>
+        <div class="pricing-price">
+          <span class="currency">Rs</span>15,000<span class="plus">+</span>
+        </div>
+        <p class="pricing-period">project-based</p>
+        <ul class="pricing-features">
+          <li><i class="bi bi-check2"></i> Fully responsive and modern UI design</li>
+          <li><i class="bi bi-check2"></i> Customized features based on requirements</li>
+          <li><i class="bi bi-check2"></i> Secure and optimized performance</li>
+          <li><i class="bi bi-check2"></i> Cross-browser and device compatibility</li>
+          <li><i class="bi bi-check2"></i> Deployment and basic maintenance support</li>
+          <li><i class="bi bi-check2"></i> SEO-friendly structure for better visibility</li>
+        </ul>
+        <a href="/login" class="pricing-btn">GET STARTED</a>
+      </div>
+
     </div>
   </div>
 </section>
 
-<!-- How It Works -->
-<section class="py-5 bg-light">
+
+<!-- Testimonials Section -->
+<section class="testimonials-section" id="testimonials">
+  <div class="testi-bg-orb testi-orb-1"></div>
+  <div class="testi-bg-orb testi-orb-2"></div>
+
   <div class="container">
-    <div class="row text-center mb-5">
-      <div class="col">
-        <h2 class="display-5 fw-bold">How It Works</h2>
-      </div>
+
+    <div class="testi-header">
+      <span class="testi-label">TESTIMONIALS</span>
+      <h2>What Our Clients Say</h2>
+      <p>Real feedback from students we've helped achieve academic success</p>
     </div>
-    <div class="row g-4">
-      <div class="col-md-3 text-center">
-        <div class="card step-card">
-          <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-               style="width: 80px; height: 80px;">
-            <i class="bi bi-person-plus display-6"></i>
+
+    <div class="testimonials-container">
+      <button class="slider-btn prev" id="prevBtn">
+        <i class="bi bi-chevron-left"></i>
+      </button>
+      <button class="slider-btn next" id="nextBtn">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+
+      <div class="testimonial-slider">
+        <div class="slider-wrapper" id="sliderWrapper">
+
+          <!-- ✅ BACKEND: Dynamic testimonials from DB - NOT CHANGED -->
+          <div th:if="${pastFeedbacks != null and !pastFeedbacks.isEmpty()}" th:remove="tag">
+            <div th:each="feedback : ${pastFeedbacks}" class="testimonial-slide">
+              <div class="testimonial-card">
+                <div class="testi-quote-icon"><i class="bi bi-quote"></i></div>
+                <p class="testimonial-text" th:text="${feedback.message}">
+                  Feedback message will appear here
+                </p>
+                <div class="testimonial-footer">
+                  <img src="https://ui-avatars.com/api/?name=${feedback.user.firstName}+${feedback.user.lastName}&background=667eea&color=fff&size=70"
+                       alt="User Avatar"
+                       class="testimonial-avatar"
+                       th:src="'https://ui-avatars.com/api/?name=' + ${feedback.user.fullName} + '&background=667eea&color=fff&size=70'">
+                  <div class="testimonial-info">
+                    <h3 th:text="${feedback.user.fullName}">Student Name</h3>
+                    <div class="rating">
+                      <span th:each="i : ${#numbers.sequence(1, feedback.rating)}">★</span>
+                      <span th:if="${feedback.rating < 5}" th:each="i : ${#numbers.sequence(1, 5 - feedback.rating)}">☆</span>
+                    </div>
+                  </div>
+                  <p class="testimonial-date" th:text="${#temporals.format(feedback.createdAt, 'MMM dd, yyyy')}">Date</p>
+                </div>
+              </div>
+            </div>
           </div>
-          <h4>1. Register</h4>
-          <p class="text-muted">Create your account and login to get started</p>
+
+          <!-- ✅ BACKEND: Default testimonials if no DB data - NOT CHANGED -->
+          <div th:if="${pastFeedbacks == null or pastFeedbacks.isEmpty()}" th:remove="tag">
+
+            <div class="testimonial-slide">
+              <div class="testimonial-card">
+                <div class="testi-quote-icon"><i class="bi bi-quote"></i></div>
+                <p class="testimonial-text">
+                  "Excellent service! They helped me with my Java programming assignment and delivered it before the deadline.
+                  The code was well-structured and thoroughly commented. Highly recommend for any IT student!"
+                </p>
+                <div class="testimonial-footer">
+                  <img src="https://ui-avatars.com/api/?name=Sarah+Johnson&background=667eea&color=fff&size=70"
+                       alt="Sarah Johnson" class="testimonial-avatar">
+                  <div class="testimonial-info">
+                    <h3>Sarah Johnson</h3>
+                    <div class="rating">★★★★★</div>
+                  </div>
+                  <p class="testimonial-date">Dec 20, 2024</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="testimonial-slide">
+              <div class="testimonial-card">
+                <div class="testi-quote-icon"><i class="bi bi-quote"></i></div>
+                <p class="testimonial-text">
+                  "Got help with my quantity surveying cost estimation project. The calculations were accurate and the report
+                  was professionally formatted. They really understand construction management!"
+                </p>
+                <div class="testimonial-footer">
+                  <img src="https://ui-avatars.com/api/?name=Michael+Chen&background=667eea&color=fff&size=70"
+                       alt="Michael Chen" class="testimonial-avatar">
+                  <div class="testimonial-info">
+                    <h3>Michael Chen</h3>
+                    <div class="rating">★★★★★</div>
+                  </div>
+                  <p class="testimonial-date">Dec 18, 2024</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="testimonial-slide">
+              <div class="testimonial-card">
+                <div class="testi-quote-icon"><i class="bi bi-quote"></i></div>
+                <p class="testimonial-text">
+                  "Amazing experience! The team was very responsive and made revisions based on my feedback.
+                  My web development project scored an A+. Will definitely use their services again!"
+                </p>
+                <div class="testimonial-footer">
+                  <img src="https://ui-avatars.com/api/?name=Emma+Williams&background=667eea&color=fff&size=70"
+                       alt="Emma Williams" class="testimonial-avatar">
+                  <div class="testimonial-info">
+                    <h3>Emma Williams</h3>
+                    <div class="rating">★★★★★</div>
+                  </div>
+                  <p class="testimonial-date">Dec 15, 2024</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
-      <div class="col-md-3 text-center">
-        <div class="card step-card">
-          <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-               style="width: 80px; height: 80px;">
-            <i class="bi bi-journal-text display-6"></i>
-          </div>
-          <h4>2. Submit Assignment</h4>
-          <p class="text-muted">Provide details about your assignment requirements</p>
-        </div>
+
+      <!-- ✅ BACKEND: Average rating - NOT CHANGED -->
+      <div class="average-rating" th:if="${averageRating != null and averageRating > 0}">
+        <i class="bi bi-star-fill"></i>
+        Average Rating:
+        <span class="stars" th:text="${#numbers.formatDecimal(averageRating, 1, 1)}">4.8</span>
+        / 5.0
       </div>
-      <div class="col-md-3 text-center">
-        <div class="card step-card">
-          <div class="bg-warning text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-               style="width: 80px; height: 80px;">
-            <i class="bi bi-check-circle display-6"></i>
-          </div>
-          <h4>3. Get Approval</h4>
-          <p class="text-muted">We review and approve your assignment request</p>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- Contact Section -->
+<section class="contact-section" id="contact">
+  <div class="contact-bg-orb contact-orb-1"></div>
+  <div class="contact-bg-orb contact-orb-2"></div>
+
+  <div class="contact-wrapper">
+
+    <div class="contact-header">
+      <span class="contact-label">GET IN TOUCH</span>
+      <h2>Contact Us</h2>
+      <p>Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+    </div>
+
+    <div class="contact-grid">
+
+      <!-- Left: Info Panel -->
+      <div class="contact-info-panel">
+
+        <div class="info-intro">
+          <h3>Let's talk about your assignment</h3>
+          <p>Have questions about our services or need help? We're available 24/7 to assist you with IT and Quantity Surveying assignments.</p>
         </div>
-      </div>
-      <div class="col-md-3 text-center">
-        <div class="card step-card">
-          <div class="bg-info text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-               style="width: 80px; height: 80px;">
-            <i class="bi bi-credit-card display-6"></i>
+
+        <div class="info-items">
+          <div class="info-item">
+            <div class="info-icon email-icon">
+              <i class="bi bi-envelope-fill"></i>
+            </div>
+            <div class="info-detail">
+              <span class="info-label">Email Us</span>
+              <span class="info-value">assignmentservice.net@gmail.com</span>
+            </div>
           </div>
-          <h4>4. Make Payment</h4>
-          <p class="text-muted">Complete payment and we start working on it</p>
+
+          <div class="info-item">
+            <div class="info-icon phone-icon">
+              <i class="bi bi-telephone-fill"></i>
+            </div>
+            <div class="info-detail">
+              <span class="info-label">Call Us</span>
+              <span class="info-value">+94 788 769 570</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-icon globe-icon">
+              <i class="bi bi-globe2"></i>
+            </div>
+            <div class="info-detail">
+              <span class="info-label">Location</span>
+              <span class="info-value">Available Worldwide — Remote Services</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-icon clock-icon">
+              <i class="bi bi-clock-fill"></i>
+            </div>
+            <div class="info-detail">
+              <span class="info-label">Support Hours</span>
+              <span class="info-value">24/7 Customer Support</span>
+            </div>
+          </div>
         </div>
+
+        <!-- Social Links -->
+        <div class="contact-social">
+          <span>Follow us:</span>
+          <a href="#" class="csocial-btn"><i class="bi bi-facebook"></i></a>
+          <a href="#" class="csocial-btn"><i class="bi bi-instagram"></i></a>
+          <a href="https://wa.me/94788769570" class="csocial-btn whatsapp"><i class="bi bi-whatsapp"></i></a>
+        </div>
+
       </div>
+
+      <!-- Right: Form Panel -->
+      <div class="contact-form-panel">
+        <h3>Send a Message</h3>
+
+        <form id="contactForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Your Name</label>
+              <div class="input-wrap">
+                <i class="bi bi-person"></i>
+                <input type="text" name="name" id="name" placeholder="Enter your full name" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Email Address</label>
+              <div class="input-wrap">
+                <i class="bi bi-envelope"></i>
+                <input type="email" name="email" id="email" placeholder="Enter your email" required>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Phone Number</label>
+            <div class="input-wrap">
+              <i class="bi bi-telephone"></i>
+              <input type="tel" name="phone" id="phone" placeholder="Enter your phone number" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Your Message</label>
+            <div class="input-wrap textarea-wrap">
+              <i class="bi bi-chat-dots"></i>
+              <textarea name="message" id="message" placeholder="Tell us about your assignment or ask any questions..." required></textarea>
+            </div>
+          </div>
+
+          <button type="submit" class="contact-submit-btn" id="submitBtn">
+            <span>Send Message</span>
+            <i class="bi bi-send-fill"></i>
+          </button>
+
+          <div id="formMessage" class="form-message"></div>
+        </form>
+      </div>
+
     </div>
   </div>
 </section>
 
 <!-- Footer -->
-<footer class="bg-dark text-white py-4 mt-5">
-  <div class="container text-center">
-    <p>&copy; 2024 Assignment Service. All rights reserved.</p>
-    <p class="mb-0">Helping students with IT and QS assignments</p>
+<footer class="modern-footer">
+  <div class="footer-container">
+    <!-- Main Footer Content -->
+    <div class="footer-main">
+      <!-- Company Info Section -->
+      <div class="footer-column">
+        <div class="footer-logo">
+          <h3>Assignment Service</h3>
+        </div>
+        <p class="footer-description">
+          Professional IT & Quantity Surveying assignment help. We deliver quality solutions tailored to your academic needs.
+        </p>
+        <div class="footer-social">
+          <a href="#" class="social-link" aria-label="Facebook">
+            <i class="bi bi-facebook"></i>
+          </a>
+          <a href="#" class="social-link" aria-label="Twitter">
+            <i class="bi bi-twitter-x"></i>
+          </a>
+          <a href="#" class="social-link" aria-label="LinkedIn">
+            <i class="bi bi-linkedin"></i>
+          </a>
+          <a href="#" class="social-link" aria-label="Instagram">
+            <i class="bi bi-instagram"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Quick Links Section -->
+      <div class="footer-column">
+        <h4 class="footer-title">Quick Links</h4>
+        <ul class="footer-links">
+          <li><a href="/">Home</a></li>
+          <li><a href="/about">About Us</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="/feedback/all">Testimonials</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+
+      <!-- Services Section -->
+      <div class="footer-column">
+        <h4 class="footer-title">Our Services</h4>
+        <ul class="footer-links">
+          <li><a href="#services">IT Assignments</a></li>
+          <li><a href="#services">Quantity Surveying</a></li>
+          <li><a href="#services">Programming Help</a></li>
+          <li><a href="#services">Cost Estimation</a></li>
+          <li><a href="#services">Project Support</a></li>
+        </ul>
+      </div>
+
+      <!-- Contact Info Section -->
+      <div class="footer-column">
+        <h4 class="footer-title">Get In Touch</h4>
+        <ul class="footer-contact">
+          <!-- WhatsApp -->
+          <li>
+            <a href="https://wa.me/94788769570" class="contact-item whatsapp" target="_blank">
+              <div class="contact-icon whatsapp-icon">
+                <i class="bi bi-whatsapp"></i>
+              </div>
+              <div class="contact-details">
+                <span class="contact-label">WhatsApp</span>
+                <span class="contact-value">+94 788 769 570</span>
+              </div>
+            </a>
+          </li>
+
+          <!-- Phone -->
+          <li>
+            <a href="tel:+94788769570" class="contact-item">
+              <div class="contact-icon phone-icon">
+                <i class="bi bi-phone"></i>
+              </div>
+              <div class="contact-details">
+                <span class="contact-label">Phone</span>
+                <span class="contact-value">+94 788 769 570</span>
+              </div>
+            </a>
+          </li>
+
+          <!-- Email -->
+          <li>
+            <a href="/cdn-cgi/l/email-protection#8efdfbfefee1fcfaceeffdfde7e9e0e3ebe0fafdebfcf8e7edeba0ede1e3" class="contact-item">
+              <div class="contact-icon email-icon">
+                <i class="bi bi-envelope"></i>
+              </div>
+              <div class="contact-details">
+                <span class="contact-label">Email</span>
+                <span class="contact-value"><span class="__cf_email__" data-cfemail="196a6c6969766b6d59786a6a707e77747c776d6a7c6b6f707a7c377a7674">assignmentservice.net@gmail.com</span></span>
+              </div>
+            </a>
+          </li>
+
+          <!-- Location (Optional) -->
+          <li>
+            <div class="contact-item">
+              <div class="contact-icon location-icon">
+                <i class="bi bi-geo-alt-fill"></i>
+
+              </div>
+              <div class="contact-details">
+                <span class="contact-label">Location</span>
+                <span class="contact-value">Available Worldwide</span>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Footer Bottom -->
+    <div class="footer-bottom">
+      <div class="footer-bottom-content">
+        <p class="copyright">
+          &copy; 2026 Assignment Service. All rights reserved.
+        </p>
+        <div class="footer-bottom-links">
+          <a href="/privacy-policy.html">Privacy Policy</a>
+          <a href="/terms-and-conditions.html">Terms & Conditions</a>
+          <a href="/return-policy.html">Return Policy</a>
+        </div>
+      </div>
+    </div>
   </div>
+
+  <!-- Floating WhatsApp Button -->
+  <a href="https://wa.me/788769570" class="whatsapp-float" target="_blank" aria-label="Contact us on WhatsApp">
+    <i class="bi bi-whatsapp"></i>
+  </a>
 </footer>
 
+<style>
+  /* ===== MODERN FOOTER STYLES ===== */
+  .modern-footer {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #1e3c72 100%);
+    color: #ffffff;
+    padding: 60px 0 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .modern-footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+    background-size: 200% 100%;
+    animation: gradientShift 3s ease infinite;
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .footer-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  /* Main Footer Grid */
+  .footer-main {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 40px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Footer Columns */
+  .footer-column {
+    animation: fadeInUp 0.6s ease-out;
+  }
+
+  .footer-column:nth-child(1) { animation-delay: 0.1s; }
+  .footer-column:nth-child(2) { animation-delay: 0.2s; }
+  .footer-column:nth-child(3) { animation-delay: 0.3s; }
+  .footer-column:nth-child(4) { animation-delay: 0.4s; }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Logo & Description */
+  .footer-logo h3 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    background: linear-gradient(135deg, #ffffff 0%, #a8c0ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .footer-description {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
+    margin-bottom: 20px;
+    font-size: 14px;
+  }
+
+  /* Social Links */
+  .footer-social {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .social-link {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+  }
+
+  .social-link:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    transform: translateY(-3px) scale(1.1);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+  }
+
+  /* Footer Titles */
+  .footer-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    position: relative;
+    padding-bottom: 10px;
+  }
+
+  .footer-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 50px;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    border-radius: 2px;
+  }
+
+  /* Footer Links */
+  .footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .footer-links li {
+    margin-bottom: 12px;
+  }
+
+  .footer-links a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    display: inline-block;
+    position: relative;
+  }
+
+  .footer-links a::before {
+    content: '→';
+    position: absolute;
+    left: -20px;
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+
+  .footer-links a:hover {
+    color: #ffffff;
+    padding-left: 20px;
+    transform: translateX(5px);
+  }
+
+  .footer-links a:hover::before {
+    opacity: 1;
+    left: 0;
+  }
+
+  /* Contact Items */
+  .footer-contact {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .footer-contact li {
+    margin-bottom: 15px;
+  }
+
+  .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .contact-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+    border-color: rgba(102, 126, 234, 0.5);
+  }
+
+  .contact-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+  }
+
+  .whatsapp-icon {
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+  }
+
+  .phone-icon {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  }
+
+  .email-icon {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);
+  }
+
+  .location-icon {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+  }
+
+  .contact-item:hover .contact-icon {
+    transform: scale(1.1) rotate(5deg);
+  }
+
+  .contact-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .contact-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 600;
+  }
+
+  .contact-value {
+    font-size: 14px;
+    color: #ffffff;
+    font-weight: 500;
+  }
+
+  /* WhatsApp Special Styling */
+  .contact-item.whatsapp:hover {
+    background: rgba(37, 211, 102, 0.1);
+    border-color: #25D366;
+  }
+
+  /* Footer Bottom */
+  .footer-bottom {
+    padding: 25px 0;
+    margin-top: 40px;
+  }
+
+  .footer-bottom-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .copyright {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .footer-bottom-links {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+  }
+
+  .footer-bottom-links a {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s ease;
+  }
+
+  .footer-bottom-links a:hover {
+    color: #ffffff;
+  }
+
+  .footer-bottom-links .separator {
+    color: rgba(255, 255, 255, 0.3);
+  }
+
+  /* Floating WhatsApp Button */
+  .whatsapp-float {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 30px;
+    box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4);
+    z-index: 1000;
+    transition: all 0.3s ease;
+    animation: pulse 2s infinite;
+  }
+
+  .whatsapp-float:hover {
+    transform: scale(1.1);
+    box-shadow: 0 12px 35px rgba(37, 211, 102, 0.6);
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4);
+    }
+    50% {
+      box-shadow: 0 8px 35px rgba(37, 211, 102, 0.6);
+    }
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .modern-footer {
+      padding: 40px 0 0;
+    }
+
+    .footer-main {
+      grid-template-columns: 1fr;
+      gap: 30px;
+    }
+
+    .footer-bottom-content {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .footer-bottom-links {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .whatsapp-float {
+      width: 50px;
+      height: 50px;
+      font-size: 25px;
+      bottom: 20px;
+      right: 20px;
+    }
+
+    .footer-logo h3 {
+      font-size: 24px;
+    }
+
+    .contact-item {
+      padding: 10px;
+    }
+
+    .contact-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .footer-social {
+      justify-content: center;
+    }
+
+    .footer-title::after {
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .footer-column {
+      text-align: center;
+    }
+
+    .footer-links a:hover::before {
+      display: none;
+    }
+
+    .footer-links a:hover {
+      padding-left: 0;
+    }
+  }
+</style>
+
+
 <!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // Navbar scroll effect
+  window.addEventListener('scroll', () => {
+    const navbar = document.querySelector('.navbar');
+    if (window.scrollY > 50) {
+      navbar.classList.add('scrolled');
+    } else {
+      navbar.classList.remove('scrolled');
+    }
+  });
+
+  // Testimonial slider - Improved version
+  window.addEventListener('load', function() {
+    const sliderWrapper = document.getElementById('sliderWrapper');
+    const nextBtn = document.getElementById('nextBtn');
+    const prevBtn = document.getElementById('prevBtn');
+
+    if (!sliderWrapper || !nextBtn || !prevBtn) {
+      console.log('Slider elements not found');
+      return;
+    }
+
+    let currentSlide = 0;
+    let slides = [];
+
+    // Function to update slides array
+    function updateSlides() {
+      slides = document.querySelectorAll('.testimonial-slide');
+      console.log('Total slides found:', slides.length);
+      return slides.length;
+    }
+
+    // Initial update
+    const totalSlides = updateSlides();
+
+    if (totalSlides === 0) {
+      console.log('No slides found');
+      // Hide buttons if no slides
+      nextBtn.style.display = 'none';
+      prevBtn.style.display = 'none';
+      return;
+    }
+
+    function showSlide(index) {
+      const total = slides.length;
+      if (total === 0) return;
+
+      if (index >= total) {
+        currentSlide = 0;
+      } else if (index < 0) {
+        currentSlide = total - 1;
+      } else {
+        currentSlide = index;
+      }
+
+      sliderWrapper.style.transform = `translateX(-${currentSlide * 100}%)`;
+      console.log('Showing slide:', currentSlide);
+    }
+
+    nextBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('Next button clicked');
+      showSlide(currentSlide + 1);
+    });
+
+    prevBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('Prev button clicked');
+      showSlide(currentSlide - 1);
+    });
+
+    // Auto-slide every 5 seconds
+    setInterval(() => {
+      showSlide(currentSlide + 1);
+    }, 5000);
+
+    // Show initial slide
+    showSlide(0);
+  });
+
+  // Contact form submission
+  // Contact form submission - USING YOUR EMAIL SERVICE
+  document.getElementById('contactForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const submitBtn = document.getElementById('submitBtn');
+    const formMessage = document.getElementById('formMessage');
+
+    // Get form values
+    const formData = {
+      name: document.getElementById('name').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      phone: document.getElementById('phone').value.trim(),
+      message: document.getElementById('message').value.trim()
+    };
+
+    // Disable submit button
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+
+    // Show sending message
+    formMessage.textContent = 'Sending your message...';
+    formMessage.className = 'form-message';
+    formMessage.style.display = 'block';
+
+    console.log('Submitting contact form:', formData);
+
+    try {
+      // Submit to YOUR Spring Boot backend
+      const response = await fetch('/api/contact/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      console.log('Response status:', response.status);
+
+      const data = await response.json();
+      console.log('Response data:', data);
+
+      if (data.success) {
+        formMessage.textContent = "✓ " + (data.message || "Message sent successfully! We'll get back to you soon.");
+        formMessage.className = 'form-message success';
+
+        // Reset form
+        e.target.reset();
+
+        // Re-enable button with success state
+        submitBtn.textContent = 'Sent Successfully!';
+
+        // Reset button after 3 seconds
+        setTimeout(() => {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Send Message';
+          formMessage.style.display = 'none';
+        }, 3000);
+      } else {
+        throw new Error(data.message || "Submission failed");
+      }
+    } catch (error) {
+      console.error('Form submission error:', error);
+      formMessage.textContent = "✗ " + (error.message || "Failed to send message. Please try again.");
+      formMessage.className = 'form-message';
+
+      // Re-enable button
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send Message';
+    }
+  });
+
+  // Smooth scrolling for navigation links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    });
+  });
+</script>
+
 </body>
 </html>
