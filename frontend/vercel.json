@@ -10,7 +10,7 @@
     { "source": "/profile/:path*", "destination": "https://api.assignmentservice.net/profile/:path*" },
     { "source": "/assignments/:path*", "destination": "https://api.assignmentservice.net/assignments/:path*" },
     { "source": "/admin/management/:path*", "destination": "https://api.assignmentservice.net/admin/management/:path*" },
-    { "source": "/admin/assignments/:path*", "destination": "https://api.assignmentservice.net/admin/assignments/:path*" }
+    { "source": "/admin/assignments/:path*", "destination": "https://api.assignmentservice.net/admin/assignments/:path*" },
     { "source": "/((?!api).*)", "destination": "/index.html" }
   ]
 }
