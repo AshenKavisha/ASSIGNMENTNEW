@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -18,9 +18,7 @@ const Register = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const navigate = useNavigate();
 
-  // Watch for password changes to update validation UI
   useEffect(() => {
     setValidation(prev => ({
       ...prev,
@@ -41,63 +39,59 @@ const Register = () => {
     setValidation(prev => ({ ...prev, showRequirements: true }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setErrorMsg('');
-
-    // Extra validation checks before submit
+  const validateBeforeSubmit = () => {
     if (formData.fullName.trim().length < 2) {
       setErrorMsg('Please enter your full name (at least 2 characters).');
-      return;
+      return false;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setErrorMsg('Please enter a valid email address.');
-      return;
+      return false;
     }
 
     if (!validation.lengthValid || !validation.matchValid) {
       setErrorMsg('Please ensure your password meets all requirements.');
-      return;
+      return false;
     }
 
     if (!formData.termsAccepted) {
       setErrorMsg('Please agree to the Terms of Service and Privacy Policy.');
-      return;
+      return false;
     }
 
-    setIsLoading(true);
+    return true;
+  };
 
-    // Mock Registration Logic
-    setTimeout(() => {
-      setIsLoading(false);
-      // සාර්ථකව Register වුනාම Login පේජ් එකට යවනවා Success Message එකක් එක්ක
-      navigate('/login?message=Registration successful. Please verify your email.');
-    }, 1500);
+  const handleSubmit = (e) => {
+    setErrorMsg('');
+    if (!validateBeforeSubmit()) {
+      e.preventDefault();
+      return;
+    }
+    setIsLoading(true);
+    // No preventDefault here — let the browser submit the form natively
+    // to /register, which the backend responds to with a redirect.
   };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#667eea] to-[#764ba2] p-5 font-sans">
-      
-      {/* Container */}
+
       <div className="max-w-[500px] w-full animate-fadeInUp">
-        
-        {/* Card */}
+
         <div className="bg-white rounded-[20px] shadow-[0_15px_35px_rgba(0,0,0,0.1)] overflow-hidden border-none p-8">
-          
+
           <h2 className="text-[#2c3e50] text-center mb-6 text-3xl font-bold flex items-center justify-center gap-2">
             <i className="bi bi-person-plus"></i> Create Account
           </h2>
 
-          {/* Error Message */}
           {errorMsg && (
             <div className="bg-gradient-to-r from-[#e74c3c] to-[#c0392b] text-white p-3 rounded-xl mb-4 text-sm flex items-center gap-2">
               <i className="bi bi-exclamation-triangle"></i> {errorMsg}
             </div>
           )}
 
-          {/* Info Box */}
           <div className="bg-[#e3f2fd] border-l-4 border-[#3498db] p-4 rounded-md mb-6 text-sm">
             <p className="text-[#1565c0] m-0 leading-relaxed">
               <i className="bi bi-info-circle me-1"></i>
@@ -105,22 +99,22 @@ const Register = () => {
             </p>
           </div>
 
-          {/* Registration Form */}
-          <form onSubmit={handleSubmit}>
-            
+          {/* Real form POST to backend at /register */}
+          <form method="POST" action="/register" onSubmit={handleSubmit}>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="mb-4">
                 <label className="block font-semibold text-[#2c3e50] mb-2">
                   Full Name <span className="text-[#e74c3c]">*</span>
                 </label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleInputChange}
                   className="w-full p-3 border-2 border-gray-200 rounded-xl text-base transition-all duration-300 focus:border-[#3498db] focus:outline-none focus:ring-4 focus:ring-blue-500/10"
-                  placeholder="Enter your full name" 
-                  required 
+                  placeholder="Enter your full name"
+                  required
                 />
               </div>
 
@@ -128,14 +122,14 @@ const Register = () => {
                 <label className="block font-semibold text-[#2c3e50] mb-2">
                   Email <span className="text-[#e74c3c]">*</span>
                 </label>
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
                   className="w-full p-3 border-2 border-gray-200 rounded-xl text-base transition-all duration-300 focus:border-[#3498db] focus:outline-none focus:ring-4 focus:ring-blue-500/10"
-                  placeholder="your.email@example.com" 
-                  required 
+                  placeholder="your.email@example.com"
+                  required
                 />
               </div>
             </div>
@@ -145,15 +139,15 @@ const Register = () => {
                 <label className="block font-semibold text-[#2c3e50] mb-2">
                   Password <span className="text-[#e74c3c]">*</span>
                 </label>
-                <input 
-                  type="password" 
+                <input
+                  type="password"
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
                   onFocus={handleFocus}
                   className={`w-full p-3 border-2 ${!validation.lengthValid && formData.password.length > 0 ? 'border-[#e74c3c]' : 'border-gray-200'} rounded-xl text-base transition-all duration-300 focus:border-[#3498db] focus:outline-none`}
-                  placeholder="Create a password" 
-                  required 
+                  placeholder="Create a password"
+                  required
                 />
               </div>
 
@@ -161,20 +155,20 @@ const Register = () => {
                 <label className="block font-semibold text-[#2c3e50] mb-2">
                   Confirm Password <span className="text-[#e74c3c]">*</span>
                 </label>
-                <input 
-                  type="password" 
+                {/* Not sent to backend — used for client-side validation only */}
+                <input
+                  type="password"
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
                   onFocus={handleFocus}
                   className={`w-full p-3 border-2 ${!validation.matchValid && formData.confirmPassword.length > 0 ? 'border-[#e74c3c]' : 'border-gray-200'} rounded-xl text-base transition-all duration-300 focus:border-[#3498db] focus:outline-none`}
-                  placeholder="Confirm your password" 
-                  required 
+                  placeholder="Confirm your password"
+                  required
                 />
               </div>
             </div>
 
-            {/* Password Requirements Box */}
             <div className={`bg-gray-50 p-3 rounded-lg mb-4 text-sm transition-all duration-300 ${validation.showRequirements ? 'block' : 'hidden'}`}>
               <strong className="text-gray-700">Password Requirements:</strong>
               <ul className="mt-1 space-y-1 ml-1">
@@ -187,10 +181,9 @@ const Register = () => {
               </ul>
             </div>
 
-            {/* Terms Checkbox */}
             <div className="flex items-start mb-6">
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 name="termsAccepted"
                 id="terms"
                 checked={formData.termsAccepted}
@@ -203,8 +196,8 @@ const Register = () => {
               </label>
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={isLoading}
               className="w-full p-3 bg-gradient-to-r from-[#3498db] to-[#2980b9] text-white rounded-xl text-base font-bold cursor-pointer transition-all duration-300 hover:translate-y-[-2px] hover:shadow-[0_5px_15px_rgba(52,152,219,0.4)] flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
             >
@@ -219,7 +212,6 @@ const Register = () => {
             </button>
           </form>
 
-          {/* Login Link */}
           <div className="text-center text-gray-600 mt-6">
             <p>Already have an account? <Link to="/login" className="text-[#3498db] font-semibold hover:underline">Login here</Link></p>
           </div>
@@ -228,9 +220,9 @@ const Register = () => {
       </div>
 
       <style>{`
-        @keyframes fadeInUp { 
-          from { opacity: 0; transform: translateY(30px); } 
-          to { opacity: 1; transform: translateY(0); } 
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
         }
         .animate-fadeInUp { animation: fadeInUp 0.5s ease-out forwards; }
       `}</style>
