@@ -34,7 +34,7 @@ const ResetPassword = () => {
       formData.append('password', password);
       formData.append('confirmPassword', confirmPassword);
 
-      const response = await fetch('http://localhost:8080/reset-password', {
+      const response = await fetch('/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData,
