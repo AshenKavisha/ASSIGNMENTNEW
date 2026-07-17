@@ -3,7 +3,6 @@
     { "source": "/api/:path*", "destination": "https://api.assignmentservice.net/api/:path*" },
     { "source": "/logout", "destination": "https://api.assignmentservice.net/logout" },
     { "source": "/register", "destination": "https://api.assignmentservice.net/register" },
-    { "source": "/verify", "destination": "https://api.assignmentservice.net/verify" },
     { "source": "/forgot-password", "destination": "https://api.assignmentservice.net/forgot-password" },
     { "source": "/resend-verification", "destination": "https://api.assignmentservice.net/resend-verification" },
     { "source": "/reset-password", "destination": "https://api.assignmentservice.net/reset-password" },
