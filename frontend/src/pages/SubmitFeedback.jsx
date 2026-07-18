@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 const SubmitFeedback = () => {
@@ -7,33 +7,68 @@ const SubmitFeedback = () => {
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState(null);
+  const [submitError, setSubmitError] = useState('');
 
-  // Mock User Data
-  const user = { fullName: "Ashen Kaveesha", profilePicture: null, isOnline: true };
+  const [user, setUser] = useState({ fullName: '', profilePicture: null, isOnline: true });
+  const [pastFeedbacks, setPastFeedbacks] = useState([]);
+  const [loadingFeedbacks, setLoadingFeedbacks] = useState(true);
 
-  // Mock Past Feedbacks
-  const pastFeedbacks = [
-    { id: 1, user: { fullName: "John Doe" }, rating: 5, message: "Excellent service! The Java assignment was perfect.", createdAt: "Mar 17, 2026 10:30 AM" },
-    { id: 2, user: { fullName: "Sarah Connor" }, rating: 4, message: "Very good QS report. Delivered on time.", createdAt: "Mar 16, 2026 02:15 PM" }
-  ];
+  // ── Fetch logged-in user ────────────────────────────────────────────────
+  useEffect(() => {
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => { if (data) setUser(prev => ({ ...prev, fullName: data.name || data.email })); })
+      .catch(() => {});
+  }, []);
 
-  const handleSubmit = (e) => {
+  // ── Fetch real recent feedbacks ──────────────────────────────────────────
+  const loadFeedbacks = () => {
+    setLoadingFeedbacks(true);
+    fetch('/feedback/api/recent', { credentials: 'include' })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => { if (data) setPastFeedbacks(data.feedbacks || []); })
+      .catch(() => {})
+      .finally(() => setLoadingFeedbacks(false));
+  };
+
+  useEffect(() => {
+    loadFeedbacks();
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (rating === 0) {
       alert("Please select a rating before submitting.");
       return;
     }
-    
+
+    setSubmitError('');
     setIsSubmitting(true);
-    
-    // Mock API Submission
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSuccessMsg("Thank you! Your feedback has been successfully submitted.");
+
+    try {
+      const res = await fetch('/feedback/api/submit', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating, message }),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        throw new Error(data?.error || `Server error ${res.status}`);
+      }
+
+      setSuccessMsg(data?.message || "Thank you! Your feedback has been successfully submitted.");
       setRating(0);
       setMessage('');
+      loadFeedbacks(); // refresh the list with the real new entry
       setTimeout(() => setSuccessMsg(null), 5000);
-    }, 1500);
+    } catch (err) {
+      setSubmitError(err.message || 'Failed to submit feedback. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -54,7 +89,7 @@ const SubmitFeedback = () => {
               )}
               {user.isOnline && <div className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 bg-[#28a745] rounded-full border-2 border-[#212529]"></div>}
             </div>
-            <span className="hidden md:inline font-medium">Welcome, {user.fullName}</span>
+            {user.fullName && <span className="hidden md:inline font-medium">Welcome, {user.fullName}</span>}
             <Link to="/dashboard" className="border border-white/30 px-3 py-1.5 rounded hover:bg-white hover:text-black transition-all font-bold text-sm flex items-center gap-2 text-white no-underline">
               <i className="bi bi-speedometer2"></i> <span className="hidden sm:inline">Dashboard</span>
             </Link>
@@ -96,6 +131,13 @@ const SubmitFeedback = () => {
                   <div className="bg-[#d4edda] text-[#155724] border-l-4 border-[#28a745] p-4 rounded-lg mb-6 flex items-center gap-3 animate-fadeIn">
                     <i className="bi bi-check-circle-fill text-xl"></i>
                     <span className="font-medium">{successMsg}</span>
+                  </div>
+                )}
+
+                {submitError && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 mb-6 flex items-start gap-2 text-sm">
+                    <i className="bi bi-exclamation-triangle-fill mt-0.5 shrink-0"></i>
+                    <span>{submitError}</span>
                   </div>
                 )}
 
@@ -203,8 +245,13 @@ const SubmitFeedback = () => {
                 </h4>
               </div>
               <div className="p-6">
-                
-                {pastFeedbacks.length > 0 ? (
+
+                {loadingFeedbacks ? (
+                  <div className="text-center py-10">
+                    <i className="bi bi-arrow-repeat animate-spin text-3xl text-[#667eea] mb-3 block"></i>
+                    <p className="text-gray-500 text-sm">Loading feedbacks…</p>
+                  </div>
+                ) : pastFeedbacks.length > 0 ? (
                   <div className="space-y-4">
                     {pastFeedbacks.map((fb, idx) => (
                       <div key={fb.id} className="bg-gradient-to-br from-white to-gray-50 border-2 border-gray-100 rounded-2xl p-5 relative overflow-hidden group hover:-translate-y-1 hover:border-[#667eea] hover:bg-white hover:shadow-md transition-all animate-fadeInUp" style={{animationDelay: `${0.5 + (idx * 0.1)}s`}}>
@@ -216,7 +263,7 @@ const SubmitFeedback = () => {
                               <i className="bi bi-person-circle text-xl"></i>
                             </div>
                             <div>
-                              <h6 className="font-bold text-gray-800 m-0 text-sm">{fb.user.fullName}</h6>
+                              <h6 className="font-bold text-gray-800 m-0 text-sm">{fb.user?.fullName || 'Anonymous'}</h6>
                               <span className="text-[10px] text-gray-400 font-medium">{fb.createdAt}</span>
                             </div>
                           </div>
