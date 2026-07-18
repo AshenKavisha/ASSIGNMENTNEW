@@ -28,6 +28,9 @@ const CreateAssignment = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError]   = useState('');
 
+  // Success Modal State
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
   // ── Fetch logged-in user ────────────────────────────────────────────────────
   useEffect(() => {
     fetch('/api/auth/me', { credentials: 'include' })
@@ -149,9 +152,8 @@ const CreateAssignment = () => {
       // 'opaqueredirect' means Spring returned a redirect (e.g. the old Thymeleaf handler)
       // 200 means our JSON endpoint was hit correctly
       if (res.type === 'opaqueredirect' || res.ok) {
-        // Success either way — navigate within React using window.location
-        // so it always hits the React app regardless of which port we're on
-        navigate('/dashboard?success=Assignment submitted successfully! Admin will receive your files via email.');
+        // Success — show the thank-you modal instead of navigating immediately
+        setShowSuccessModal(true);
         return;
       }
 
@@ -165,6 +167,12 @@ const CreateAssignment = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // ── Close modal and navigate to dashboard ───────────────────────────────────
+  const handleModalClose = () => {
+    setShowSuccessModal(false);
+    navigate('/dashboard?success=Assignment submitted successfully! Admin will receive your files via email.');
   };
 
   // ── Missing fields hint shown below the submit button ──────────────────────
@@ -462,6 +470,30 @@ const CreateAssignment = () => {
         <footer className="bg-[#212529] text-white/50 text-center py-6 text-sm mt-auto">
           <p className="mb-0">&copy; 2026 Assignment Service. All rights reserved.</p>
         </footer>
+
+        {/* Success Modal */}
+        {showSuccessModal && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-fadeIn">
+            <div className="bg-white rounded-[20px] shadow-2xl max-w-md w-full p-8 text-center animate-fadeInUp">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#27ae60] to-[#11998e] text-white flex items-center justify-center text-4xl mx-auto mb-6 shadow-lg">
+                <i className="bi bi-check-lg"></i>
+              </div>
+              <h3 className="text-2xl font-bold text-[#2c3e50] mb-3">Thank You!</h3>
+              <p className="text-gray-600 mb-2 leading-relaxed">
+                Your assignment has been submitted successfully.
+              </p>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                We'll check your assignment and get back to you soon via email.
+              </p>
+              <button
+                  onClick={handleModalClose}
+                  className="w-full px-8 py-3 rounded-xl font-bold bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white shadow-md hover:shadow-lg hover:-translate-y-1 transition-all flex justify-center items-center gap-2"
+              >
+                <i className="bi bi-speedometer2"></i> Go to Dashboard
+              </button>
+            </div>
+          </div>
+        )}
 
         <style>{`
         @keyframes fadeInUp    { from { opacity: 0; transform: translateY(30px); }  to { opacity: 1; transform: translateY(0); } }
