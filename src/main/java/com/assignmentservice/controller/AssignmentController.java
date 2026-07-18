@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -321,8 +320,9 @@ public class AssignmentController {
         return false;
     }
 
-    // REPLACE your existing viewMyAssignments method in AssignmentController.java with this:
-
+    // Thymeleaf view of "My Assignments". The JSON version the React
+    // frontend actually uses now lives in MyAssignmentsApiController
+    // at GET /api/assignments/my-assignments.
     @GetMapping("/my-assignments")
     public String viewMyAssignments(Model model) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -342,7 +342,6 @@ public class AssignmentController {
         User user = userOptional.get();
         List<Assignment> assignments = assignmentService.getUserAssignments(user);
 
-        // ⭐ CRITICAL: Attach payment information to each assignment
         System.out.println("=== FETCHING PAYMENT INFO FOR ASSIGNMENTS ===");
         for (Assignment assignment : assignments) {
             try {
@@ -363,7 +362,6 @@ public class AssignmentController {
         }
         System.out.println("=== END PAYMENT INFO FETCH ===");
 
-        // Calculate statistics
         long completedCount = assignments.stream()
                 .filter(a -> a.getStatus() == AssignmentStatus.COMPLETED)
                 .count();
@@ -634,7 +632,7 @@ public class AssignmentController {
                 emailService.sendSolutionToUser(assignment.getUser(), assignment, solutionFiles);
                 System.out.println("✓ Email sent to user with attachments");
 
-                // ⭐ NEW: Send in-app notification to user
+                // Send in-app notification to user
                 notificationService.notifyUserSolutionDelivered(assignment, admin);
                 System.out.println("✓ In-app notification created for user");
 
@@ -745,8 +743,10 @@ public class AssignmentController {
     }
 
     /**
-     * View assignment details - NEW METHOD
-     * Accessible by both user (owner) and admin
+     * View assignment details - Thymeleaf view.
+     * Accessible by both user (owner) and admin.
+     * The JSON version for the React frontend now lives in
+     * MyAssignmentsApiController at GET /api/assignments/{id}.
      */
     @GetMapping("/{id}")
     public String viewAssignment(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
@@ -785,7 +785,7 @@ public class AssignmentController {
                 return "redirect:/admin/assignments";
             }
 
-            // ⭐ NEW: Get payment information for currency display
+            // Get payment information for currency display
             Payment payment = null;
             try {
                 payment = assignmentService.getPaymentByAssignment(assignment);
@@ -803,7 +803,7 @@ public class AssignmentController {
             model.addAttribute("user", currentUser);
             model.addAttribute("isOwner", isOwner);
             model.addAttribute("isAdmin", isAdmin);
-            model.addAttribute("payment", payment);  // ⭐ ADD THIS
+            model.addAttribute("payment", payment);
 
             return "assignments/view-assignment";
 
@@ -814,101 +814,5 @@ public class AssignmentController {
             return "redirect:/dashboard";
         }
     }
-
-   /**
- * JSON version of viewAssignment(), for the React frontend.
- * Same ownership/specialization rules as the Thymeleaf view above.
- */
-@GetMapping("/api/assignments/{id}")
-@ResponseBody
-public ResponseEntity<?> getAssignmentApi(@PathVariable Long id) {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication == null || !authentication.isAuthenticated()
-            || authentication.getPrincipal().equals("anonymousUser")) {
-        return ResponseEntity.status(401).build();
-    }
-
-    String email = authentication.getName();
-    Optional<User> userOptional = userService.getUserByEmail(email);
-    if (userOptional.isEmpty()) {
-        return ResponseEntity.status(401).build();
-    }
-    User currentUser = userOptional.get();
-
-    Optional<Assignment> assignmentOpt = assignmentService.getAssignmentById(id);
-    if (assignmentOpt.isEmpty()) {
-        return ResponseEntity.status(404).body(java.util.Map.of("error", "Assignment not found"));
-    }
-
-    Assignment assignment = assignmentOpt.get();
-
-    boolean isOwner = assignment.getUser().getId().equals(currentUser.getId());
-    boolean isAdmin = "ADMIN".equals(currentUser.getRole()) || "SUPER_ADMIN".equals(currentUser.getRole());
-
-    if (!isOwner && !isAdmin) {
-        return ResponseEntity.status(403).body(java.util.Map.of("error", "You don't have permission to view this assignment"));
-    }
-    if (isAdmin && !isOwner && !assignmentService.canAdminAccessAssignment(currentUser, assignment)) {
-        return ResponseEntity.status(403).body(java.util.Map.of("error", "You don't have permission to access this assignment"));
-    }
-
-    Payment payment = null;
-    try {
-        payment = assignmentService.getPaymentByAssignment(assignment);
-    } catch (Exception e) {
-        // continue without payment info
-    }
-
-    java.util.Map<String, Object> response = new java.util.HashMap<>();
-    response.put("id", assignment.getId());
-    response.put("title", assignment.getTitle());
-    response.put("subject", assignment.getSubject());
-    response.put("type", assignment.getType());
-    response.put("status", assignment.getStatus());
-    response.put("description", assignment.getDescription());
-    response.put("additionalRequirements", assignment.getAdditionalRequirements());
-    response.put("adminNotes", assignment.getAdminNotes());
-    response.put("deadline", assignment.getDeadline() != null ? assignment.getDeadline().toString() : null);
-    response.put("createdAt", assignment.getCreatedAt() != null ? assignment.getCreatedAt().toString() : null);
-    response.put("updatedAt", assignment.getUpdatedAt() != null ? assignment.getUpdatedAt().toString() : null);
-    response.put("deliveredAt", assignment.getDeliveredAt() != null ? assignment.getDeliveredAt().toString() : null);
-    response.put("revisionsUsed", assignment.getRevisionsUsed());
-    response.put("maxRevisions", assignment.getMaxRevisions());
-
-    response.put("price", assignment.getPrice());
-    response.put("finalPrice", assignment.getFinalPrice());
-    response.put("currency", payment != null ? payment.getCurrency().name() : "USD");
-
-    // File lists — stored as comma-separated names/paths, split for the frontend
-    response.put("descriptionFiles", assignment.getDescriptionFiles() != null && !assignment.getDescriptionFiles().isBlank()
-            ? java.util.Arrays.asList(assignment.getDescriptionFiles().split(","))
-            : java.util.List.of());
-    response.put("requirementsFiles", assignment.getRequirementsFiles() != null && !assignment.getRequirementsFiles().isBlank()
-            ? java.util.Arrays.asList(assignment.getRequirementsFiles().split(","))
-            : java.util.List.of());
-    response.put("solutionFiles", assignment.getSolutionFiles() != null && !assignment.getSolutionFiles().isBlank()
-            ? java.util.Arrays.asList(assignment.getSolutionFiles().split(","))
-            : java.util.List.of());
-
-    // Revision history
-    java.util.List<java.util.Map<String, Object>> revisions = assignmentService
-            .getRevisionRequestsByAssignment(id)
-            .stream()
-            .map(r -> {
-                java.util.Map<String, Object> m = new java.util.HashMap<>();
-                m.put("reason", r.getReason());
-                m.put("status", r.getStatus());
-                m.put("requestedAt", r.getRequestedAt() != null ? r.getRequestedAt().toString() : null);
-                m.put("adminNotes", r.getAdminNotes());
-                return m;
-            })
-            .collect(java.util.stream.Collectors.toList());
-    response.put("revisionRequests", revisions);
-
-    response.put("isOwner", isOwner);
-    response.put("isAdmin", isAdmin);
-
-    return ResponseEntity.ok(response);
-}
 
 }
