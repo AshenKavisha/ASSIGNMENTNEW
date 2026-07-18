@@ -27,6 +27,9 @@ public class EmailService {
 
     @Value("${spring.mail.username}")
     private String fromEmail;
+	
+	@Value("${backend.url}")
+private String backendUrl;
 
     @Value("${app.url:http://localhost:8080}")
     private String appUrl;
@@ -166,7 +169,7 @@ public class EmailService {
             helper.setTo(toEmail);
             helper.setSubject("Verify Your Email - Assignment Service");
 
-            String verificationUrl = appUrl + "/verify?token=" + verificationToken;
+            String verificationUrl = backendUrl + "/verify?token=" + verificationToken;
             String htmlContent = buildVerificationEmail(fullName, verificationUrl);
             helper.setText(htmlContent, true);
 
