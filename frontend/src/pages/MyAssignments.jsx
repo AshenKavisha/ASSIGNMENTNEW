@@ -192,11 +192,15 @@ const MyAssignments = () => {
                         </div>
 
                         {/* Price Display */}
+                        {/* FIXED: was reading assignment.payment?.currency?.symbol, which is
+                            always undefined because no Payment entity is created by the
+                            approve flow. Currency lives on the flat assignment.currency
+                            string instead — same pattern used in ViewAssignment.jsx. */}
                         {(assignment.finalPrice || assignment.price) != null && (
                           <div className="bg-gradient-to-br from-[#fff9e6] to-[#ffe5b4] border-l-4 border-[#ffc107] p-4 rounded-lg mt-4 flex justify-between items-center shadow-sm">
                             <strong className="text-gray-800">Assignment Fee:</strong>
                             <span className="text-2xl font-black text-[#ff9800]">
-                              {assignment.payment?.currency?.symbol || '$'}
+                              {assignment.currency === 'USD' ? '$' : 'Rs.'}
                               {(assignment.finalPrice ?? assignment.price).toFixed(2)}
                             </span>
                           </div>

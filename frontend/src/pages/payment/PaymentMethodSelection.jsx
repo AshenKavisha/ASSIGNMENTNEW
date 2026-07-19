@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 const PaymentMethodSelection = () => {
@@ -7,24 +7,66 @@ const PaymentMethodSelection = () => {
   const navigate = useNavigate();
   const bankSectionRef = useRef(null);
 
-  const assignmentId = searchParams.get('id') || '123';
-  const orderId = `ORD-${assignmentId}-${Math.floor(Math.random() * 1000)}`;
-  
-  // Mock Data
-  const paymentInfo = {
-    amount: 2500.00,
-    currency: "Rs.",
-    title: "Java OOP Assignment",
-    subject: "Object Oriented Programming",
-    type: "IT",
-    adminWhatsApp: "94788769570"
-  };
+  const assignmentId = searchParams.get('id');
+
+  const [paymentInfo, setPaymentInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Admin WhatsApp number - keep as a constant unless you have a backend setting for it
+  const ADMIN_WHATSAPP = "94788769570";
+
+  const [orderId] = useState(
+    () => `ORD-${assignmentId || 'UNKNOWN'}-${Math.floor(Math.random() * 1000)}`
+  );
 
   const bankDetails = {
     name: "Ashen Kaveesha Lakshan Fernando",
     account: "269200280046594",
     branch: "Badulla"
   };
+
+  useEffect(() => {
+    if (!assignmentId) {
+      setError('No assignment ID was provided.');
+      setLoading(false);
+      return;
+    }
+
+    const fetchAssignment = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`/api/assignments/${assignmentId}`, {
+          method: 'GET',
+          credentials: 'include', // send session cookie for Spring Security auth
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!res.ok) {
+          throw new Error(`Failed to load assignment (status ${res.status})`);
+        }
+
+        const data = await res.json();
+
+        // Defensive mapping — adjust field names below once you confirm the
+        // actual JSON shape from MyAssignmentsApiController / AssignmentApiController.
+        setPaymentInfo({
+          amount: Number(data.price ?? data.amount ?? 0),
+          currency: data.currency === 'USD' ? '$' : 'Rs.',
+          title: data.title ?? 'Assignment',
+          subject: data.subject ?? '',
+          type: data.type ?? data.specialization ?? ''
+        });
+      } catch (err) {
+        console.error('Error fetching assignment:', err);
+        setError('Could not load assignment details. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAssignment();
+  }, [assignmentId]);
 
   const selectMethod = (method) => {
     setSelectedMethod(method);
@@ -48,16 +90,18 @@ const PaymentMethodSelection = () => {
   };
 
   const sendToWhatsApp = () => {
+    if (!paymentInfo) return;
+
     const message = `🎓 *Payment Confirmation - Assignment Service*%0A%0A` +
       `💎 *Order ID:* ${orderId}%0A` +
-      `💰 *Amount:* ${paymentInfo.currency}${paymentInfo.amount}%0A` +
+      `💰 *Amount:* ${paymentInfo.currency}${paymentInfo.amount.toFixed(2)}%0A` +
       `📝 *Assignment ID:* ${assignmentId}%0A%0A` +
       `✅ I have completed the bank transfer.%0A` +
       `📎 Payment slip attached.%0A%0A` +
       `Please verify and confirm my payment.`;
 
-    const whatsappUrl = `https://wa.me/${paymentInfo.adminWhatsApp}?text=${message}`;
-    
+    const whatsappUrl = `https://wa.me/${ADMIN_WHATSAPP}?text=${message}`;
+
     alert('📱 WhatsApp will open now.\n\n⚠️ IMPORTANT: Please attach your payment slip image/screenshot in WhatsApp before sending the message!');
     window.open(whatsappUrl, '_blank');
 
@@ -68,10 +112,29 @@ const PaymentMethodSelection = () => {
     }, 3000);
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#667eea] to-[#764ba2] flex items-center justify-center">
+        <p className="text-white text-xl font-bold">Loading assignment details...</p>
+      </div>
+    );
+  }
+
+  if (error || !paymentInfo) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#667eea] to-[#764ba2] flex flex-col items-center justify-center gap-4">
+        <p className="text-white text-xl font-bold">{error || 'Assignment not found.'}</p>
+        <Link to="/dashboard" className="text-white underline font-bold">
+          Return to Dashboard
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#667eea] to-[#764ba2] py-10 px-4 font-sans">
       <div className="max-w-[900px] mx-auto">
-        
+
         {/* Page Header */}
         <div className="text-center text-white mb-12 animate-fadeIn">
           <h1 className="text-4xl font-bold mb-2 flex items-center justify-center gap-3">
@@ -99,9 +162,9 @@ const PaymentMethodSelection = () => {
 
         {/* Selection Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-          
+
           {/* PayHere Option */}
-          <div 
+          <div
             onClick={() => selectMethod('payhere')}
             className={`bg-white rounded-2xl p-8 shadow-xl cursor-pointer transition-all duration-300 border-4 animate-slideUp-delay-1 ${selectedMethod === 'payhere' ? 'border-[#28a745] bg-green-50/20' : 'border-transparent hover:-translate-y-2 hover:border-[#667eea]'}`}
           >
@@ -118,7 +181,7 @@ const PaymentMethodSelection = () => {
           </div>
 
           {/* Bank Option */}
-          <div 
+          <div
             onClick={() => selectMethod('bank')}
             className={`bg-white rounded-2xl p-8 shadow-xl cursor-pointer transition-all duration-300 border-4 animate-slideUp-delay-1 ${selectedMethod === 'bank' ? 'border-[#28a745] bg-green-50/20' : 'border-transparent hover:-translate-y-2 hover:border-[#667eea]'}`}
           >
