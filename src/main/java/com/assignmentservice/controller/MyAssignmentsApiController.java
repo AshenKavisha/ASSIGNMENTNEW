@@ -196,6 +196,9 @@ public class MyAssignmentsApiController {
 
         response.put("isOwner", isOwner);
         response.put("isAdmin", isAdmin);
+        response.put("currency", assignment.getCurrency() != null
+        ? assignment.getCurrency()
+        : (payment != null ? payment.getCurrency().name() : "USD"));
 
         return ResponseEntity.ok(response);
     }

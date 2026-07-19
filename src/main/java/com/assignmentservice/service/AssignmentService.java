@@ -539,6 +539,7 @@ public class AssignmentService {
         if (assignment.getStatus() != Assignment.AssignmentStatus.PENDING) return null;
 
         assignment.setPrice(price);
+        assignment.setCurrency(currency);
         assignment.setStatus(Assignment.AssignmentStatus.APPROVED);
         Assignment saved = assignmentRepository.save(assignment);
 
@@ -628,6 +629,7 @@ public class AssignmentService {
         if (assignment.getStatus() != Assignment.AssignmentStatus.PENDING) return null;
 
         assignment.setPrice(price);
+        assignment.setCurrency(currency);
         assignment.setAssignedAdmin(assignedAdmin);
         assignment.setStatus(Assignment.AssignmentStatus.IN_PROGRESS);
         Assignment saved = assignmentRepository.save(assignment);
