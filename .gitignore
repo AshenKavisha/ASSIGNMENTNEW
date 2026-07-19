@@ -21,6 +21,7 @@ target/
 
 node_modules/
 .env
+application-local.properties
 
 ### NetBeans ###
 /nbproject/private/

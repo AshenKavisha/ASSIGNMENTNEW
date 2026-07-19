@@ -258,7 +258,7 @@ const MyAssignments = () => {
                                     <span className="text-sm">Your assignment has been approved. Click below to proceed with payment.</span>
                                   </div>
                                 </div>
-                                <Link to={`/payment/checkout?id=${assignment.id}`} className="block w-full text-center bg-gradient-to-br from-[#28a745] to-[#20c997] text-white font-bold py-3 rounded-xl shadow-[0_5px_20px_rgba(40,167,69,0.3)] hover:shadow-[0_8px_25px_rgba(40,167,69,0.4)] hover:-translate-y-1 transition-all no-underline">
+                                <Link to={`/payment/method-selection?id=${assignment.id}`} className="block w-full text-center bg-gradient-to-br from-[#28a745] to-[#20c997] text-white font-bold py-3 rounded-xl shadow-[0_5px_20px_rgba(40,167,69,0.3)] hover:shadow-[0_8px_25px_rgba(40,167,69,0.4)] hover:-translate-y-1 transition-all no-underline">
                                   <i className="bi bi-cash-coin me-2"></i> Click to Pay
                                 </Link>
                               </div>

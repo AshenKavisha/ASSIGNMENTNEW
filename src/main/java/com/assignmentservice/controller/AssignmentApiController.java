@@ -27,6 +27,10 @@ import java.util.stream.Collectors;
 // Pulled out into its own @RestController (no class-level
 // "/assignments" prefix) so the path is exactly /api/assignments/submit
 // instead of accidentally becoming /assignments/api/assignments/submit.
+//
+// NOTE: Admin notification on submission is handled inside
+// AssignmentService.createAssignmentWithFiles() — do NOT call
+// notificationService here too, or admins get duplicate notifications.
 // ============================================================
 @RestController
 @RequestMapping("/api/assignments")
@@ -129,7 +133,7 @@ public class AssignmentApiController {
             if (!names.isBlank()) assignment.setRequirementsFiles(names);
         }
 
-        // ── 6. Save + send emails / notifications ─────────────────────────────
+        // ── 6. Save + send emails / notifications (handled inside the service) ─
         try {
             assignmentService.createAssignmentWithFiles(
                     assignment,

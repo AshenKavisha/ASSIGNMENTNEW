@@ -422,14 +422,19 @@ public class NotificationService {
      * Get admins appropriate for assignment type
      */
     private List<User> getAdminsForAssignment(Assignment assignment) {
-        if (assignment.getType() == Assignment.AssignmentType.IT) {
-            return userService.getAdminsBySpecialization(User.Specialization.IT);
-        } else if (assignment.getType() == Assignment.AssignmentType.QUANTITY_SURVEYING) {
-            return userService.getAdminsBySpecialization(User.Specialization.QUANTITY_SURVEYING);
-        } else {
-            return userService.getAllAdmins();
-        }
+    List<User> admins;
+    if (assignment.getType() == Assignment.AssignmentType.IT) {
+        admins = new java.util.ArrayList<>(userService.getAdminsBySpecialization(User.Specialization.IT));
+    } else if (assignment.getType() == Assignment.AssignmentType.QUANTITY_SURVEYING) {
+        admins = new java.util.ArrayList<>(userService.getAdminsBySpecialization(User.Specialization.QUANTITY_SURVEYING));
+    } else {
+        return userService.getAllAdmins();
     }
+
+    List<User> bothAdmins = userRepository.findByRoleAndSpecialization("ADMIN", User.Specialization.BOTH);
+    admins.addAll(bothAdmins);
+    return admins;
+}
 
     /**
      * Get notification delivery status for admin

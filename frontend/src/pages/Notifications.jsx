@@ -21,7 +21,23 @@ const Notifications = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [user, setUser] = useState({ fullName: '' });
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
+
+  // ── Fetch logged-in user (needed to know where "Dashboard" should go) ──────
+  useEffect(() => {
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data) {
+          setUser({ fullName: data.name || data.email });
+          setIsAdmin(data.role === 'ADMIN');
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const dashboardPath = isAdmin ? '/admin/dashboard' : '/dashboard';
 
   // ── Fetch notifications from backend ────────────────────────────────────────
   const fetchNotifications = useCallback(async () => {
@@ -148,7 +164,7 @@ const Notifications = () => {
 
             {/* Back to Dashboard */}
             <Link
-              to="/dashboard"
+              to={dashboardPath}
               className="border border-white/30 px-3 py-1.5 rounded hover:bg-white hover:text-black transition-all font-bold text-sm flex items-center gap-2"
             >
               <i className="bi bi-speedometer2"></i> Dashboard
@@ -170,7 +186,7 @@ const Notifications = () => {
 
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-gray-400 mb-6">
-          <Link to="/dashboard" className="hover:text-[#3498db] transition-colors flex items-center gap-1">
+          <Link to={dashboardPath} className="hover:text-[#3498db] transition-colors flex items-center gap-1">
             <i className="bi bi-house"></i> Dashboard
           </Link>
           <i className="bi bi-chevron-right text-xs"></i>
@@ -329,7 +345,7 @@ const Notifications = () => {
               <h3 className="text-2xl font-bold text-gray-700 mb-2">No notifications</h3>
               <p className="text-gray-500">When you get notifications, they'll appear here.</p>
               <Link
-                to="/dashboard"
+                to={dashboardPath}
                 className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 bg-[#3498db] text-white rounded-xl font-bold hover:bg-[#2980b9] transition-colors"
               >
                 <i className="bi bi-speedometer2"></i> Back to Dashboard
