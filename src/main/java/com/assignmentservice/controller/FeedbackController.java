@@ -110,17 +110,34 @@ public class FeedbackController {
 
     /**
      * JSON version of the recent-feedbacks list shown on the submit-feedback
-     * page. Lives at GET /feedback/api/recent (this controller's class-level
-     * @RequestMapping("/feedback") applies, so the real path is
-     * /feedback/api/recent — the React frontend should call that exact path).
+     * page (all ratings, requires nothing special — used by the logged-in
+     * feedback form page). Lives at GET /feedback/api/recent.
      */
     @GetMapping("/api/recent")
     @ResponseBody
     public ResponseEntity<?> getRecentFeedbacksApi() {
         List<Feedback> recentFeedbacks = feedbackService.getRecentFeedbacks();
+        return ResponseEntity.ok(buildFeedbackResponse(recentFeedbacks));
+    }
 
+    /**
+     * PUBLIC endpoint for the homepage testimonials carousel. Only 4-5 star
+     * reviews (see FeedbackService.getTopRecentFeedbacks()). This must be
+     * allowed via permitAll() in the security config, listed BEFORE any
+     * broader /feedback/** authenticated() rule, since this sits under the
+     * same /feedback prefix as the authenticated routes above.
+     * Lives at GET /feedback/api/public/recent.
+     */
+    @GetMapping("/api/public/recent")
+    @ResponseBody
+    public ResponseEntity<?> getPublicRecentFeedbacksApi() {
+        List<Feedback> topFeedbacks = feedbackService.getTopRecentFeedbacks();
+        return ResponseEntity.ok(buildFeedbackResponse(topFeedbacks));
+    }
+
+    private Map<String, Object> buildFeedbackResponse(List<Feedback> feedbacks) {
         List<Map<String, Object>> result = new ArrayList<>();
-        for (Feedback fb : recentFeedbacks) {
+        for (Feedback fb : feedbacks) {
             Map<String, Object> item = new HashMap<>();
             item.put("id", fb.getId());
             item.put("rating", fb.getRating());
@@ -137,8 +154,7 @@ public class FeedbackController {
         Map<String, Object> response = new HashMap<>();
         response.put("feedbacks", result);
         response.put("averageRating", feedbackService.getAverageRating());
-
-        return ResponseEntity.ok(response);
+        return response;
     }
 
     public static class FeedbackSubmitRequest {

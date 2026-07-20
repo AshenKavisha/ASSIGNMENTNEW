@@ -10,19 +10,39 @@ const Home = () => {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' });
   const [formStatus, setFormStatus] = useState({ loading: false, message: null, type: '' });
 
+  // ── Testimonials: fetched from backend instead of mock data ──
+  const [testimonials, setTestimonials] = useState([]);
+  const [averageRating, setAverageRating] = useState(null);
+
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const testimonials = [
-    { id: 1, name: 'Sarah Johnson', rating: 5, text: 'Excellent service! They helped me with my Java programming assignment and delivered it before the deadline. The code was well-structured and thoroughly commented. Highly recommend for any IT student!', date: 'Dec 20, 2024' },
-    { id: 2, name: 'Michael Chen', rating: 5, text: 'Got help with my quantity surveying cost estimation project. The calculations were accurate and the report was professionally formatted. They really understand construction management!', date: 'Dec 18, 2024' },
-    { id: 3, name: 'Emma Williams', rating: 5, text: 'Amazing experience! The team was very responsive and made revisions based on my feedback. My web development project scored an A+. Will definitely use their services again!', date: 'Dec 15, 2024' },
-  ];
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/feedback/api/public/recent`);
+        const data = await res.json();
+        const mapped = (data.feedbacks || []).map(f => ({
+          id: f.id,
+          name: f.user?.fullName || 'Anonymous',
+          rating: f.rating,
+          text: f.message,
+          date: f.createdAt, // already formatted server-side, e.g. "Dec 20, 2024 03:45 PM"
+        }));
+        setTestimonials(mapped);
+        setAverageRating(data.averageRating ?? null);
+      } catch (err) {
+        console.error('Failed to load testimonials', err);
+      }
+    };
+    fetchTestimonials();
+  }, []);
 
   useEffect(() => {
+    if (testimonials.length === 0) return;
     const timer = setInterval(() => {
       setSlideDirection('next');
       setCurrentSlide(p => (p + 1) % testimonials.length);
@@ -243,26 +263,22 @@ const Home = () => {
 
         {/* ── HOW IT WORKS ── */}
         <section id="how-it-works" style={{ padding: '100px 0', background: '#f8f9fa', position: 'relative', overflow: 'hidden' }}>
-          {/* Background shape */}
           <div style={{ position: 'absolute', top: -120, right: -120, width: 400, height: 400, borderRadius: '50%', background: 'linear-gradient(135deg,rgba(102,126,234,0.08),rgba(118,75,162,0.08))', pointerEvents: 'none' }}></div>
 
           <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
 
-            {/* Header */}
             <div style={{ textAlign: 'center', marginBottom: 70 }}>
               <span style={{ display: 'inline-block', background: 'linear-gradient(135deg,#667eea,#764ba2)', color: '#fff', fontSize: 11, fontWeight: 700, letterSpacing: 3, padding: '6px 18px', borderRadius: 20, marginBottom: 16 }}>SIMPLE PROCESS</span>
               <h2 style={{ fontSize: 'clamp(28px,5vw,40px)', fontWeight: 800, color: '#212529', marginBottom: 12 }}>How It Works</h2>
               <p style={{ fontSize: 16, color: '#6c757d' }}>Four easy steps to get your assignment done professionally and on time</p>
             </div>
 
-            {/* Steps */}
             <div className="hiw-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 32, position: 'relative' }}>
               {hiwSteps.map((step, i) => (
                 <HiwStep key={i} step={step} isLast={i === hiwSteps.length - 1} />
               ))}
             </div>
 
-            {/* CTA */}
             <div style={{ textAlign: 'center', marginTop: 60 }}>
               <p style={{ color: '#6c757d', marginBottom: 16, fontSize: 16 }}>Ready to get started?</p>
               <Link
@@ -307,46 +323,52 @@ const Home = () => {
               <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.6)', maxWidth: 480, margin: '0 auto' }}>Real feedback from students we've helped achieve academic success</p>
             </div>
 
-            <div className="testimonial-carousel" style={{ position: 'relative', maxWidth: 800, margin: '0 auto', padding: '0 70px', zIndex: 2 }}>
-              <button className="testimonial-arrow testimonial-arrow-left" onClick={prevSlide} style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg,#667eea,#764ba2)', border: 'none', color: '#fff', fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 15px rgba(102,126,234,0.4)' }}>
-                <i className="bi bi-chevron-left"></i>
-              </button>
-              <button className="testimonial-arrow testimonial-arrow-right" onClick={nextSlide} style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg,#667eea,#764ba2)', border: 'none', color: '#fff', fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 15px rgba(102,126,234,0.4)' }}>
-                <i className="bi bi-chevron-right"></i>
-              </button>
-              <div style={{ overflow: 'hidden' }}>
-                <div
-                  key={`${testimonials[currentSlide].id}-${slideDirection}`}
-                  style={{
-                    padding: '0 10px',
-                    animation: `${slideDirection === 'next' ? 'testimonialSlideInRight' : 'testimonialSlideInLeft'} 0.45s cubic-bezier(0.4,0,0.2,1)`,
-                  }}
-                >
-                  {(() => {
-                    const t = testimonials[currentSlide];
-                    return (
-                      <div style={{ background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 24, padding: '44px 30px 32px', position: 'relative', borderTop: '3px solid transparent', backgroundClip: 'padding-box' }}>
-                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg,#667eea,#764ba2,#f5576c)', borderRadius: '24px 24px 0 0' }}></div>
-                        <i className="bi bi-quote" style={{ fontSize: 52, color: 'rgba(102,126,234,0.4)', display: 'block', marginBottom: 20, lineHeight: 1 }}></i>
-                        <p style={{ fontSize: 15, lineHeight: 1.8, color: 'rgba(255,255,255,0.85)', fontStyle: 'italic', marginBottom: 30 }}>"{t.text}"</p>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 16, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.1)', flexWrap: 'wrap' }}>
-                          <img src={`https://ui-avatars.com/api/?name=${t.name.replace(' ', '+')}&background=667eea&color=fff&size=70`} alt={t.name} style={{ width: 52, height: 52, borderRadius: '50%', border: '3px solid rgba(102,126,234,0.6)', objectFit: 'cover', flexShrink: 0 }} />
-                          <div style={{ flex: 1, minWidth: 120 }}>
-                            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 4 }}>{t.name}</h3>
-                            <div style={{ color: '#ffc107', fontSize: 14, letterSpacing: 2 }}>{'★'.repeat(t.rating)}</div>
+            {testimonials.length > 0 ? (
+              <div className="testimonial-carousel" style={{ position: 'relative', maxWidth: 800, margin: '0 auto', padding: '0 70px', zIndex: 2 }}>
+                <button className="testimonial-arrow testimonial-arrow-left" onClick={prevSlide} style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg,#667eea,#764ba2)', border: 'none', color: '#fff', fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 15px rgba(102,126,234,0.4)' }}>
+                  <i className="bi bi-chevron-left"></i>
+                </button>
+                <button className="testimonial-arrow testimonial-arrow-right" onClick={nextSlide} style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg,#667eea,#764ba2)', border: 'none', color: '#fff', fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 15px rgba(102,126,234,0.4)' }}>
+                  <i className="bi bi-chevron-right"></i>
+                </button>
+                <div style={{ overflow: 'hidden' }}>
+                  <div
+                    key={`${testimonials[currentSlide].id}-${slideDirection}`}
+                    style={{
+                      padding: '0 10px',
+                      animation: `${slideDirection === 'next' ? 'testimonialSlideInRight' : 'testimonialSlideInLeft'} 0.45s cubic-bezier(0.4,0,0.2,1)`,
+                    }}
+                  >
+                    {(() => {
+                      const t = testimonials[currentSlide];
+                      return (
+                        <div className="testimonial-card" style={{ background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 24, padding: '44px 30px 32px', position: 'relative' }}>
+                          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg,#667eea,#764ba2,#f5576c)', borderRadius: '24px 24px 0 0' }}></div>
+                          <i className="bi bi-quote" style={{ fontSize: 52, color: 'rgba(102,126,234,0.4)', display: 'block', marginBottom: 20, lineHeight: 1 }}></i>
+                          <p style={{ fontSize: 15, lineHeight: 1.8, color: 'rgba(255,255,255,0.85)', fontStyle: 'italic', marginBottom: 30, wordBreak: 'break-word' }}>"{t.text}"</p>
+                          <div className="testimonial-footer" style={{ display: 'flex', alignItems: 'center', gap: 16, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.1)', flexWrap: 'wrap' }}>
+                            <img src={`https://ui-avatars.com/api/?name=${t.name.replace(' ', '+')}&background=667eea&color=fff&size=70`} alt={t.name} style={{ width: 52, height: 52, borderRadius: '50%', border: '3px solid rgba(102,126,234,0.6)', objectFit: 'cover', flexShrink: 0 }} />
+                            <div style={{ flex: 1, minWidth: 120 }}>
+                              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 4 }}>{t.name}</h3>
+                              <div style={{ color: '#ffc107', fontSize: 14, letterSpacing: 2 }}>{'★'.repeat(t.rating)}</div>
+                            </div>
+                            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', margin: 0, whiteSpace: 'nowrap' }}>{t.date}</p>
                           </div>
-                          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', margin: 0, whiteSpace: 'nowrap' }}>{t.date}</p>
                         </div>
-                      </div>
-                    );
-                  })()}
+                      );
+                    })()}
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.6)', position: 'relative', zIndex: 2 }}>
+                No reviews yet — be the first to share your experience!
+              </p>
+            )}
 
             <div style={{ textAlign: 'center', marginTop: 40, color: 'rgba(255,255,255,0.8)', fontSize: 16, position: 'relative', zIndex: 2 }}>
               <i className="bi bi-star-fill" style={{ color: '#ffc107', marginRight: 8 }}></i>
-              Average Rating: <span style={{ color: '#ffc107', fontWeight: 700, fontSize: 20, margin: '0 6px' }}>4.8</span> / 5.0
+              Average Rating: <span style={{ color: '#ffc107', fontWeight: 700, fontSize: 20, margin: '0 6px' }}>{averageRating !== null ? averageRating.toFixed(1) : '—'}</span> / 5.0
             </div>
           </div>
         </section>
@@ -361,7 +383,6 @@ const Home = () => {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 40, alignItems: 'start' }}>
 
-              {/* Info Panel */}
               <div style={{ background: 'linear-gradient(135deg,#667eea,#764ba2)', borderRadius: 24, padding: '44px 30px', color: '#fff' }}>
                 <h3 style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>Let's talk about your assignment</h3>
                 <p style={{ color: 'rgba(255,255,255,0.8)', marginBottom: 32, lineHeight: 1.7 }}>Have questions about our services or need help? We're available 24/7 to assist you with IT and Quantity Surveying assignments.</p>
@@ -391,7 +412,6 @@ const Home = () => {
                 </div>
               </div>
 
-              {/* Form Panel */}
               <div style={{ background: '#fff', borderRadius: 24, padding: '44px 30px', boxShadow: '0 8px 40px rgba(0,0,0,0.06)', border: '1px solid #f0f0f0' }}>
                 <h3 style={{ fontSize: 22, fontWeight: 700, color: '#212529', marginBottom: 28 }}>Send a Message</h3>
                 <form onSubmit={handleContactSubmit}>
@@ -526,7 +546,6 @@ const Home = () => {
             </div>
           </div>
 
-          {/* WhatsApp Float */}
           <a href="https://wa.me/94788769570" target="_blank" rel="noreferrer" className="whatsapp-float" style={{ position: 'fixed', bottom: 32, right: 32, width: 56, height: 56, background: 'linear-gradient(135deg,#25D366,#128C7E)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 28, textDecoration: 'none', boxShadow: '0 8px 25px rgba(37,211,102,0.4)', zIndex: 1000, transition: 'all 0.3s', animation: 'pulseWA 2s infinite' }}
              onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1)'; }}
              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; }}>
@@ -545,7 +564,6 @@ const Home = () => {
           html, body { overflow-x: hidden; max-width: 100%; }
           input, textarea { font-family: inherit; }
 
-          /* Hide desktop nav / show hamburger on small screens */
           @media (max-width: 900px) {
             .navbar-links-desktop { display: none !important; }
             .navbar-hamburger { display: inline-flex !important; align-items: center; justify-content: center; }
@@ -554,40 +572,40 @@ const Home = () => {
             .navbar-mobile-menu { display: none !important; }
           }
 
-          /* Programs strip: stack on small screens instead of squeezing 3 across */
           @media (max-width: 700px) {
             .programs-strip { flex-direction: column; width: 92% !important; }
             .programs-strip-item { width: 100%; flex: 1 1 100% !important; min-width: 0 !important; }
             .programs-strip-item img { height: 200px !important; }
           }
 
-          /* How-it-works connector lines only make sense in a horizontal row */
           @media (max-width: 900px) {
             .hiw-connector { display: none !important; }
             .hiw-grid { gap: 40px !important; }
           }
 
-          /* Stats bar: 2 per row on tablets, stack dividers away on mobile */
           @media (max-width: 600px) {
             .stats-divider { display: none !important; }
             .stats-bar { padding: 24px 20px !important; }
           }
 
-          /* Contact form: single column on mobile */
           @media (max-width: 520px) {
             .contact-form-row { grid-template-columns: 1fr !important; }
           }
 
-          /* Testimonial carousel: shrink side padding & arrow size so text doesn't
-             get squeezed and arrows don't overlap the card on narrow phones */
           @media (max-width: 640px) {
-            .testimonial-carousel { padding: 0 8px !important; }
-            .testimonial-arrow { width: 36px !important; height: 36px !important; font-size: 16px !important; }
-            .testimonial-arrow-left { left: -4px !important; }
-            .testimonial-arrow-right { right: -4px !important; }
+            .testimonial-carousel { padding: 0 45px !important; }
+            .testimonial-arrow { width: 38px !important; height: 38px !important; font-size: 16px !important; }
+            .testimonial-card { padding: 36px 20px 24px !important; }
           }
 
           @media (max-width: 480px) {
+            .testimonial-carousel { padding: 0 8px !important; }
+            .testimonial-arrow-left { left: -4px !important; }
+            .testimonial-arrow-right { right: -4px !important; }
+            .testimonial-arrow { width: 32px !important; height: 32px !important; font-size: 14px !important; }
+            .testimonial-card { padding: 32px 16px 20px !important; }
+            .testimonial-card p { font-size: 14px !important; }
+            .testimonial-footer { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; }
             .whatsapp-float { bottom: 16px !important; right: 16px !important; width: 48px !important; height: 48px !important; font-size: 22px !important; }
           }
         `}</style>
@@ -595,7 +613,6 @@ const Home = () => {
   );
 };
 
-/* ── How It Works Step Component ── */
 const HiwStep = ({ step, isLast }) => {
   const [hovered, setHovered] = useState(false);
   return (
@@ -604,7 +621,6 @@ const HiwStep = ({ step, isLast }) => {
       onMouseLeave={() => setHovered(false)}
       style={{ position: 'relative', padding: '0 16px 0 0', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
     >
-      {/* Connector line between steps */}
       {!isLast && (
         <div
           className="hiw-connector"
@@ -622,7 +638,6 @@ const HiwStep = ({ step, isLast }) => {
         />
       )}
 
-      {/* Icon + badge */}
       <div style={{ position: 'relative', marginBottom: 28, zIndex: 1 }}>
         <div style={{
           width: 80, height: 80, borderRadius: '50%',
@@ -635,7 +650,6 @@ const HiwStep = ({ step, isLast }) => {
         }}>
           <i className={`bi ${step.icon}`}></i>
         </div>
-        {/* Step number badge */}
         <div style={{
           position: 'absolute', bottom: -6, right: -6,
           width: 28, height: 28, borderRadius: '50%',
@@ -648,7 +662,6 @@ const HiwStep = ({ step, isLast }) => {
         </div>
       </div>
 
-      {/* Content card */}
       <div style={{
         background: '#fff', borderRadius: 20, padding: '28px 24px',
         textAlign: 'center', width: '100%',
@@ -674,7 +687,6 @@ const HiwStep = ({ step, isLast }) => {
   );
 };
 
-/* ── ServiceCard ── */
 const ServiceCard = ({ iconBg, icon, tag, tagColor, tagBg, borderTop, title, desc, items, checkBg, checkColor, btnBg, btnShadow, btnLabel }) => {
   const [hovered, setHovered] = useState(false);
   return (
@@ -704,7 +716,6 @@ const ServiceCard = ({ iconBg, icon, tag, tagColor, tagBg, borderTop, title, des
   );
 };
 
-/* ── PricingCard ── */
 const PricingCard = ({ icon, name, desc, price, currency, period, perPerson, featured, badge, plus, features }) => {
   const [hovered, setHovered] = useState(false);
   return (
