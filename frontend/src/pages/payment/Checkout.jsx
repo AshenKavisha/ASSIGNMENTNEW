@@ -1,41 +1,104 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
 const Checkout = () => {
   const [searchParams] = useSearchParams();
-  const assignmentId = searchParams.get('id') || '123';
+  const assignmentId = searchParams.get('id');
 
-  // Mock Data - පස්සේ කාලෙක Backend එකෙන් ගන්න පුළුවන්
-  const paymentData = {
-    assignment: {
-      title: "Java OOP Assignment",
-      subject: "Object Oriented Programming",
-      type: "IT"
-    },
-    orderId: `ORD-${assignmentId}-${Math.floor(Math.random() * 1000)}`,
-    amount: 2500.00,
-    currency: { symbol: "Rs.", displayName: "Sri Lankan Rupee", code: "LKR" },
-    user: {
-      fullName: "Ashen Kaveesha",
-      email: "ashen@example.com",
-      phone: "0757300842"
-    },
-    payhere: {
-      merchantId: "121XXXX", // ඔයාගේ PayHere Merchant ID එක
-      apiUrl: "https://sandbox.payhere.lk/pay/checkout", // Testing වලට sandbox පාවිච්චි කරන්න
-      hash: "XXXXX", // Backend එකෙන් generate කරලා එන hash එක
-      returnUrl: "http://localhost:5173/payment/result?status=success",
-      cancelUrl: "http://localhost:5173/payment/result?status=cancel",
-      notifyUrl: "http://your-backend-api.com/notify"
+  const [paymentData, setPaymentData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!assignmentId) {
+      setError('No assignment ID was provided.');
+      setLoading(false);
+      return;
     }
-  };
+
+    const fetchCheckoutData = async () => {
+      try {
+        setLoading(true);
+
+        // Single call to the real backend - this reuses PayHereService under
+        // the hood (same hash generation, order creation, and rules as the
+        // Thymeleaf /payment/checkout flow), just returned as JSON for React.
+        const res = await fetch(`/api/payments/checkout?assignmentId=${assignmentId}`, {
+          method: 'GET',
+          credentials: 'include', // send session cookie for Spring Security auth
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => ({}));
+          throw new Error(errBody.error || `Failed to load checkout (status ${res.status})`);
+        }
+
+        const data = await res.json();
+
+        setPaymentData({
+          assignment: {
+            title: data.assignment?.title ?? 'Assignment',
+            subject: data.assignment?.subject ?? '',
+            type: data.assignment?.type ?? ''
+          },
+          orderId: data.orderId,
+          amount: Number(data.amount ?? 0),
+          currency: {
+            symbol: data.currency?.symbol ?? 'Rs.',
+            displayName: data.currency?.displayName ?? 'Sri Lankan Rupee',
+            code: data.currency?.code ?? 'LKR'
+          },
+          user: {
+            fullName: data.user?.fullName ?? '',
+            email: data.user?.email ?? '',
+            phone: data.user?.phone ?? ''
+          },
+          payhere: {
+            merchantId: data.payhere?.merchantId,
+            apiUrl: data.payhere?.apiUrl ?? 'https://sandbox.payhere.lk/pay/checkout',
+            hash: data.payhere?.hash,
+            returnUrl: data.payhere?.returnUrl,
+            cancelUrl: data.payhere?.cancelUrl,
+            notifyUrl: data.payhere?.notifyUrl
+          }
+        });
+      } catch (err) {
+        console.error('Error loading checkout data:', err);
+        setError(err.message || 'Could not load payment details. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCheckoutData();
+  }, [assignmentId]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#667eea] to-[#764ba2]">
+        <p className="text-white text-xl font-bold">Loading payment details...</p>
+      </div>
+    );
+  }
+
+  if (error || !paymentData) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-[#667eea] to-[#764ba2]">
+        <p className="text-white text-xl font-bold">{error || 'Payment details not found.'}</p>
+        <Link to="/dashboard" className="text-white underline font-bold">
+          Return to Dashboard
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#667eea] to-[#764ba2] p-5 font-sans">
-      
+
       <div className="max-w-[600px] w-full animate-slideUp">
         <div className="bg-white rounded-[20px] shadow-[0_20px_60px_rgba(0,0,0,0.3)] overflow-hidden border-none">
-          
+
           {/* Header */}
           <div className="bg-gradient-to-tr from-[#667eea] to-[#764ba2] text-white p-8 text-center">
             <h1 className="m-0 text-[1.8rem] font-bold flex items-center justify-center gap-3">
