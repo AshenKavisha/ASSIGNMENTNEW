@@ -6,6 +6,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': { target: 'http://localhost:8080', changeOrigin: true, secure: false, cookieDomainRewrite: 'localhost' },
+      '/feedback': { target: 'http://localhost:8080', changeOrigin: true, secure: false, cookieDomainRewrite: 'localhost' },
       // /login is NOT proxied — React Router handles GET /login
       // Login form submits to /api/auth/login which is covered by /api proxy above
       '/logout': { target: 'http://localhost:8080', changeOrigin: true, secure: false, cookieDomainRewrite: 'localhost' },

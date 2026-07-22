@@ -105,6 +105,7 @@ public class SecurityConfig {
 
                                 "/feedback/all",
                                 "/feedback/view/**",
+                                "/feedback/api/public/**",
 
                                 "/error",
                                 "/access-denied"
@@ -146,7 +147,9 @@ public class SecurityConfig {
 
                         .requestMatchers(
                                 "/feedback/submit",
-                                "/feedback/my-feedback"
+                                "/feedback/my-feedback",
+                                "/feedback/api/recent",
+                                "/feedback/api/submit"
                         ).authenticated()
 
                         .requestMatchers(
@@ -202,10 +205,17 @@ public class SecurityConfig {
                 )
 
                 .exceptionHandling(exception -> exception
-                        .accessDeniedPage("/access-denied")
+                        // Return JSON for 403s instead of forwarding to a page that
+                        // doesn't exist as a controller/view (was causing a masked
+                        // 404 instead of the real 403 for React callers).
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(403);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\":\"Access denied\"}");
+                        })
                         .authenticationEntryPoint((request, response, authException) -> {
                             String requestURI = request.getRequestURI();
-                            if (requestURI.startsWith("/api/")) {
+                            if (requestURI.startsWith("/api/") || requestURI.startsWith("/feedback/api/")) {
                                 response.setStatus(401);
                                 response.setContentType("application/json");
                                 response.getWriter().write("{\"error\":\"Unauthorized\"}");
@@ -225,6 +235,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers(
                                 "/api/**",
+                                "/feedback/**",
                                 "/h2-console/**",
                                 "/payment/notify",
                                 "/logout",
