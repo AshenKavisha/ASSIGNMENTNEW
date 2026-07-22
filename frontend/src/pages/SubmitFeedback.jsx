@@ -15,7 +15,7 @@ const SubmitFeedback = () => {
 
   // ── Fetch logged-in user ────────────────────────────────────────────────
   useEffect(() => {
-    fetch('/api/auth/me', { credentials: 'include' })
+    fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, { credentials: 'include' })
       .then(res => res.ok ? res.json() : null)
       .then(data => { if (data) setUser(prev => ({ ...prev, fullName: data.name || data.email })); })
       .catch(() => {});
@@ -24,7 +24,7 @@ const SubmitFeedback = () => {
   // ── Fetch real recent feedbacks ──────────────────────────────────────────
   const loadFeedbacks = () => {
     setLoadingFeedbacks(true);
-    fetch('/feedback/api/recent', { credentials: 'include' })
+    fetch(`${import.meta.env.VITE_API_URL}/feedback/api/recent`, { credentials: 'include' })
       .then(res => res.ok ? res.json() : null)
       .then(data => { if (data) setPastFeedbacks(data.feedbacks || []); })
       .catch(() => {})
@@ -46,7 +46,7 @@ const SubmitFeedback = () => {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch('/feedback/api/submit', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/feedback/api/submit`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
