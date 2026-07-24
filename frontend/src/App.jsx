@@ -9,6 +9,7 @@ import ReturnPolicy from './pages/ReturnPolicy';
 import TermsAndConditions from './pages/TermsAndConditions';
 
 // --- Auth Pages ---
+import MainLayout from './components/MainLayout';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';

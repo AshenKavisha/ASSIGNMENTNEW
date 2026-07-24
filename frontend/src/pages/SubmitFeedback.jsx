@@ -15,7 +15,7 @@ const SubmitFeedback = () => {
 
   // ── Fetch logged-in user ────────────────────────────────────────────────
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, { credentials: 'include' })
+    fetch('/api/auth/me', { credentials: 'include' })
       .then(res => res.ok ? res.json() : null)
       .then(data => { if (data) setUser(prev => ({ ...prev, fullName: data.name || data.email })); })
       .catch(() => {});
@@ -24,7 +24,7 @@ const SubmitFeedback = () => {
   // ── Fetch real recent feedbacks ──────────────────────────────────────────
   const loadFeedbacks = () => {
     setLoadingFeedbacks(true);
-    fetch(`${import.meta.env.VITE_API_URL}/feedback/api/recent`, { credentials: 'include' })
+    fetch('/feedback/api/recent', { credentials: 'include' })
       .then(res => res.ok ? res.json() : null)
       .then(data => { if (data) setPastFeedbacks(data.feedbacks || []); })
       .catch(() => {})
@@ -46,7 +46,7 @@ const SubmitFeedback = () => {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/feedback/api/submit`, {
+      const res = await fetch('/feedback/api/submit', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -77,7 +77,7 @@ const SubmitFeedback = () => {
       {/* Navbar (Dashboard Style) */}
       <nav className="bg-[#212529] text-white py-3 px-6 shadow-md sticky top-0 z-50">
         <div className="container mx-auto flex flex-wrap justify-between items-center gap-4">
-          <Link to="/dashboard" className="text-xl font-bold flex items-center gap-2 hover:text-gray-300 transition-colors no-underline text-white">
+          <Link to="/" className="text-xl font-bold flex items-center gap-2 hover:text-gray-300 transition-colors no-underline text-white">
             <i className="bi bi-journal-check text-[#3498db]"></i> Assignment Service
           </Link>
           <div className="flex items-center gap-4 ml-auto">

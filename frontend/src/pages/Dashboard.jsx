@@ -10,48 +10,37 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch real dashboard data from backend
-    fetch('/dashboard', {
-      credentials: 'include',
+  fetch('/api/auth/me', { credentials: 'include' })
+    .then(res => {
+      if (!res.ok) navigate('/login');
+      return res.json();
     })
-        .then(res => {
-          if (!res.ok) {
-            navigate('/login');
-          }
-          return res.text();
-        })
-        .then(html => {
-          // Parse real values from backend HTML response
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(html, 'text/html');
+    .then(data => {
+      setUser(data);
 
-          // Extract data from meta tags we'll add to backend
-          // For now use session-based approach
-          setLoading(false);
-        })
-        .catch(() => navigate('/login'));
+      // ✅ Get the real unread notification count
+      fetch('/api/notifications/unread-count', { credentials: 'include' })
+        .then(res => res.ok ? res.json() : { count: 0 })
+        .then(d => setNotificationCount(d.count || 0))
+        .catch(() => setNotificationCount(0));
 
-    // Fetch current user info
-    fetch('/api/auth/me', {
-      credentials: 'include',
-    })
-        .then(res => {
-          if (!res.ok) navigate('/login');
-          return res.json();
-        })
-        .then(data => {
-          setUser(data);
-          setNotificationCount(data.notificationCount || 0);
-          setDeliveredCount(data.deliveredCount || 0);
-          if (data.role === 'ADMIN') {
+      // ✅ Get real admin stats (pending / total)
+      if (data.role === 'ADMIN') {
+        fetch('/api/admin/stats', { credentials: 'include' })
+          .then(res => res.ok ? res.json() : {})
+          .then(stats => {
             setAdminStats({
-              pending: data.pendingCount || 0,
-              total: data.totalAssignments || 0
+              pending: stats.pendingCount || 0,
+              total: stats.totalAssignments || 0
             });
-          }
-        })
-        .catch(() => navigate('/login'));
-  }, []);
+          })
+          .catch(() => {});
+      }
+
+      setLoading(false);
+    })
+    .catch(() => navigate('/login'));
+}, []);
 
   // ✅ Real logout function
   const handleLogout = async () => {
@@ -81,7 +70,7 @@ const Dashboard = () => {
         {/* Navbar */}
         <nav className="bg-[#212529] text-white py-3 px-6 shadow-md sticky top-0 z-50">
           <div className="container mx-auto flex flex-wrap justify-between items-center gap-4">
-            <Link to="/dashboard" className="text-xl font-bold flex items-center gap-2 text-white hover:text-gray-300 transition-colors no-underline">
+            <Link to="/" className="text-xl font-bold flex items-center gap-2 text-white hover:text-gray-300 transition-colors no-underline">
               <i className="bi bi-journal-check text-[#3498db]"></i> Assignment Service
             </Link>
 
