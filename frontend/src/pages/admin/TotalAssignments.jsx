@@ -42,8 +42,9 @@ const TotalAssignments = () => {
   }, []);
 
   // ── Derive the list shown in the body from allAssignments + activeTab.
-  //    Uses the SAME multi-status match for "APPROVED" that the badge
-  //    counts use below, so the numbers and the list always match. ────
+  //    Uses the SAME multi-status match for "APPROVED" / "IN_PROGRESS"
+  //    that the badge counts use below, so the numbers and the list
+  //    always match. ─────────────────────────────────────────────────
   useEffect(() => {
     if (!allLoaded) return;
 
@@ -53,9 +54,11 @@ const TotalAssignments = () => {
     if (activeTab === 'ALL') {
       filtered = allAssignments;
     } else if (activeTab === 'APPROVED') {
-      filtered = allAssignments.filter(a =>
-          ['APPROVED', 'IN_PROGRESS', 'READY_FOR_DELIVERY'].includes(a.status)
-      );
+      // Approved and payment-confirmed, but not yet started
+      filtered = allAssignments.filter(a => ['APPROVED', 'PAID'].includes(a.status));
+    } else if (activeTab === 'IN_PROGRESS') {
+      // Actively being worked on / ready to hand back to the student
+      filtered = allAssignments.filter(a => ['IN_PROGRESS', 'READY_FOR_DELIVERY'].includes(a.status));
     } else {
       filtered = allAssignments.filter(a => a.status === activeTab);
     }
@@ -67,7 +70,8 @@ const TotalAssignments = () => {
   const tabStats = {
     ALL: allAssignments.length,
     PENDING: allAssignments.filter(a => a.status === 'PENDING').length,
-    APPROVED: allAssignments.filter(a => ['APPROVED', 'IN_PROGRESS', 'READY_FOR_DELIVERY'].includes(a.status)).length,
+    APPROVED: allAssignments.filter(a => ['APPROVED', 'PAID'].includes(a.status)).length,
+    IN_PROGRESS: allAssignments.filter(a => ['IN_PROGRESS', 'READY_FOR_DELIVERY'].includes(a.status)).length,
     DELIVERED: allAssignments.filter(a => a.status === 'DELIVERED').length,
     REVISION_REQUESTED: allAssignments.filter(a => a.status === 'REVISION_REQUESTED').length,
     REJECTED: allAssignments.filter(a => a.status === 'REJECTED').length,
@@ -178,7 +182,8 @@ const TotalAssignments = () => {
                 {[
                   { label: 'All Assignments', val: 'ALL', icon: 'bi-list-ul' },
                   { label: 'Pending Approval', val: 'PENDING', icon: 'bi-hourglass-split' },
-                  { label: 'Approved / In Progress', val: 'APPROVED', icon: 'bi-check-circle' },
+                  { label: 'Approved', val: 'APPROVED', icon: 'bi-check-circle' },
+                  { label: 'In Progress', val: 'IN_PROGRESS', icon: 'bi-gear' },
                   { label: 'Delivered', val: 'DELIVERED', icon: 'bi-send-check' },
                   { label: 'Revision Requests', val: 'REVISION_REQUESTED', icon: 'bi-arrow-repeat' },
                   { label: 'Rejected', val: 'REJECTED', icon: 'bi-x-circle' }
@@ -228,9 +233,12 @@ const TotalAssignments = () => {
                               <span className={`px-4 py-1 rounded-full text-[10px] font-bold text-white flex items-center gap-1 ${
                                   item.status === 'PENDING' ? 'bg-yellow-500' :
                                       item.status === 'APPROVED' ? 'bg-blue-500' :
-                                          item.status === 'DELIVERED' ? 'bg-green-500' :
-                                              item.status === 'REVISION_REQUESTED' ? 'bg-orange-500' :
-                                                  item.status === 'REJECTED' ? 'bg-red-500' : 'bg-gray-500'
+                                          item.status === 'PAID' ? 'bg-teal-500' :
+                                              item.status === 'IN_PROGRESS' ? 'bg-orange-500' :
+                                                  item.status === 'READY_FOR_DELIVERY' ? 'bg-orange-500' :
+                                                      item.status === 'DELIVERED' ? 'bg-green-500' :
+                                                          item.status === 'REVISION_REQUESTED' ? 'bg-purple-500' :
+                                                              item.status === 'REJECTED' ? 'bg-red-500' : 'bg-gray-500'
                               }`}>
                                 {item.status}
                               </span>

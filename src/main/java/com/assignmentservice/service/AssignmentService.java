@@ -858,4 +858,39 @@ public class AssignmentService {
         return saved;
     }
 
+    /**
+ * Manually advance an assignment's status along the allowed manual
+ * transitions: APPROVED -> PAID -> IN_PROGRESS.
+ * Used by admin after confirming a WhatsApp/manual payment, and when
+ * admin starts working on the assignment.
+ */
+public Assignment updateStatusManually(Long id, Assignment.AssignmentStatus newStatus, User admin) {
+    Optional<Assignment> assignmentOpt = getAssignmentByIdForAdmin(id, admin);
+    if (assignmentOpt.isEmpty()) {
+        throw new RuntimeException("Assignment not found or access denied.");
+    }
+
+    Assignment assignment = assignmentOpt.get();
+    Assignment.AssignmentStatus current = assignment.getStatus();
+
+    boolean validTransition =
+            (current == Assignment.AssignmentStatus.APPROVED && newStatus == Assignment.AssignmentStatus.PAID) ||
+            (current == Assignment.AssignmentStatus.PAID && newStatus == Assignment.AssignmentStatus.IN_PROGRESS);
+
+    if (!validTransition) {
+        throw new RuntimeException("Invalid status transition from " + current + " to " + newStatus);
+    }
+
+    assignment.setStatus(newStatus);
+    Assignment saved = assignmentRepository.save(assignment);
+
+    if (newStatus == Assignment.AssignmentStatus.PAID) {
+        notificationService.notifyUserPaymentConfirmedManual(saved);
+    } else if (newStatus == Assignment.AssignmentStatus.IN_PROGRESS) {
+        notificationService.notifyUserAssignmentInProgress(saved);
+    }
+
+    return saved;
+}
+
 }

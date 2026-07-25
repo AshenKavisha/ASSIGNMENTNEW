@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
+import AssignmentStatusBar from '../components/AssignmentStatusBar'; // adjust path
 
 const ViewAssignment = () => {
   const { id } = useParams();
@@ -180,6 +181,11 @@ const ViewAssignment = () => {
 
           <div className="p-8">
             
+          {/* ✅ ADD THE STATUS BAR RIGHT HERE — before "Basic Info Row" */}
+            <div className="mb-8">
+              <AssignmentStatusBar status={assignment.status} />
+            </div>
+
             {/* Basic Info Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 flex items-center gap-4">

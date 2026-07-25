@@ -242,7 +242,9 @@ public class SecurityConfig {
                                 "/register",
                                 "/forgot-password",
                                 "/reset-password",
-                                "/resend-verification"
+                                "/resend-verification",
+                                "/admin/assignments/*/deliver-solution",
+                                "/assignments/*/request-revision"
                         )
                 )
 

@@ -604,4 +604,49 @@ public class AuthController {
 
         return ResponseEntity.ok(map);
     }
+
+    /**
+ * Manually update assignment status: APPROVED -> PAID -> IN_PROGRESS.
+ * Used for confirming manual/WhatsApp payments and marking work started.
+ */
+@PostMapping("/api/admin/assignments/{id}/update-status")
+@ResponseBody
+public ResponseEntity<?> updateStatusManually(
+        @PathVariable Long id,
+        @RequestBody Map<String, Object> body) {
+
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
+        return ResponseEntity.status(401).build();
+    }
+
+    String email = authentication.getName();
+    Optional<User> currentAdminOpt = userService.getUserByEmail(email);
+    if (!currentAdminOpt.isPresent()) {
+        return ResponseEntity.status(401).build();
+    }
+
+    String statusStr = body.get("status") != null ? String.valueOf(body.get("status")) : null;
+    if (statusStr == null || statusStr.isBlank()) {
+        return ResponseEntity.badRequest().body(Map.of("error", "status is required"));
+    }
+
+    Assignment.AssignmentStatus newStatus;
+    try {
+        newStatus = Assignment.AssignmentStatus.valueOf(statusStr);
+    } catch (IllegalArgumentException e) {
+        return ResponseEntity.badRequest().body(Map.of("error", "Invalid status value"));
+    }
+
+    try {
+        Assignment updated = assignmentService.updateStatusManually(id, newStatus, currentAdminOpt.get());
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", updated.getId());
+        response.put("status", updated.getStatus());
+        return ResponseEntity.ok(response);
+    } catch (RuntimeException e) {
+        return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+    }
+}
+
 }

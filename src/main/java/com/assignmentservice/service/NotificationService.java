@@ -641,4 +641,55 @@ public void notifyHandoverBetweenAdmins(Assignment assignment, User fromAdmin, U
     }
 }
 
+/**
+ * Notify user that their payment has been manually confirmed by admin
+ * (e.g. payment made via WhatsApp/bank transfer, confirmed by admin).
+ */
+public void notifyUserPaymentConfirmedManual(Assignment assignment) {
+    try {
+        Notification notification = new Notification();
+        notification.setUser(assignment.getUser());
+        notification.setType(Notification.NotificationType.PAYMENT_CONFIRMED);
+        notification.setTitle("✅ Payment Confirmed!");
+        notification.setMessage(
+                "Your payment for '" + assignment.getTitle() +
+                        "' has been confirmed. Our admin team will begin working on your assignment shortly."
+        );
+        notification.setActionUrl("/assignments/" + assignment.getId());
+        notification.setRelatedAssignmentId(assignment.getId());
+        notification.setImportant(true);
+        notification.setStatus(Notification.NotificationStatus.UNREAD);
+        notificationRepository.save(notification);
+
+        log.info("Manual payment confirmation notification created for user: {}", assignment.getUser().getEmail());
+    } catch (Exception e) {
+        log.error("Failed to create manual payment confirmation notification", e);
+    }
+}
+
+/**
+ * Notify user that admin has started working on their assignment.
+ */
+public void notifyUserAssignmentInProgress(Assignment assignment) {
+    try {
+        Notification notification = new Notification();
+        notification.setUser(assignment.getUser());
+        notification.setType(Notification.NotificationType.SYSTEM);
+        notification.setTitle("🚀 Work Started");
+        notification.setMessage(
+                "Great news! Our admin team has started working on your assignment '" +
+                        assignment.getTitle() + "'."
+        );
+        notification.setActionUrl("/assignments/" + assignment.getId());
+        notification.setRelatedAssignmentId(assignment.getId());
+        notification.setImportant(true);
+        notification.setStatus(Notification.NotificationStatus.UNREAD);
+        notificationRepository.save(notification);
+
+        log.info("In-progress notification created for user: {}", assignment.getUser().getEmail());
+    } catch (Exception e) {
+        log.error("Failed to create in-progress notification", e);
+    }
+}
+
 }

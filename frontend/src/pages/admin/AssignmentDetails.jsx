@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/admin/Sidebar';
+import AssignmentStatusBar from '../../components/AssignmentStatusBar'; // ⬅️ adjust path to match your folder structure
 
 const AssignmentDetails = () => {
   const { id } = useParams();
@@ -8,6 +9,9 @@ const AssignmentDetails = () => {
   const [assignment, setAssignment] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // ✅ NEW: manual status update state
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     fetch(`/api/admin/assignments/${id}`, { credentials: 'include' })
@@ -24,6 +28,29 @@ const AssignmentDetails = () => {
           setLoading(false);
         });
   }, [id]);
+
+  // ✅ NEW: calls the manual status-update endpoint (APPROVED -> PAID -> IN_PROGRESS)
+  const updateStatus = async (newStatus) => {
+    setUpdating(true);
+    try {
+      const res = await fetch(`/api/admin/assignments/${id}/update-status`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to update status');
+      }
+      const updated = await res.json();
+      setAssignment(prev => ({ ...prev, status: updated.status }));
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -64,6 +91,7 @@ const AssignmentDetails = () => {
     COMPLETED: 'bg-green-700 text-white',
     REJECTED: 'bg-red-500 text-white',
     REVISION_REQUESTED: 'bg-purple-500 text-white',
+    PAID: 'bg-teal-500 text-white',
   };
 
   return (
@@ -127,6 +155,36 @@ const AssignmentDetails = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* ✅ NEW: Assignment Status Bar */}
+                <AssignmentStatusBar status={assignment.status} />
+
+                {/* ✅ NEW: Manual status update panel — only shown for APPROVED / PAID */}
+                {(assignment.status === 'APPROVED' || assignment.status === 'PAID') && (
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6 mt-6">
+                    <h5 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                      <i className="bi bi-toggle-on text-[#667eea]"></i> Update Status
+                    </h5>
+                    {assignment.status === 'APPROVED' && (
+                      <button
+                        onClick={() => updateStatus('PAID')}
+                        disabled={updating}
+                        className="bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-2.5 rounded-lg flex items-center gap-2 disabled:opacity-50"
+                      >
+                        <i className="bi bi-cash-coin"></i> {updating ? 'Updating...' : 'Confirm Payment Received'}
+                      </button>
+                    )}
+                    {assignment.status === 'PAID' && (
+                      <button
+                        onClick={() => updateStatus('IN_PROGRESS')}
+                        disabled={updating}
+                        className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2.5 rounded-lg flex items-center gap-2 disabled:opacity-50"
+                      >
+                        <i className="bi bi-gear"></i> {updating ? 'Updating...' : 'Mark as In Progress'}
+                      </button>
+                    )}
+                  </div>
+                )}
 
                 {/* Description */}
                 {assignment.description && (
