@@ -20,6 +20,9 @@ const TotalAssignments = () => {
   const [handoverSubmitting, setHandoverSubmitting] = useState(false);
   const [handoverError, setHandoverError] = useState('');
 
+  // ── Status-transition state (shared by Start Progress + Confirm Payment) ──
+  const [startingProgressId, setStartingProgressId] = useState(null);
+
   // Fetch current admin info
   useEffect(() => {
     fetch('/api/auth/me', { credentials: 'include' })
@@ -42,9 +45,9 @@ const TotalAssignments = () => {
   }, []);
 
   // ── Derive the list shown in the body from allAssignments + activeTab.
-  //    Uses the SAME multi-status match for "APPROVED" / "IN_PROGRESS"
-  //    that the badge counts use below, so the numbers and the list
-  //    always match. ─────────────────────────────────────────────────
+  //    Statuses now follow: PENDING -> APPROVED -> IN_PROGRESS -> DELIVERED
+  //    -> PAID -> COMPLETED. Payment confirmation happens AFTER delivery,
+  //    not before work starts. ─────────────────────────────────────────
   useEffect(() => {
     if (!allLoaded) return;
 
@@ -54,11 +57,16 @@ const TotalAssignments = () => {
     if (activeTab === 'ALL') {
       filtered = allAssignments;
     } else if (activeTab === 'APPROVED') {
-      // Approved and payment-confirmed, but not yet started
-      filtered = allAssignments.filter(a => ['APPROVED', 'PAID'].includes(a.status));
+      filtered = allAssignments.filter(a => a.status === 'APPROVED');
     } else if (activeTab === 'IN_PROGRESS') {
       // Actively being worked on / ready to hand back to the student
       filtered = allAssignments.filter(a => ['IN_PROGRESS', 'READY_FOR_DELIVERY'].includes(a.status));
+    } else if (activeTab === 'DELIVERED') {
+      // Delivered but payment not yet confirmed
+      filtered = allAssignments.filter(a => a.status === 'DELIVERED');
+    } else if (activeTab === 'PAID') {
+      // Delivered AND payment confirmed
+      filtered = allAssignments.filter(a => a.status === 'PAID');
     } else {
       filtered = allAssignments.filter(a => a.status === activeTab);
     }
@@ -70,19 +78,79 @@ const TotalAssignments = () => {
   const tabStats = {
     ALL: allAssignments.length,
     PENDING: allAssignments.filter(a => a.status === 'PENDING').length,
-    APPROVED: allAssignments.filter(a => ['APPROVED', 'PAID'].includes(a.status)).length,
+    APPROVED: allAssignments.filter(a => a.status === 'APPROVED').length,
     IN_PROGRESS: allAssignments.filter(a => ['IN_PROGRESS', 'READY_FOR_DELIVERY'].includes(a.status)).length,
     DELIVERED: allAssignments.filter(a => a.status === 'DELIVERED').length,
+    PAID: allAssignments.filter(a => a.status === 'PAID').length,
     REVISION_REQUESTED: allAssignments.filter(a => a.status === 'REVISION_REQUESTED').length,
     REJECTED: allAssignments.filter(a => a.status === 'REJECTED').length,
   };
 
-  // ── Handler for the "Deliver Solution" button. Previously this button
-  //    had no onClick at all, which is why it appeared unclickable.
-  //    Adjust the destination route below if your app uses a different
-  //    path for the delivery flow. ──────────────────────────────────────
+  // ── Handler for the "Deliver Solution" button. Only relevant once an
+  //    assignment is actually IN_PROGRESS / READY_FOR_DELIVERY. ──────────
   const handleDeliverSolution = (assignmentId) => {
     navigate(`/admin/assignments/${assignmentId}/deliver`);
+  };
+
+  // ── Backend rule (AssignmentService#updateStatusManually), updated for
+  //    the pay-after-delivery flow:
+  //    APPROVED -> IN_PROGRESS (work starts right after approval, no
+  //    payment gate), and DELIVERED -> PAID (payment confirmed once the
+  //    student has actually received the solution). ───────────────────
+
+  // Step 1: APPROVED -> IN_PROGRESS (admin starts working on it, no
+  // payment confirmation needed first)
+  const handleStartProgress = async (assignmentId) => {
+    setStartingProgressId(assignmentId);
+    try {
+      const res = await fetch(`/api/admin/assignments/${assignmentId}/update-status`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'IN_PROGRESS' }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to start progress');
+      }
+
+      setAllAssignments(prev =>
+          prev.map(a => a.id === assignmentId ? { ...a, status: 'IN_PROGRESS' } : a)
+      );
+    } catch (err) {
+      alert(err.message || 'Failed to move assignment to In Progress. Please try again.');
+    } finally {
+      setStartingProgressId(null);
+    }
+  };
+
+  // Step 2: DELIVERED -> PAID (confirming a manual/WhatsApp payment,
+  // or verifying the online gateway payment, once the solution has
+  // already been delivered to the student)
+  const handleConfirmPayment = async (assignmentId) => {
+    setStartingProgressId(assignmentId);
+    try {
+      const res = await fetch(`/api/admin/assignments/${assignmentId}/update-status`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'PAID' }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to confirm payment');
+      }
+
+      setAllAssignments(prev =>
+          prev.map(a => a.id === assignmentId ? { ...a, status: 'PAID' } : a)
+      );
+    } catch (err) {
+      alert(err.message || 'Failed to confirm payment. Please try again.');
+    } finally {
+      setStartingProgressId(null);
+    }
   };
 
   // ── Handover: open modal + fetch eligible admins for this assignment ──
@@ -176,22 +244,23 @@ const TotalAssignments = () => {
               </Link>
             </div>
 
-            {/* Assignment Tabs */}
+            {/* Assignment Tabs — grid layout so all tabs always fit, no cut-off scroll */}
             <div className="bg-white rounded-[16px] p-4 mb-8 shadow-md border border-[#e2e8f0]">
-              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-2">
                 {[
                   { label: 'All Assignments', val: 'ALL', icon: 'bi-list-ul' },
                   { label: 'Pending Approval', val: 'PENDING', icon: 'bi-hourglass-split' },
                   { label: 'Approved', val: 'APPROVED', icon: 'bi-check-circle' },
                   { label: 'In Progress', val: 'IN_PROGRESS', icon: 'bi-gear' },
                   { label: 'Delivered', val: 'DELIVERED', icon: 'bi-send-check' },
+                  { label: 'Payment Confirmed', val: 'PAID', icon: 'bi-cash-coin' },
                   { label: 'Revision Requests', val: 'REVISION_REQUESTED', icon: 'bi-arrow-repeat' },
                   { label: 'Rejected', val: 'REJECTED', icon: 'bi-x-circle' }
                 ].map((tab) => (
                     <button
                         key={tab.val}
                         onClick={() => setActiveTab(tab.val)}
-                        className={`flex-1 min-w-[200px] p-4 rounded-xl transition-all duration-300 flex flex-col items-center gap-2 relative border-2 ${
+                        className={`p-4 rounded-xl transition-all duration-300 flex flex-col items-center gap-2 relative border-2 ${
                             activeTab === tab.val
                                 ? 'bg-gradient-to-br from-[#4361ee] to-[#3a0ca3] text-white border-[#4361ee] shadow-lg scale-105'
                                 : 'bg-[#f8fafc] text-[#64748b] border-transparent hover:bg-[#e2e8f0] hover:text-[#4361ee]'
@@ -233,10 +302,10 @@ const TotalAssignments = () => {
                               <span className={`px-4 py-1 rounded-full text-[10px] font-bold text-white flex items-center gap-1 ${
                                   item.status === 'PENDING' ? 'bg-yellow-500' :
                                       item.status === 'APPROVED' ? 'bg-blue-500' :
-                                          item.status === 'PAID' ? 'bg-teal-500' :
-                                              item.status === 'IN_PROGRESS' ? 'bg-orange-500' :
-                                                  item.status === 'READY_FOR_DELIVERY' ? 'bg-orange-500' :
-                                                      item.status === 'DELIVERED' ? 'bg-green-500' :
+                                          item.status === 'IN_PROGRESS' ? 'bg-orange-500' :
+                                              item.status === 'READY_FOR_DELIVERY' ? 'bg-orange-500' :
+                                                  item.status === 'DELIVERED' ? 'bg-green-500' :
+                                                      item.status === 'PAID' ? 'bg-teal-500' :
                                                           item.status === 'REVISION_REQUESTED' ? 'bg-purple-500' :
                                                               item.status === 'REJECTED' ? 'bg-red-500' : 'bg-gray-500'
                               }`}>
@@ -311,6 +380,7 @@ const TotalAssignments = () => {
                           <Link to={`/admin/assignments/${item.id}`} className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#64748b] to-[#475569] text-white text-sm font-bold flex items-center gap-2 hover:-translate-y-1 transition-all shadow-sm no-underline">
                             <i className="bi bi-eye"></i> View Details
                           </Link>
+
                           {item.status === 'PENDING' && (
                               <button
                                   onClick={() => navigate('/admin/assignments/pending')}
@@ -319,7 +389,26 @@ const TotalAssignments = () => {
                                 <i className="bi bi-check-circle"></i> Approve
                               </button>
                           )}
-                          {['APPROVED', 'IN_PROGRESS', 'READY_FOR_DELIVERY'].includes(item.status) && (
+
+                          {/* APPROVED: start work directly, no payment gate
+                              (APPROVED -> IN_PROGRESS) */}
+                          {item.status === 'APPROVED' && (
+                              <button
+                                  onClick={() => handleStartProgress(item.id)}
+                                  disabled={startingProgressId === item.id}
+                                  className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#f97316] to-[#ea580c] text-white text-sm font-bold flex items-center gap-2 hover:-translate-y-1 transition-all shadow-md disabled:opacity-60"
+                              >
+                                {startingProgressId === item.id ? (
+                                    <><i className="bi bi-arrow-repeat animate-spin"></i> Starting...</>
+                                ) : (
+                                    <><i className="bi bi-gear"></i> Start Progress</>
+                                )}
+                              </button>
+                          )}
+
+                          {/* IN_PROGRESS / READY_FOR_DELIVERY: this is the only stage
+                              where "Deliver Solution" makes sense. */}
+                          {['IN_PROGRESS', 'READY_FOR_DELIVERY'].includes(item.status) && (
                               <button
                                   onClick={() => handleDeliverSolution(item.id)}
                                   className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#10b981] to-[#059669] text-white text-sm font-bold flex items-center gap-2 hover:-translate-y-1 transition-all shadow-md"
@@ -327,6 +416,23 @@ const TotalAssignments = () => {
                                 <i className="bi bi-send-check"></i> Deliver Solution
                               </button>
                           )}
+
+                          {/* DELIVERED: now confirm payment, once the student
+                              actually has the solution (DELIVERED -> PAID) */}
+                          {item.status === 'DELIVERED' && (
+                              <button
+                                  onClick={() => handleConfirmPayment(item.id)}
+                                  disabled={startingProgressId === item.id}
+                                  className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#0891b2] to-[#0e7490] text-white text-sm font-bold flex items-center gap-2 hover:-translate-y-1 transition-all shadow-md disabled:opacity-60"
+                              >
+                                {startingProgressId === item.id ? (
+                                    <><i className="bi bi-arrow-repeat animate-spin"></i> Confirming...</>
+                                ) : (
+                                    <><i className="bi bi-cash-coin"></i> Confirm Payment Received</>
+                                )}
+                              </button>
+                          )}
+
                           {item.status === 'REVISION_REQUESTED' && (
                               <>
                                 <button className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#0891b2] text-white text-sm font-bold flex items-center gap-2 hover:-translate-y-1 transition-all shadow-md">
@@ -343,9 +449,9 @@ const TotalAssignments = () => {
 
                           {/* Handover button — only visible to the current owner,
                               and only while the assignment is still active work
-                              (not yet delivered or rejected). */}
+                              (not yet paid, delivered-and-closed, or rejected). */}
                           {item.assignedAdmin && currentAdmin && item.assignedAdmin.id === currentAdmin.id &&
-                            !['DELIVERED', 'REJECTED'].includes(item.status) && (
+                            !['PAID', 'REJECTED'].includes(item.status) && (
                               <button
                                   onClick={() => openHandoverModal(item.id)}
                                   className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#d97706] text-white text-sm font-bold flex items-center gap-2 hover:-translate-y-1 transition-all shadow-md"

@@ -543,12 +543,6 @@ public class AssignmentService {
         assignment.setStatus(Assignment.AssignmentStatus.APPROVED);
         Assignment saved = assignmentRepository.save(assignment);
 
-        // Notify student — email with payment link
-        try {
-            emailService.sendPaymentLinkToUser(saved, currency);
-        } catch (Exception e) {
-            System.err.println("⚠️ Failed to send payment email: " + e.getMessage());
-        }
 
         // In-app notification
         try {
@@ -634,12 +628,6 @@ public class AssignmentService {
         assignment.setStatus(Assignment.AssignmentStatus.IN_PROGRESS);
         Assignment saved = assignmentRepository.save(assignment);
 
-        // Notify student — payment email
-        try {
-            emailService.sendPaymentLinkToUser(saved, currency);
-        } catch (Exception e) {
-            System.err.println("⚠️ Failed to send payment email: " + e.getMessage());
-        }
 
         // Notify student that assignment was approved
         try {
@@ -874,8 +862,8 @@ public Assignment updateStatusManually(Long id, Assignment.AssignmentStatus newS
     Assignment.AssignmentStatus current = assignment.getStatus();
 
     boolean validTransition =
-            (current == Assignment.AssignmentStatus.APPROVED && newStatus == Assignment.AssignmentStatus.PAID) ||
-            (current == Assignment.AssignmentStatus.PAID && newStatus == Assignment.AssignmentStatus.IN_PROGRESS);
+        (current == Assignment.AssignmentStatus.APPROVED && newStatus == Assignment.AssignmentStatus.IN_PROGRESS) ||
+        (current == Assignment.AssignmentStatus.DELIVERED && newStatus == Assignment.AssignmentStatus.PAID);
 
     if (!validTransition) {
         throw new RuntimeException("Invalid status transition from " + current + " to " + newStatus);

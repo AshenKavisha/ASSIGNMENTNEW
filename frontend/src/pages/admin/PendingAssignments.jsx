@@ -37,16 +37,20 @@ const PendingAssignments = () => {
         if (!adminRes.ok)  throw new Error('Failed to fetch admins list.');
 
         const assignData = await assignRes.json();
-        const adminData  = await adminRes.json();
+const adminData  = await adminRes.json();
 
-        setPendingList(assignData);
-        setAdmins(Array.isArray(adminData) ? adminData : []);
+const sortedAssignData = [...assignData].sort(
+  (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+);
 
-        const inputs = {};
-        assignData.forEach(a => {
-          inputs[a.id] = { amount: a.price || '', currency: 'LKR' };
-        });
-        setPriceInputs(inputs);
+setPendingList(sortedAssignData);
+setAdmins(Array.isArray(adminData) ? adminData : []);
+
+const inputs = {};
+sortedAssignData.forEach(a => {
+  inputs[a.id] = { amount: a.price || '', currency: 'LKR' };
+});
+setPriceInputs(inputs);
 
       } catch (err) {
         setError(err.message);

@@ -3,9 +3,9 @@ import React from 'react';
 const STEPS = [
   { key: 'PENDING', label: 'Submitted', icon: 'bi-send' },
   { key: 'APPROVED', label: 'Approved', icon: 'bi-check-circle' },
-  { key: 'PAID', label: 'Payment Confirmed', icon: 'bi-cash-coin' },
   { key: 'IN_PROGRESS', label: 'In Progress', icon: 'bi-gear' },
   { key: 'DELIVERED', label: 'Delivered', icon: 'bi-send-check' },
+  { key: 'PAID', label: 'Payment Confirmed', icon: 'bi-cash-coin' },
   { key: 'COMPLETED', label: 'Completed', icon: 'bi-trophy' },
 ];
 

@@ -621,6 +621,15 @@ public class AssignmentController {
             assignment.setDeliveredAt(java.time.LocalDateTime.now());
             assignmentService.saveAssignment(assignment);
 
+            // Payment link now goes out at delivery time, not at approval time —
+// the student pays only once they've actually received the solution.
+try {
+    emailService.sendPaymentLinkToUser(assignment, assignment.getCurrency());
+    System.out.println("✓ Payment link email sent to user after delivery");
+} catch (Exception e) {
+    System.err.println("⚠️ Failed to send payment link email: " + e.getMessage());
+}
+
             System.out.println("=== Assignment updated with solution ===");
             System.out.println("Assignment ID: " + assignment.getId());
             System.out.println("Status: " + assignment.getStatus());

@@ -53,7 +53,7 @@ const MyAssignments = () => {
   const getCardBorderColor = (status) => {
     switch (status) {
       case 'DELIVERED': return 'border-l-[#17a2b8]';
-      case 'COMPLETED': case 'APPROVED': return 'border-l-[#28a745]';
+      case 'PAID': case 'COMPLETED': case 'APPROVED': return 'border-l-[#28a745]';
       case 'IN_PROGRESS': return 'border-l-[#ffc107]';
       case 'REJECTED': return 'border-l-[#dc3545]';
       default: return 'border-l-[#6c757d]'; // PENDING
@@ -66,6 +66,7 @@ const MyAssignments = () => {
       case 'APPROVED': return <span className="bg-green-500 text-white text-[10px] font-bold px-3 py-1 rounded-full"><i className="bi bi-check-circle"></i> APPROVED</span>;
       case 'REJECTED': return <span className="bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-full"><i className="bi bi-x-circle"></i> REJECTED</span>;
       case 'DELIVERED': return <span className="bg-cyan-500 text-white text-[10px] font-bold px-3 py-1 rounded-full"><i className="bi bi-send-check"></i> DELIVERED</span>;
+      case 'PAID': return <span className="bg-teal-500 text-white text-[10px] font-bold px-3 py-1 rounded-full"><i className="bi bi-cash-coin"></i> PAID</span>;
       case 'COMPLETED': return <span className="bg-green-500 text-white text-[10px] font-bold px-3 py-1 rounded-full"><i className="bi bi-check-circle"></i> COMPLETED</span>;
       case 'IN_PROGRESS': return <span className="bg-yellow-500 text-white text-[10px] font-bold px-3 py-1 rounded-full"><i className="bi bi-gear"></i> IN PROGRESS</span>;
       case 'REVISION_REQUESTED': return <span className="bg-gradient-to-r from-[#f093fb] to-[#f5576c] text-white text-[10px] font-bold px-3 py-1 rounded-full"><i className="bi bi-arrow-repeat"></i> REVISION REQUESTED</span>;
@@ -219,12 +220,12 @@ const MyAssignments = () => {
                             </div>
                           )}
 
-                          {['APPROVED', 'IN_PROGRESS', 'DELIVERED', 'COMPLETED'].includes(assignment.status) && (
+                          {['APPROVED', 'IN_PROGRESS', 'DELIVERED', 'PAID', 'COMPLETED'].includes(assignment.status) && (
                             <div>
                               <span className="bg-gradient-to-br from-[#d4edda] to-[#c3e6cb] text-[#155724] border-2 border-[#28a745] px-4 py-2 rounded-full text-sm font-bold shadow-sm inline-flex items-center gap-2">
                                 <i className="bi bi-patch-check-fill"></i> Approved by Admin
                               </span>
-                              <p className="text-green-600 mt-3 mb-0 text-sm font-medium"><i className="bi bi-check-circle"></i> Your assignment has been approved and is ready for processing.</p>
+                              <p className="text-green-600 mt-3 mb-0 text-sm font-medium"><i className="bi bi-check-circle"></i> Your assignment has been approved and is being processed.</p>
                             </div>
                           )}
 
@@ -238,28 +239,50 @@ const MyAssignments = () => {
                           )}
                         </div>
 
-                        {/* Payment Section (If Approved/In Progress) */}
-                        {['APPROVED', 'IN_PROGRESS'].includes(assignment.status) && (
+                        {/* Payment Locked Notice — shown while work is in progress,
+                            so the student knows payment isn't skipped, just deferred
+                            until the solution is delivered. */}
+                        {assignment.status === 'IN_PROGRESS' && (
+                          <div className="bg-gray-50 border-l-4 border-gray-300 p-4 rounded-lg mt-6 text-gray-500">
+                            <div className="flex items-center gap-3">
+                              <i className="bi bi-lock text-xl"></i>
+                              <div>
+                                <strong className="block text-sm text-gray-600">Payment Not Yet Available</strong>
+                                <span className="text-xs">Payment will be requested once your solution has been delivered.</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Payment Section — only shown after delivery. Payment happens
+                            once the student has actually received the solution, not
+                            before work starts. */}
+                        {assignment.status === 'DELIVERED' && (
                           <div className="bg-gradient-to-br from-[#e8f5e9] to-[#c8e6c9] border-l-[5px] border-[#28a745] p-5 rounded-xl mt-6">
                             <h6 className="font-bold text-[#155724] mb-4 flex items-center gap-2"><i className="bi bi-credit-card"></i> Payment Status</h6>
 
-                            {assignment.payment?.status === 'COMPLETED' && (
+                            {/* Payment confirmed — either via online gateway (assignment.payment.status)
+                                or via admin's manual "Confirm Payment Received" action, which moves
+                                status from DELIVERED -> PAID. */}
+                            {(assignment.payment?.status === 'COMPLETED' || assignment.status === 'PAID') && (
                               <div className="bg-[#d4edda] border-l-4 border-[#28a745] text-[#155724] p-4 rounded-lg flex items-start gap-3">
                                 <i className="bi bi-check-circle-fill text-2xl mt-0.5"></i>
                                 <div>
                                   <strong className="block text-base">Payment Completed!</strong>
-                                  <span className="text-sm">✓ Payment verified and confirmed. Your assignment is now in progress.</span>
+                                  <span className="text-sm">✓ Payment verified and confirmed.</span>
                                 </div>
                               </div>
                             )}
 
-                            {!assignment.payment && (
+                            {/* Only show "Click to Pay" once the solution is delivered
+                                and no payment has been recorded yet. */}
+                            {assignment.status === 'DELIVERED' && !assignment.payment && (
                               <div>
                                 <div className="bg-[#fff3cd] border-l-4 border-[#ffc107] text-[#856404] p-4 rounded-lg flex items-start gap-3 mb-4">
                                   <i className="bi bi-credit-card-2-front text-2xl mt-0.5"></i>
                                   <div>
                                     <strong className="block text-base">Ready for Payment</strong>
-                                    <span className="text-sm">Your assignment has been approved. Click below to proceed with payment.</span>
+                                    <span className="text-sm">Your solution has been delivered. Click below to proceed with payment.</span>
                                   </div>
                                 </div>
                                 <Link to={`/payment/method-selection?id=${assignment.id}`} className="block w-full text-center bg-gradient-to-br from-[#28a745] to-[#20c997] text-white font-bold py-3 rounded-xl shadow-[0_5px_20px_rgba(40,167,69,0.3)] hover:shadow-[0_8px_25px_rgba(40,167,69,0.4)] hover:-translate-y-1 transition-all no-underline">
@@ -270,8 +293,8 @@ const MyAssignments = () => {
                           </div>
                         )}
 
-                        {/* PAID Badge (For Delivered/Completed without showing full payment section) */}
-                        {['DELIVERED', 'COMPLETED'].includes(assignment.status) && assignment.payment?.status === 'COMPLETED' && (
+                        {/* PAID Badge (For Paid/Completed without showing full payment section) */}
+                        {['PAID', 'COMPLETED'].includes(assignment.status) && assignment.payment?.status === 'COMPLETED' && (
                           <div className="bg-gradient-to-br from-[#d4edda] to-[#c3e6cb] border-2 border-[#28a745] p-4 rounded-xl mt-6 flex items-center gap-3">
                             <i className="bi bi-check-circle-fill text-[1.5rem] text-[#28a745]"></i>
                             <div>
@@ -313,7 +336,7 @@ const MyAssignments = () => {
                            <i className="bi bi-eye"></i> View Details
                         </Link>
 
-                        {assignment.status === 'DELIVERED' && assignment.solutionFiles?.length > 0 && (
+                        {['DELIVERED', 'PAID', 'COMPLETED'].includes(assignment.status) && assignment.solutionFiles?.length > 0 && (
                           <a
                             href={`/assignments/${assignment.id}/download-solution`}
                             className="btn bg-[#28a745] text-white hover:bg-[#218838] font-bold w-full rounded-lg py-2.5 transition-colors shadow-sm text-center no-underline"

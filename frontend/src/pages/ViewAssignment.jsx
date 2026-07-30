@@ -92,9 +92,25 @@ const ViewAssignment = () => {
   const handleDownloadSolution = async () => {
     setDownloading(true);
     try {
-      const res = await fetch(`/assignments/${id}/download-solution`, { credentials: 'include' });
-      if (res.status === 401) { navigate('/login'); return; }
+      const res = await fetch(`/assignments/${id}/download-solution`, {
+        credentials: 'include',
+        cache: 'no-store', // prevents a stale cached 304 response (e.g. an old
+                            // login/error page) from being served instead of
+                            // the actual solution file
+      });
+
+      if (res.status === 401 || res.redirected) {
+        navigate('/login');
+        return;
+      }
       if (!res.ok) throw new Error('Download failed');
+
+      const contentType = res.headers.get('Content-Type') || '';
+      if (contentType.includes('text/html')) {
+        // Backend returned a login/error page instead of the file —
+        // surface this clearly instead of silently downloading garbage.
+        throw new Error('Could not download the file. Please log in again or contact support.');
+      }
 
       const blob = await res.blob();
       const disposition = res.headers.get('Content-Disposition') || '';
@@ -110,7 +126,7 @@ const ViewAssignment = () => {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      alert('Failed to download solution. Please try again.');
+      alert(err.message || 'Failed to download solution. Please try again.');
     } finally {
       setDownloading(false);
     }
@@ -292,6 +308,69 @@ const ViewAssignment = () => {
                 </div>
               )}
 
+              {/* Payment Locked Notice — shown while work is in progress, so the
+                  student knows payment isn't skipped, just deferred until the
+                  solution is delivered. */}
+              {assignment.status === 'IN_PROGRESS' && (
+                <div className="bg-gray-50 border-l-4 border-gray-300 p-5 rounded-xl text-gray-500">
+                  <div className="flex items-center gap-3">
+                    <i className="bi bi-lock text-xl"></i>
+                    <div>
+                      <strong className="block text-sm text-gray-600">Payment Not Yet Available</strong>
+                      <span className="text-xs">Payment will be requested once your solution has been delivered.</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Payment Section — only shown after delivery. Payment happens once
+                  the student has actually received the solution, not before work
+                  starts. */}
+              {assignment.status === 'DELIVERED' && (
+                <div className="bg-gradient-to-br from-[#e8f5e9] to-[#c8e6c9] border-l-[5px] border-[#28a745] p-6 rounded-xl">
+                  <h5 className="text-lg font-bold text-[#155724] mb-4 flex items-center gap-2">
+                    <i className="bi bi-credit-card"></i> Payment Status
+                  </h5>
+
+                  {(assignment.payment?.status === 'COMPLETED' || assignment.status === 'PAID') ? (
+                    <div className="bg-[#d4edda] border-l-4 border-[#28a745] text-[#155724] p-4 rounded-lg flex items-start gap-3">
+                      <i className="bi bi-check-circle-fill text-2xl mt-0.5"></i>
+                      <div>
+                        <strong className="block text-base">Payment Completed!</strong>
+                        <span className="text-sm">✓ Payment verified and confirmed.</span>
+                      </div>
+                    </div>
+                  ) : (
+                    !assignment.payment && (
+                      <div>
+                        <div className="bg-[#fff3cd] border-l-4 border-[#ffc107] text-[#856404] p-4 rounded-lg flex items-start gap-3 mb-4">
+                          <i className="bi bi-credit-card-2-front text-2xl mt-0.5"></i>
+                          <div>
+                            <strong className="block text-base">Ready for Payment</strong>
+                            <span className="text-sm">Your solution has been delivered. Click below to proceed with payment.</span>
+                          </div>
+                        </div>
+                        <Link to={`/payment/method-selection?id=${assignment.id}`} className="block w-full text-center bg-gradient-to-br from-[#28a745] to-[#20c997] text-white font-bold py-3 rounded-xl shadow-[0_5px_20px_rgba(40,167,69,0.3)] hover:shadow-[0_8px_25px_rgba(40,167,69,0.4)] hover:-translate-y-1 transition-all no-underline">
+                          <i className="bi bi-cash-coin me-2"></i> Click to Pay
+                        </Link>
+                      </div>
+                    )
+                  )}
+                </div>
+              )}
+
+              {/* PAID Badge — for PAID/COMPLETED assignments, shown without the
+                  full payment box above. */}
+              {['PAID', 'COMPLETED'].includes(assignment.status) && assignment.payment?.status === 'COMPLETED' && (
+                <div className="bg-gradient-to-br from-[#d4edda] to-[#c3e6cb] border-2 border-[#28a745] p-5 rounded-xl flex items-center gap-3">
+                  <i className="bi bi-check-circle-fill text-2xl text-[#28a745]"></i>
+                  <div>
+                    <strong className="text-[#28a745] block">✓ PAID</strong>
+                    <span className="text-[#155724] text-sm">Payment verified and confirmed</span>
+                  </div>
+                </div>
+              )}
+
               {/* Revision Info */}
               {(assignment.status === 'DELIVERED' || assignment.status === 'REVISION_REQUESTED') && (
                 <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-xl shadow-sm">
@@ -329,7 +408,7 @@ const ViewAssignment = () => {
               )}
 
               {/* Solution Download Box */}
-              {assignment.status === 'DELIVERED' && (
+              {['DELIVERED', 'PAID', 'COMPLETED'].includes(assignment.status) && (
                 <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-8 text-white shadow-lg flex flex-col md:flex-row justify-between items-center gap-6">
                   <div>
                     <h4 className="text-2xl font-bold mb-2 flex items-center gap-2"><i className="bi bi-file-earmark-check"></i> Solution is Ready!</h4>
@@ -351,10 +430,13 @@ const ViewAssignment = () => {
 
               {/* User Actions */}
               <div className="pt-6 border-t flex flex-wrap gap-4">
-                {assignment.status === 'APPROVED' && (
-                  <button className="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 shadow-md hover:shadow-lg transition-all">
+                {assignment.status === 'DELIVERED' && (!assignment.payment || assignment.payment?.status !== 'COMPLETED') && (
+                  <Link
+                    to={`/payment/method-selection?id=${assignment.id}`}
+                    className="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 shadow-md hover:shadow-lg transition-all no-underline"
+                  >
                     <i className="bi bi-credit-card"></i> Make Payment
-                  </button>
+                  </Link>
                 )}
                 
                 {assignment.status === 'DELIVERED' && remainingRevisions > 0 && (
