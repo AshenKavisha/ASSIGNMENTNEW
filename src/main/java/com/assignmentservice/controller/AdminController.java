@@ -743,12 +743,10 @@ public class AdminController {
             assignment.setAdminNotes(adminNotes);
             assignment.setDeliveredAt(LocalDateTime.now());
 
-            // Save solution file names
-            String solutionFileNames = solutionFiles.stream()
-                    .filter(file -> !file.isEmpty())
-                    .map(MultipartFile::getOriginalFilename)
-                    .collect(Collectors.joining(", "));
-            assignment.setSolutionFiles(solutionFileNames);
+            // Save solution files to disk and store their relative paths
+// (relative to the "uploads/" base dir, matching downloadSolution()'s expectations)
+List<String> savedFilePaths = saveSolutionFiles(solutionFiles, id);
+assignment.setSolutionFiles(String.join(",", savedFilePaths));
 
             // If this is a revision delivery, mark the revision request as completed
             if (isRevisionDelivery && !assignment.getRevisionRequests().isEmpty()) {
@@ -1141,30 +1139,30 @@ public class AdminController {
      * Save solution files for revision re-delivery
      */
     private List<String> saveSolutionFiles(List<MultipartFile> files, Long assignmentId) throws IOException {
-        List<String> filePaths = new ArrayList<>();
+    List<String> filePaths = new ArrayList<>();
+    String assignmentDir = UPLOAD_BASE_DIR + assignmentId + "/solutions/";
+    File directory = new File(assignmentDir);
+    if (!directory.exists()) directory.mkdirs();
 
-        String assignmentDir = UPLOAD_BASE_DIR + assignmentId + "/solutions/";
-        File directory = new File(assignmentDir);
-        if (!directory.exists()) {
-            directory.mkdirs();
+    for (MultipartFile file : files) {
+        if (!file.isEmpty()) {
+            String originalFilename = file.getOriginalFilename();
+            String timestamp = String.valueOf(System.currentTimeMillis());
+            String uniqueFilename = timestamp + "_" + originalFilename;
+            String fullDiskPath = assignmentDir + uniqueFilename;
+
+            Path path = Paths.get(fullDiskPath);
+            Files.write(path, file.getBytes());
+
+            // Store the path relative to "uploads/" (UPLOAD_BASE_DIR already
+            // starts with "uploads/"), so downloadSolution() can safely do
+            // Paths.get("uploads/" + solutionFilePath) without doubling it.
+            String relativePath = fullDiskPath.substring("uploads/".length());
+            filePaths.add(relativePath);
         }
-
-        for (MultipartFile file : files) {
-            if (!file.isEmpty()) {
-                String originalFilename = file.getOriginalFilename();
-                String timestamp = String.valueOf(System.currentTimeMillis());
-                String uniqueFilename = timestamp + "_" + originalFilename;
-                String filePath = assignmentDir + uniqueFilename;
-
-                Path path = Paths.get(filePath);
-                Files.write(path, file.getBytes());
-
-                filePaths.add(filePath);
-            }
-        }
-
-        return filePaths;
     }
+    return filePaths;
+}
 
     // ============ HELPER METHODS ============
 

@@ -10,7 +10,7 @@ const AssignmentDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ✅ NEW: manual status update state
+  // manual status update state
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
@@ -29,7 +29,8 @@ const AssignmentDetails = () => {
         });
   }, [id]);
 
-  // ✅ NEW: calls the manual status-update endpoint (APPROVED -> PAID -> IN_PROGRESS)
+  // Calls the manual status-update endpoint.
+  // Correct flow: PENDING -> APPROVED -> IN_PROGRESS -> DELIVERED -> PAID -> COMPLETED
   const updateStatus = async (newStatus) => {
     setUpdating(true);
     try {
@@ -87,6 +88,7 @@ const AssignmentDetails = () => {
     PENDING: 'bg-yellow-400 text-gray-900',
     APPROVED: 'bg-blue-500 text-white',
     IN_PROGRESS: 'bg-orange-400 text-white',
+    READY_FOR_DELIVERY: 'bg-orange-400 text-white',
     DELIVERED: 'bg-green-500 text-white',
     COMPLETED: 'bg-green-700 text-white',
     REJECTED: 'bg-red-500 text-white',
@@ -156,16 +158,30 @@ const AssignmentDetails = () => {
                   </div>
                 </div>
 
-                {/* ✅ NEW: Assignment Status Bar */}
+                {/* Assignment Status Bar */}
                 <AssignmentStatusBar status={assignment.status} />
 
-                {/* ✅ NEW: Manual status update panel — only shown for APPROVED / PAID */}
-                {(assignment.status === 'APPROVED' || assignment.status === 'PAID') && (
+                {/* Manual status update panel — shown only at the stage where an
+                    admin action actually moves the assignment forward:
+                    APPROVED -> IN_PROGRESS, DELIVERED -> PAID, PAID -> COMPLETED.
+                    Follows the same status flow as TotalAssignments.jsx. */}
+                {['APPROVED', 'DELIVERED', 'PAID'].includes(assignment.status) && (
                   <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6 mt-6">
                     <h5 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
                       <i className="bi bi-toggle-on text-[#667eea]"></i> Update Status
                     </h5>
+
                     {assignment.status === 'APPROVED' && (
+                      <button
+                        onClick={() => updateStatus('IN_PROGRESS')}
+                        disabled={updating}
+                        className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2.5 rounded-lg flex items-center gap-2 disabled:opacity-50"
+                      >
+                        <i className="bi bi-gear"></i> {updating ? 'Updating...' : 'Mark as In Progress'}
+                      </button>
+                    )}
+
+                    {assignment.status === 'DELIVERED' && (
                       <button
                         onClick={() => updateStatus('PAID')}
                         disabled={updating}
@@ -174,13 +190,14 @@ const AssignmentDetails = () => {
                         <i className="bi bi-cash-coin"></i> {updating ? 'Updating...' : 'Confirm Payment Received'}
                       </button>
                     )}
+
                     {assignment.status === 'PAID' && (
                       <button
-                        onClick={() => updateStatus('IN_PROGRESS')}
+                        onClick={() => updateStatus('COMPLETED')}
                         disabled={updating}
-                        className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2.5 rounded-lg flex items-center gap-2 disabled:opacity-50"
+                        className="bg-green-700 hover:bg-green-800 text-white font-bold px-6 py-2.5 rounded-lg flex items-center gap-2 disabled:opacity-50"
                       >
-                        <i className="bi bi-gear"></i> {updating ? 'Updating...' : 'Mark as In Progress'}
+                        <i className="bi bi-check2-all"></i> {updating ? 'Updating...' : 'Mark as Completed'}
                       </button>
                     )}
                   </div>
@@ -282,7 +299,10 @@ const AssignmentDetails = () => {
                       </Link>
                   )}
 
-                  {assignment.status !== 'DELIVERED' && assignment.status !== 'PENDING' && assignment.status !== 'REJECTED' && (
+                  {/* Deliver Solution only makes sense while the assignment is
+                      actively being worked on — an inclusion list, not an
+                      exclusion list, so it can't leak into PAID/COMPLETED/etc. */}
+                  {['IN_PROGRESS', 'READY_FOR_DELIVERY'].includes(assignment.status) && (
                       <Link to={`/admin/assignments/${id}/deliver`} className="px-8 py-3 rounded-full bg-green-600 text-white font-bold uppercase tracking-wider shadow-lg hover:bg-green-700 hover:-translate-y-1 transition-all flex items-center gap-2 no-underline">
                         <i className="bi bi-send-check"></i> Deliver Solution
                       </Link>

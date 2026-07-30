@@ -863,7 +863,8 @@ public Assignment updateStatusManually(Long id, Assignment.AssignmentStatus newS
 
     boolean validTransition =
         (current == Assignment.AssignmentStatus.APPROVED && newStatus == Assignment.AssignmentStatus.IN_PROGRESS) ||
-        (current == Assignment.AssignmentStatus.DELIVERED && newStatus == Assignment.AssignmentStatus.PAID);
+        (current == Assignment.AssignmentStatus.DELIVERED && newStatus == Assignment.AssignmentStatus.PAID) ||
+        (current == Assignment.AssignmentStatus.PAID && newStatus == Assignment.AssignmentStatus.COMPLETED);
 
     if (!validTransition) {
         throw new RuntimeException("Invalid status transition from " + current + " to " + newStatus);
@@ -877,6 +878,8 @@ public Assignment updateStatusManually(Long id, Assignment.AssignmentStatus newS
     } else if (newStatus == Assignment.AssignmentStatus.IN_PROGRESS) {
         notificationService.notifyUserAssignmentInProgress(saved);
     }
+    // Note: no notification branch for COMPLETED yet — add one if you want
+    // to email/notify the student when their assignment is marked done.
 
     return saved;
 }

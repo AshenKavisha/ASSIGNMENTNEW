@@ -55,6 +55,24 @@ export default defineConfig({
           }
         }
       },
+
+      // EXCEPTION: "Download Solution" links directly to
+      // /assignments/{id}/download-solution (a real file-streaming endpoint
+      // in AssignmentController, returning a ResponseEntity<Resource>).
+      // This is a GET request (plain <a href> click), unlike the two POST
+      // exceptions above — so we bypass proxying for anything that ISN'T GET,
+      // letting React Router keep ownership of any other verb on this path.
+      '^/assignments/\\d+/download-solution$': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+        cookieDomainRewrite: 'localhost',
+        bypass(req) {
+          if (req.method !== 'GET') {
+            return req.url;
+          }
+        }
+      },
     }
   }
 })
