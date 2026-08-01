@@ -86,31 +86,42 @@ public class NotificationService {
      * ⭐ UPDATED: Include link to view assignment with payment button
      */
     public void notifyUserAssignmentApproved(Assignment assignment) {
-        try {
-            Notification notification = new Notification();
-            notification.setUser(assignment.getUser());
-            notification.setType(Notification.NotificationType.ASSIGNMENT_APPROVED);
-            notification.setTitle("Assignment Approved! 🎉");
-            notification.setMessage(
-                    "Your assignment '" + assignment.getTitle() + "' has been approved for " +
-                            (assignment.getPrice() != null ? "$" + assignment.getPrice() : "the quoted price") +
-                            ". Please complete the payment to start processing your assignment."
-            );
+    try {
+        Notification notification = new Notification();
+        notification.setUser(assignment.getUser());
+        notification.setType(Notification.NotificationType.ASSIGNMENT_APPROVED);
+        notification.setTitle("Assignment Approved! 🎉");
 
-            // ⭐ CRITICAL: Link to view assignment page (NOT directly to payment)
-            notification.setActionUrl("/assignments/" + assignment.getId());
-            notification.setRelatedAssignmentId(assignment.getId());
-            notification.setImportant(true);
-            notification.setStatus(Notification.NotificationStatus.UNREAD);
-
-            notificationRepository.save(notification);
-
-            log.info("Approval notification created for user: {} (Assignment ID: {})",
-                    assignment.getUser().getEmail(), assignment.getId());
-        } catch (Exception e) {
-            log.error("Failed to create approval notification for assignment: {}", assignment.getId(), e);
+        String currencySymbol;
+        if ("USD".equalsIgnoreCase(assignment.getCurrency())) {
+            currencySymbol = "$";
+        } else if ("LKR".equalsIgnoreCase(assignment.getCurrency())) {
+            currencySymbol = "Rs.";
+        } else {
+            currencySymbol = "";
         }
+
+        notification.setMessage(
+                "Your assignment '" + assignment.getTitle() + "' has been approved for " +
+                        (assignment.getPrice() != null
+                                ? currencySymbol + " " + assignment.getPrice()
+                                : "the quoted price") +
+                        ". Please complete the payment to start processing your assignment."
+        );
+
+        notification.setActionUrl("/assignments/" + assignment.getId());
+        notification.setRelatedAssignmentId(assignment.getId());
+        notification.setImportant(true);
+        notification.setStatus(Notification.NotificationStatus.UNREAD);
+
+        notificationRepository.save(notification);
+
+        log.info("Approval notification created for user: {} (Assignment ID: {})",
+                assignment.getUser().getEmail(), assignment.getId());
+    } catch (Exception e) {
+        log.error("Failed to create approval notification for assignment: {}", assignment.getId(), e);
     }
+}
 
     /**
      * Notify user when admin rejects assignment
