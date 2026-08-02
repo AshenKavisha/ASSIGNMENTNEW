@@ -25,10 +25,10 @@ This assignment service platform streamlines the process of submitting academic 
 
 ## 🛠️ Tech Stack
 
-- **Backend:** Java with Maven
-- **Frontend:** HTML, CSS, JavaScript, Bootstrap
-- **Database:** Microsoft SQL Server
-- **Deployment:** Azure App Service
+- **Backend:** Java with Maven , Spring Boot
+- **Frontend:** REACT VITE, REACT
+- **Database:** PostgresSQL
+- **Deployment:** AWS
 
 ## 🔐 Security Features
 
