@@ -3,7 +3,7 @@
 A full-stack web platform that connects students with assignment solutions through an efficient submission and delivery system.
 
 ## 🌐  Website is Live 
-**[View Live Application](https://ashen-assignment-app-fadpbtfxduatavf7.eastasia-01.azurewebsites.net/)**
+**[View Live Application](https://assignmentservice.net)**
 
 ## 📋 Overview
 This assignment service platform streamlines the process of submitting academic assignments and receiving professional solutions. The application features a dual-interface system with separate portals for users and administrators, ensuring smooth workflow management from submission to payment.
