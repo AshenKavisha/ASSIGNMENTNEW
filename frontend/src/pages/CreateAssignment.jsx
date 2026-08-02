@@ -1,14 +1,60 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+
+// ============================================================
+// EDIT THIS: your actual SLIIT module list per year/semester.
+// Each module has a code, name, and which specialization it maps to
+// (IT or QS) so your backend routing (admin specialization matching)
+// keeps working unchanged.
+// ============================================================
+const moduleData = {
+  'Year 1': {
+    'Semester 1': [
+      { code: 'IT1120', name: 'Introduction to Programming', type: 'IT' },
+      { code: 'IT1140', name: 'Fundamentals of Computing', type: 'IT' },
+      { code: 'IE1030', name: 'Data Communication and Networks', type: 'IT' },
+    ],
+    'Semester 2': [
+      { code: 'IT1170', name: 'Data Structures and Algorithms', type: 'IT' },
+      { code: 'SE1020', name: 'Object Oriented Programming', type: 'IT' },
+      { code: 'IT1150', name: 'Technical Writing', type: 'IT' },
+    ],
+  },
+  'Year 2': {
+    'Semester 1': [
+      { code: 'SE2030', name: 'Software Engineering', type: 'IT' },
+      { code: 'IT2140', name: 'Database Design and Development', type: 'IT' },
+      { code: 'IT2011', name: 'Artificial Intelligence and machine Learning', type: 'IT' },
+    ],
+    'Semester 2': [
+      { code: 'SE2020', name: 'Web and Mobile Technology', type: 'IT' },
+      { code: 'IT2021', name: 'Artificial Intelligence and machine Learning Project', type: 'IT' },
+    ],
+  },
+};
+
+// mode → display label + which university name gets sent to backend
+const MODE_CONFIG = {
+  sliit:      { universityName: 'SLIIT', label: 'SLIIT', isKnownUniversity: true },
+  'other-uni': { universityName: '', label: 'Other University', isKnownUniversity: false, requiresUniversityInput: true },
+  individual: { universityName: '', label: 'Individual / Freelance', isKnownUniversity: false, isIndividual: true },
+};
 
 const CreateAssignment = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const mode = searchParams.get('mode') || 'individual'; // fallback if someone lands here directly
+  const modeConfig = MODE_CONFIG[mode] || MODE_CONFIG.individual;
 
   // Real user from session
   const [user, setUser] = useState({ fullName: '' });
 
   // Form State
   const [formData, setFormData] = useState({
+    universityName: modeConfig.universityName || '',
+    academicYear: '',
+    semester: '',
+    moduleCode: '',
     type: '',
     title: '',
     subject: '',
@@ -52,21 +98,71 @@ const CreateAssignment = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  // ── Cascading selectors: Year → Semester → Module (SLIIT mode only) ─────────
+  const handleYearChange = (e) => {
+    const academicYear = e.target.value;
+    setFormData(prev => ({ ...prev, academicYear, semester: '', moduleCode: '', type: '', subject: '' }));
+  };
+
+  const handleSemesterChange = (e) => {
+    const semester = e.target.value;
+    setFormData(prev => ({ ...prev, semester, moduleCode: '', type: '', subject: '' }));
+  };
+
+  const handleModuleChange = (e) => {
+    const moduleCode = e.target.value;
+    const modulesForSemester = moduleData[formData.academicYear]?.[formData.semester] || [];
+    const selectedModule = modulesForSemester.find(m => m.code === moduleCode);
+
+    setFormData(prev => ({
+      ...prev,
+      moduleCode,
+      type: selectedModule ? selectedModule.type : '',
+      subject: selectedModule ? selectedModule.name : '',
+    }));
+  };
+
+  const availableSemesters = formData.academicYear ? Object.keys(moduleData[formData.academicYear] || {}) : [];
+  const availableModules = (formData.academicYear && formData.semester)
+      ? (moduleData[formData.academicYear]?.[formData.semester] || [])
+      : [];
+
   // ── Progress Step Calculation ───────────────────────────────────────────────
   useEffect(() => {
     let step = 1;
-    if (formData.type) step = 2;
-    if (formData.type && formData.title && formData.subject && formData.deadline) step = 3;
-    if (formData.type && formData.title && formData.subject && formData.deadline && formData.description.trim().length > 10) step = 4;
+    const academicDone = mode === 'sliit'
+        ? !!(formData.academicYear && formData.semester && formData.moduleCode)
+        : mode === 'other-uni'
+            ? !!(formData.universityName.trim() && formData.academicYear.trim() && formData.semester.trim())
+            : !!formData.type; // individual mode: just IT/QS choice
+
+    if (academicDone) step = 2;
+    if (academicDone && formData.title && formData.deadline) step = 3;
+    if (academicDone && formData.title && formData.deadline && formData.description.trim().length > 10) step = 4;
     setCurrentStep(step);
-  }, [formData]);
+  }, [formData, mode]);
 
   // ── Validation helper — returns array of missing field labels ───────────────
   const getMissingFields = () => {
     const missing = [];
-    if (!formData.type)                           missing.push('Assignment Type');
+
+    if (mode === 'sliit') {
+      if (!formData.academicYear) missing.push('Academic Year');
+      if (!formData.semester)     missing.push('Semester');
+      if (!formData.moduleCode)   missing.push('Module');
+    } else if (mode === 'other-uni') {
+      if (!formData.universityName.trim()) missing.push('University Name');
+      if (!formData.academicYear.trim())   missing.push('Academic Year');
+      if (!formData.semester.trim())       missing.push('Semester');
+      if (!formData.type)                  missing.push('Assignment Type (IT or QS)');
+      if (!formData.subject.trim())        missing.push('Module / Subject Name');
+    } else {
+      // individual
+      if (!formData.type)            missing.push('Assignment Type (IT or QS)');
+      if (!formData.subject.trim())  missing.push('Subject');
+    }
+
     if (!formData.title.trim())                   missing.push('Title');
-    if (!formData.subject.trim())                 missing.push('Subject');
     if (!formData.deadline)                       missing.push('Deadline');
     if (formData.description.trim().length <= 10) missing.push('Description (min 11 characters)');
     return missing;
@@ -125,8 +221,6 @@ const CreateAssignment = () => {
 
     setIsSubmitting(true);
     try {
-      // Map the UI type value to the backend enum value
-      // 'IT' stays 'IT', 'QS' becomes 'QUANTITY_SURVEYING'
       const backendType = formData.type === 'QS' ? 'QUANTITY_SURVEYING' : formData.type;
 
       const payload = new FormData();
@@ -137,22 +231,23 @@ const CreateAssignment = () => {
       payload.append('description',            formData.description.trim());
       payload.append('additionalRequirements', formData.additionalRequirements.trim());
 
-      // Attach files
+      // Academic context — blank for individual mode, filled for sliit/other-uni
+      payload.append('universityName', formData.universityName.trim());
+      payload.append('academicYear',   formData.academicYear.trim());
+      payload.append('semester',       formData.semester.trim());
+      payload.append('moduleCode',     formData.moduleCode.trim());
+
       descriptionFiles.forEach(file => payload.append('descriptionFiles', file));
       requirementFiles.forEach(file => payload.append('requirementFiles', file));
 
-     const res = await fetch('/api/assignments/submit', {
+      const res = await fetch('/api/assignments/submit', {
         method: 'POST',
         credentials: 'include',
         body: payload,
-        // redirect: 'manual' catches Spring Boot redirects so we handle them ourselves
         redirect: 'manual',
       });
 
-      // 'opaqueredirect' means Spring returned a redirect (e.g. the old Thymeleaf handler)
-      // 200 means our JSON endpoint was hit correctly
       if (res.type === 'opaqueredirect' || res.ok) {
-        // Success — show the thank-you modal instead of navigating immediately
         setShowSuccessModal(true);
         return;
       }
@@ -162,20 +257,17 @@ const CreateAssignment = () => {
       throw new Error(msg || `Server error ${res.status}. Please try again.`);
 
     } catch (err) {
-      // Show the actual error — helps distinguish network errors from server errors
       setSubmitError(err.message || 'An unexpected error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // ── Close modal and navigate to dashboard ───────────────────────────────────
   const handleModalClose = () => {
     setShowSuccessModal(false);
     navigate('/dashboard?success=Assignment submitted successfully! Admin will receive your files via email.');
   };
 
-  // ── Missing fields hint shown below the submit button ──────────────────────
   const missingFields = getMissingFields();
 
   return (
@@ -202,11 +294,20 @@ const CreateAssignment = () => {
         {/* Main Content */}
         <div className="container mx-auto px-4 py-8 flex-1 max-w-5xl">
 
+          {/* Mode indicator */}
+          <div className="mb-6 flex items-center gap-2 text-sm">
+            <Link to="/assignments/select-type" className="text-gray-400 hover:text-gray-600 flex items-center gap-1 no-underline">
+              <i className="bi bi-arrow-left"></i> Change project type
+            </Link>
+            <span className="text-gray-300">•</span>
+            <span className="font-bold text-[#667eea]">{modeConfig.label}</span>
+          </div>
+
           {/* Progress Indicator */}
           <div className="flex justify-between relative mb-10 hidden md:flex">
             <div className="absolute top-[20px] left-[10%] right-[10%] h-1 bg-gray-200 z-0"></div>
             {[
-              { num: 1, label: 'Assignment Type' },
+              { num: 1, label: mode === 'individual' ? 'Assignment Type' : 'Academic Details' },
               { num: 2, label: 'Basic Info' },
               { num: 3, label: 'Description' },
               { num: 4, label: 'Review & Submit' }
@@ -240,35 +341,120 @@ const CreateAssignment = () => {
                 <div className="p-6 sm:p-10">
                   <form onSubmit={handleSubmit}>
 
-                    {/* Step 1: Type */}
-                    <div className="mb-10 animate-fadeIn" style={{animationDelay: '0.1s'}}>
-                      <label className="block text-lg font-bold text-[#2c3e50] mb-4">📝 Assignment Type <span className="text-red-500">*</span></label>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* ============ SLIIT MODE: cascading Year/Sem/Module ============ */}
+                    {mode === 'sliit' && (
+                      <div className="mb-10 animate-fadeIn">
+                        <label className="block text-lg font-bold text-[#2c3e50] mb-4">🎓 Select Your Year, Semester & Module <span className="text-red-500">*</span></label>
 
-                        {/* IT */}
-                        <label className={`cursor-pointer border-4 rounded-2xl p-6 text-center transition-all hover:-translate-y-2 hover:shadow-xl relative overflow-hidden group ${formData.type === 'IT' ? 'border-[#3498db] bg-blue-50/50' : 'border-transparent bg-gray-50 hover:border-[#3498db]/30'}`}>
-                          <input type="radio" name="type" value="IT" onChange={handleInputChange} className="hidden" />
-                          <div className="w-[60px] h-[60px] rounded-full bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white flex items-center justify-center text-3xl mx-auto mb-4 shadow-md group-hover:scale-110 transition-transform">
-                            <i className="bi bi-laptop"></i>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                          <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Academic Year</label>
+                            <select value={formData.academicYear} onChange={handleYearChange} className="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#3498db] transition-all outline-none font-medium text-gray-800">
+                              <option value="">Select Year</option>
+                              {Object.keys(moduleData).map(year => <option key={year} value={year}>{year}</option>)}
+                            </select>
                           </div>
-                          <h5 className="font-bold text-[#3498db] mb-2 text-xl">IT Assignment</h5>
-                          <p className="text-gray-500 text-sm m-0 leading-relaxed">Programming, Web Dev, Databases, Software Eng, Mobile, Networking.</p>
-                          {formData.type === 'IT' && <div className="absolute top-3 right-3 text-[#3498db] text-2xl"><i className="bi bi-check-circle-fill"></i></div>}
-                        </label>
-
-                        {/* QS */}
-                        <label className={`cursor-pointer border-4 rounded-2xl p-6 text-center transition-all hover:-translate-y-2 hover:shadow-xl relative overflow-hidden group ${formData.type === 'QS' ? 'border-[#27ae60] bg-green-50/50' : 'border-transparent bg-gray-50 hover:border-[#27ae60]/30'}`}>
-                          <input type="radio" name="type" value="QS" onChange={handleInputChange} className="hidden" />
-                          <div className="w-[60px] h-[60px] rounded-full bg-gradient-to-br from-[#11998e] to-[#38ef7d] text-white flex items-center justify-center text-3xl mx-auto mb-4 shadow-md group-hover:scale-110 transition-transform">
-                            <i className="bi bi-calculator"></i>
+                          <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Semester</label>
+                            <select value={formData.semester} onChange={handleSemesterChange} disabled={!formData.academicYear} className="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#3498db] transition-all outline-none font-medium text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed">
+                              <option value="">Select Semester</option>
+                              {availableSemesters.map(sem => <option key={sem} value={sem}>{sem}</option>)}
+                            </select>
                           </div>
-                          <h5 className="font-bold text-[#27ae60] mb-2 text-xl">QS Assignment</h5>
-                          <p className="text-gray-500 text-sm m-0 leading-relaxed">Quantity Surveying, Cost Est, Project Planning, Contract Admin.</p>
-                          {formData.type === 'QS' && <div className="absolute top-3 right-3 text-[#27ae60] text-2xl"><i className="bi bi-check-circle-fill"></i></div>}
-                        </label>
+                          <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Module</label>
+                            <select value={formData.moduleCode} onChange={handleModuleChange} disabled={!formData.semester} className="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#3498db] transition-all outline-none font-medium text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed">
+                              <option value="">Select Module</option>
+                              {availableModules.map(mod => <option key={mod.code} value={mod.code}>{mod.code} — {mod.name}</option>)}
+                            </select>
+                          </div>
+                        </div>
 
+                        {formData.moduleCode && (
+                          <div className={`rounded-xl p-4 border flex items-center gap-3 ${formData.type === 'IT' ? 'bg-blue-50/50 border-blue-200' : 'bg-green-50/50 border-green-200'}`}>
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-xl ${formData.type === 'IT' ? 'bg-gradient-to-br from-[#667eea] to-[#764ba2]' : 'bg-gradient-to-br from-[#11998e] to-[#38ef7d]'}`}>
+                              <i className={`bi ${formData.type === 'IT' ? 'bi-laptop' : 'bi-calculator'}`}></i>
+                            </div>
+                            <div>
+                              <p className="font-bold text-gray-800 m-0">{formData.subject}</p>
+                              <p className="text-xs text-gray-500 m-0">SLIIT • {formData.academicYear} • {formData.semester}</p>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    </div>
+                    )}
+
+                    {/* ============ OTHER-UNI MODE: manual university/module entry ============ */}
+                    {mode === 'other-uni' && (
+                      <div className="mb-10 animate-fadeIn">
+                        <label className="block text-lg font-bold text-[#2c3e50] mb-4">🏫 Your University Details <span className="text-red-500">*</span></label>
+                        <p className="text-xs text-gray-400 mb-4">We don't have your university's module list yet, so please fill these in manually.</p>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                          <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">University Name</label>
+                            <input type="text" name="universityName" value={formData.universityName} onChange={handleInputChange} placeholder="e.g. University of Colombo" className="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#3498db] transition-all outline-none font-medium text-gray-800" />
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Assignment Type</label>
+                            <div className="flex gap-3">
+                              <label className={`flex-1 cursor-pointer border-2 rounded-xl p-3 text-center transition-all ${formData.type === 'IT' ? 'border-[#3498db] bg-blue-50/50' : 'border-gray-200 bg-white'}`}>
+                                <input type="radio" name="type" value="IT" checked={formData.type === 'IT'} onChange={handleInputChange} className="hidden" />
+                                <span className="font-bold text-sm text-gray-700">IT</span>
+                              </label>
+                              <label className={`flex-1 cursor-pointer border-2 rounded-xl p-3 text-center transition-all ${formData.type === 'QS' ? 'border-[#27ae60] bg-green-50/50' : 'border-gray-200 bg-white'}`}>
+                                <input type="radio" name="type" value="QS" checked={formData.type === 'QS'} onChange={handleInputChange} className="hidden" />
+                                <span className="font-bold text-sm text-gray-700">QS</span>
+                              </label>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Academic Year</label>
+                            <input type="text" name="academicYear" value={formData.academicYear} onChange={handleInputChange} placeholder="e.g. Year 2" className="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#3498db] transition-all outline-none font-medium text-gray-800" />
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Semester</label>
+                            <input type="text" name="semester" value={formData.semester} onChange={handleInputChange} placeholder="e.g. Semester 1" className="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#3498db] transition-all outline-none font-medium text-gray-800" />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Module / Subject Name</label>
+                          <input type="text" name="subject" value={formData.subject} onChange={handleInputChange} maxLength="100" placeholder="e.g. Software Engineering" className="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#3498db] transition-all outline-none font-medium text-gray-800" />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ============ INDIVIDUAL MODE: old flat IT/QS form ============ */}
+                    {mode === 'individual' && (
+                      <div className="mb-10 animate-fadeIn">
+                        <label className="block text-lg font-bold text-[#2c3e50] mb-4">📝 Assignment Type <span className="text-red-500">*</span></label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                          <label className={`cursor-pointer border-4 rounded-2xl p-6 text-center transition-all hover:-translate-y-2 hover:shadow-xl relative overflow-hidden group ${formData.type === 'IT' ? 'border-[#3498db] bg-blue-50/50' : 'border-transparent bg-gray-50 hover:border-[#3498db]/30'}`}>
+                            <input type="radio" name="type" value="IT" onChange={handleInputChange} className="hidden" />
+                            <div className="w-[60px] h-[60px] rounded-full bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white flex items-center justify-center text-3xl mx-auto mb-4 shadow-md group-hover:scale-110 transition-transform">
+                              <i className="bi bi-laptop"></i>
+                            </div>
+                            <h5 className="font-bold text-[#3498db] mb-2 text-xl">IT Assignment</h5>
+                            <p className="text-gray-500 text-sm m-0 leading-relaxed">Programming, Web Dev, Databases, Software Eng, Mobile, Networking.</p>
+                            {formData.type === 'IT' && <div className="absolute top-3 right-3 text-[#3498db] text-2xl"><i className="bi bi-check-circle-fill"></i></div>}
+                          </label>
+                          <label className={`cursor-pointer border-4 rounded-2xl p-6 text-center transition-all hover:-translate-y-2 hover:shadow-xl relative overflow-hidden group ${formData.type === 'QS' ? 'border-[#27ae60] bg-green-50/50' : 'border-transparent bg-gray-50 hover:border-[#27ae60]/30'}`}>
+                            <input type="radio" name="type" value="QS" onChange={handleInputChange} className="hidden" />
+                            <div className="w-[60px] h-[60px] rounded-full bg-gradient-to-br from-[#11998e] to-[#38ef7d] text-white flex items-center justify-center text-3xl mx-auto mb-4 shadow-md group-hover:scale-110 transition-transform">
+                              <i className="bi bi-calculator"></i>
+                            </div>
+                            <h5 className="font-bold text-[#27ae60] mb-2 text-xl">QS Assignment</h5>
+                            <p className="text-gray-500 text-sm m-0 leading-relaxed">Quantity Surveying, Cost Est, Project Planning, Contract Admin.</p>
+                            {formData.type === 'QS' && <div className="absolute top-3 right-3 text-[#27ae60] text-2xl"><i className="bi bi-check-circle-fill"></i></div>}
+                          </label>
+                        </div>
+                        <div className="relative">
+                          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Subject / Project Area</label>
+                          <input type="text" name="subject" value={formData.subject} onChange={handleInputChange} maxLength="100" placeholder="e.g. E-commerce Web App" className="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#3498db] transition-all outline-none font-medium text-gray-800" />
+                        </div>
+                      </div>
+                    )}
 
                     {/* Step 2: Basic Info */}
                     <div className="mb-10 animate-fadeIn" style={{animationDelay: '0.2s'}}>
@@ -279,11 +465,12 @@ const CreateAssignment = () => {
                           <input type="text" name="title" value={formData.title} onChange={handleInputChange} maxLength="100" className="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#3498db] transition-all outline-none font-medium text-gray-800" />
                           <span className={`absolute bottom-3 right-3 text-xs ${formData.title.length > 80 ? 'text-red-500' : 'text-gray-400'}`}>{formData.title.length}/100</span>
                         </div>
-                        <div className="relative">
-                          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Subject/Course <span className="text-red-500">*</span></label>
-                          <input type="text" name="subject" value={formData.subject} onChange={handleInputChange} maxLength="100" className="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#3498db] transition-all outline-none font-medium text-gray-800" />
-                          <span className={`absolute bottom-3 right-3 text-xs ${formData.subject.length > 80 ? 'text-red-500' : 'text-gray-400'}`}>{formData.subject.length}/100</span>
-                        </div>
+                        {mode === 'sliit' && (
+                          <div className="relative">
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Subject/Module <span className="text-red-500">*</span></label>
+                            <input type="text" name="subject" value={formData.subject} onChange={handleInputChange} maxLength="100" className="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#3498db] transition-all outline-none font-medium text-gray-800" />
+                          </div>
+                        )}
                       </div>
                       <div>
                         <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Deadline <span className="text-red-500">*</span></label>
@@ -305,7 +492,6 @@ const CreateAssignment = () => {
                         )}
                       </div>
 
-                      {/* Description Files Upload */}
                       <div className="mb-8">
                         <label className="font-bold text-[#2c3e50] mb-2 block flex items-center gap-2"><i className="bi bi-paperclip text-[#3498db]"></i> Upload Supporting Files</label>
                         <div className="border-2 border-dashed border-[#667eea] bg-blue-50/30 rounded-xl p-6 text-center hover:bg-blue-50 transition-colors relative">
@@ -340,7 +526,6 @@ const CreateAssignment = () => {
                         </div>
                       </div>
 
-                      {/* Additional Requirements Files Upload */}
                       <div className="mb-8">
                         <label className="font-bold text-[#2c3e50] mb-2 block flex items-center gap-2"><i className="bi bi-paperclip text-[#27ae60]"></i> Upload Requirement Files <span className="text-gray-400 text-xs font-normal">(Optional)</span></label>
                         <div className="border-2 border-dashed border-[#27ae60] bg-green-50/30 rounded-xl p-6 text-center hover:bg-green-50 transition-colors relative">
@@ -386,7 +571,6 @@ const CreateAssignment = () => {
                     {/* Submit Section */}
                     <div className="border-t border-gray-100 pt-8 animate-fadeIn" style={{animationDelay: '0.4s'}}>
 
-                      {/* API error banner */}
                       {submitError && (
                           <div className="mb-4 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 flex items-start gap-2 text-sm">
                             <i className="bi bi-exclamation-triangle-fill mt-0.5 shrink-0"></i>
@@ -394,8 +578,7 @@ const CreateAssignment = () => {
                           </div>
                       )}
 
-                      {/* Missing fields hint — only show when the user has started filling the form */}
-                      {!canSubmit && missingFields.length > 0 && formData.type && (
+                      {!canSubmit && missingFields.length > 0 && (
                           <div className="mb-4 bg-orange-50 border border-orange-200 text-orange-700 rounded-xl px-4 py-3 text-sm">
                             <p className="font-bold flex items-center gap-2 mb-1">
                               <i className="bi bi-info-circle-fill"></i> Still needed to enable submit:
@@ -442,14 +625,12 @@ const CreateAssignment = () => {
                   <li className="flex items-start gap-2"><i className="bi bi-check-circle-fill text-[#27ae60] mt-0.5"></i> Set realistic deadlines</li>
                 </ul>
 
-                {/* Live checklist */}
                 <div className="mt-6 pt-4 border-t border-[#856404]/20">
                   <p className="text-xs font-bold text-[#856404] uppercase tracking-wider mb-3">Form Progress</p>
                   <ul className="space-y-2 text-xs">
                     {[
-                      { label: 'Assignment type selected', done: !!formData.type },
+                      { label: mode === 'individual' ? 'Assignment type selected' : 'Academic details filled', done: getMissingFields().length < 5 },
                       { label: 'Title filled',             done: !!formData.title.trim() },
-                      { label: 'Subject filled',           done: !!formData.subject.trim() },
                       { label: 'Deadline set',             done: !!formData.deadline },
                       { label: 'Description (11+ chars)',  done: formData.description.trim().length > 10 },
                     ].map(item => (

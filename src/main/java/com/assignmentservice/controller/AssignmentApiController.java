@@ -31,6 +31,10 @@ import java.util.stream.Collectors;
 // NOTE: Admin notification on submission is handled inside
 // AssignmentService.createAssignmentWithFiles() — do NOT call
 // notificationService here too, or admins get duplicate notifications.
+//
+// UPDATED: now accepts academicYear, semester, moduleCode from the
+// SLIIT module selector in CreateAssignment.jsx and persists them
+// onto the Assignment entity.
 // ============================================================
 @RestController
 @RequestMapping("/api/assignments")
@@ -50,6 +54,10 @@ public class AssignmentApiController {
             @RequestParam("deadline")                                                   String deadlineStr,
             @RequestParam("description")                                                String description,
             @RequestParam(value = "additionalRequirements", required = false, defaultValue = "") String additionalRequirements,
+            @RequestParam(value = "universityName", required = false, defaultValue = "") String universityName,
+            @RequestParam(value = "academicYear", required = false, defaultValue = "")  String academicYear,
+            @RequestParam(value = "semester",     required = false, defaultValue = "")  String semester,
+            @RequestParam(value = "moduleCode",   required = false, defaultValue = "")  String moduleCode,
             @RequestParam(value = "descriptionFiles",        required = false)          List<MultipartFile> descriptionFiles,
             @RequestParam(value = "requirementFiles",        required = false)          List<MultipartFile> requirementFiles) {
 
@@ -115,6 +123,10 @@ public class AssignmentApiController {
         assignment.setDeadline(deadline.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")));
         assignment.setDescription(description.trim());
         assignment.setAdditionalRequirements(additionalRequirements.trim());
+        assignment.setUniversityName(universityName.isBlank() ? null : universityName.trim());
+        assignment.setAcademicYear(academicYear.isBlank() ? null : academicYear.trim());
+        assignment.setSemester(semester.isBlank() ? null : semester.trim());
+        assignment.setModuleCode(moduleCode.isBlank() ? null : moduleCode.trim());
         assignment.setStatus(AssignmentStatus.PENDING);
         assignment.setCreatedAt(java.time.LocalDateTime.now());
 

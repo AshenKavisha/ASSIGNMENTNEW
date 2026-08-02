@@ -21,6 +21,8 @@ import ResendVerification from './pages/ResendVerification';
 // --- User Pages ---
 import Dashboard from './pages/Dashboard';
 import CreateAssignment from './pages/CreateAssignment';
+import SelectAssignmentType from './pages/SelectAssignmentType';
+import SelectUniversity from './pages/SelectUniversity';
 import MyAssignments from './pages/MyAssignments';
 import ViewAssignment from './pages/ViewAssignment'; 
 import Profile from './pages/Profile';
@@ -67,6 +69,8 @@ function App() {
 
         {/* --- User Routes --- */}
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/assignments/select-type" element={<SelectAssignmentType />} />
+        <Route path="/assignments/select-university" element={<SelectUniversity />} />
         <Route path="/assignments/create" element={<CreateAssignment />} />
         <Route path="/assignments/my-assignments" element={<MyAssignments />} />
         <Route path="/assignments/:id" element={<ViewAssignment />} />

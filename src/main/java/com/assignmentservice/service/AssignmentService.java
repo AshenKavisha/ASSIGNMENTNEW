@@ -541,6 +541,7 @@ public class AssignmentService {
         assignment.setPrice(price);
         assignment.setCurrency(currency);
         assignment.setStatus(Assignment.AssignmentStatus.APPROVED);
+        assignment.setApprovedAt(LocalDateTime.now());
         Assignment saved = assignmentRepository.save(assignment);
 
 
@@ -626,6 +627,7 @@ public class AssignmentService {
         assignment.setCurrency(currency);
         assignment.setAssignedAdmin(assignedAdmin);
         assignment.setStatus(Assignment.AssignmentStatus.IN_PROGRESS);
+        assignment.setApprovedAt(LocalDateTime.now()); 
         Assignment saved = assignmentRepository.save(assignment);
 
 

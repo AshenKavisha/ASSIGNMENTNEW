@@ -7,7 +7,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import jakarta.persistence.Transient;
 
 @Entity
 @Table(name = "assignments")
@@ -65,6 +64,18 @@ public class Assignment {
     // NEW: Currency field
     @Column(name = "currency")
     private String currency;
+
+    @Column(name = "academic_year")
+private String academicYear;
+
+@Column(name = "semester")
+private String semester;
+
+@Column(name = "module_code")
+private String moduleCode;
+
+@Column(name = "university_name")
+private String universityName;
 
     // NEW: Approved at timestamp
     @Column(name = "approved_at")
@@ -253,6 +264,15 @@ public class Assignment {
         this.finalPrice = finalPrice;
     }
 
+    public String getAcademicYear() { return academicYear; }
+public void setAcademicYear(String academicYear) { this.academicYear = academicYear; }
+
+public String getSemester() { return semester; }
+public void setSemester(String semester) { this.semester = semester; }
+
+public String getModuleCode() { return moduleCode; }
+public void setModuleCode(String moduleCode) { this.moduleCode = moduleCode; }
+
     public List<MultipartFile> getSolutionFileList() { return solutionFileList; }
     public void setSolutionFileList(List<MultipartFile> solutionFileList) {
         this.solutionFileList = solutionFileList;
@@ -320,6 +340,9 @@ public class Assignment {
     public void setRevisionsUsed(Integer revisionsUsed) {
         this.revisionsUsed = revisionsUsed;
     }
+
+    public String getUniversityName() { return universityName; }
+public void setUniversityName(String universityName) { this.universityName = universityName; }
 
     public List<RevisionRequest> getRevisionRequests() { return revisionRequests; }
     public void setRevisionRequests(List<RevisionRequest> revisionRequests) {

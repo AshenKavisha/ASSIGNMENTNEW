@@ -143,7 +143,7 @@ const Dashboard = () => {
               <i className="bi bi-plus-circle text-[3rem] text-[#3498db] mb-4"></i>
               <h5 className="font-bold text-gray-800 text-xl mb-2">New Assignment</h5>
               <p className="text-gray-500 mb-6 flex-1">Submit a new assignment request for IT or QS subjects.</p>
-              <Link to="/assignments/create" className="bg-gradient-to-r from-[#3498db] to-[#2980b9] text-white font-bold py-2.5 px-6 rounded-[10px] hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 w-full no-underline">
+              <Link to="/assignments/select-type" className="bg-gradient-to-r from-[#3498db] to-[#2980b9] text-white font-bold py-2.5 px-6 rounded-[10px] hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 w-full no-underline">
                 <i className="bi bi-plus-lg"></i> Get Started
               </Link>
             </div>
