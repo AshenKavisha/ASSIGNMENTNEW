@@ -163,22 +163,24 @@ const PaymentMethodSelection = () => {
         {/* Selection Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
 
-          {/* PayHere Option */}
-          <div
-            onClick={() => selectMethod('payhere')}
-            className={`bg-white rounded-2xl p-8 shadow-xl cursor-pointer transition-all duration-300 border-4 animate-slideUp-delay-1 ${selectedMethod === 'payhere' ? 'border-[#28a745] bg-green-50/20' : 'border-transparent hover:-translate-y-2 hover:border-[#667eea]'}`}
-          >
-            <div className="text-center mb-6">
-              <i className="bi bi-credit-card-2-front text-5xl text-[#667eea] mb-3 block"></i>
-              <h3 className="text-2xl font-bold text-gray-800">PayHere Gateway</h3>
-              <p className="text-gray-400">Fast & secure online payment</p>
-            </div>
-            <ul className="space-y-3 text-sm text-gray-600 font-medium">
-              <li className="flex items-center gap-2"><i className="bi bi-check-circle-fill text-[#28a745]"></i> Instant confirmation</li>
-              <li className="flex items-center gap-2"><i className="bi bi-check-circle-fill text-[#28a745]"></i> All cards accepted</li>
-              <li className="flex items-center gap-2"><i className="bi bi-check-circle-fill text-[#28a745]"></i> Secure encrypted</li>
-            </ul>
-          </div>
+          {/* PayHere Option — disabled until gateway is live */}
+<div
+  className="relative bg-white rounded-2xl p-8 shadow-xl transition-all duration-300 border-4 border-transparent animate-slideUp-delay-1 opacity-60 cursor-not-allowed grayscale"
+>
+  <span className="absolute top-4 right-4 bg-[#f39c12] text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">
+    Coming Soon
+  </span>
+  <div className="text-center mb-6">
+    <i className="bi bi-credit-card-2-front text-5xl text-[#667eea] mb-3 block"></i>
+    <h3 className="text-2xl font-bold text-gray-800">PayHere Gateway</h3>
+    <p className="text-gray-400">Fast & secure online payment</p>
+  </div>
+  <ul className="space-y-3 text-sm text-gray-600 font-medium">
+    <li className="flex items-center gap-2"><i className="bi bi-check-circle-fill text-[#28a745]"></i> Instant confirmation</li>
+    <li className="flex items-center gap-2"><i className="bi bi-check-circle-fill text-[#28a745]"></i> All cards accepted</li>
+    <li className="flex items-center gap-2"><i className="bi bi-check-circle-fill text-[#28a745]"></i> Secure encrypted</li>
+  </ul>
+</div>
 
           {/* Bank Option */}
           <div
