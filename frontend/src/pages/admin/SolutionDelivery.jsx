@@ -39,9 +39,18 @@ const SolutionDelivery = () => {
         });
   }, [id, navigate]);
 
+  // Appends newly picked files to the existing selection instead of
+  // replacing it, and resets the input's value so choosing the exact
+  // same file again still triggers onChange (browsers otherwise skip
+  // firing the event if the FileList looks unchanged).
   const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    setSelectedFiles(files);
+    const newFiles = Array.from(e.target.files);
+    setSelectedFiles(prev => [...prev, ...newFiles]);
+    e.target.value = '';
+  };
+
+  const removeFile = (index) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e) => {
@@ -214,10 +223,22 @@ const SolutionDelivery = () => {
                   {selectedFiles.length > 0 && (
                     <div className="mt-6 bg-green-50 border border-green-200 rounded-xl p-4 animate-fadeIn">
                       <h6 className="font-bold text-green-800 mb-2">Selected Files:</h6>
-                      <ul className="space-y-1">
+                      <ul className="space-y-2">
                         {selectedFiles.map((file, idx) => (
-                          <li key={idx} className="text-sm text-green-700 flex items-center gap-2">
-                            <i className="bi bi-file-check"></i> <strong>{file.name}</strong> ({(file.size / (1024 * 1024)).toFixed(2)} MB)
+                          <li key={`${file.name}-${file.size}-${idx}`} className="text-sm text-green-700 flex items-center justify-between gap-2 bg-white border border-green-100 rounded-lg px-3 py-2">
+                            <span className="flex items-center gap-2 overflow-hidden">
+                              <i className="bi bi-file-check shrink-0"></i>
+                              <strong className="truncate">{file.name}</strong>
+                              <span className="text-gray-400 shrink-0">({(file.size / (1024 * 1024)).toFixed(2)} MB)</span>
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => removeFile(idx)}
+                              className="w-7 h-7 rounded-full bg-red-100 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors shrink-0"
+                              aria-label={`Remove ${file.name}`}
+                            >
+                              <i className="bi bi-x-lg text-xs"></i>
+                            </button>
                           </li>
                         ))}
                       </ul>
