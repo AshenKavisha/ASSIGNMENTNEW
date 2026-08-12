@@ -3,7 +3,7 @@ target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-
+recaptcha.secret.key=6LcowYAtAAAAAFfdtmMkq8DwLUHM5yy0Z4vZ8-fh
 ### STS ###
 .apt_generated
 .classpath
@@ -32,6 +32,6 @@ application-local.properties
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
-
+application-local.properties
 ### VS Code ###
 .vscode/

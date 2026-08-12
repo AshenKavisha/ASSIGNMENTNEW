@@ -66,27 +66,29 @@ const Home = () => {
   };
 
   const handleContactSubmit = async (e) => {
-    e.preventDefault();
-    setFormStatus({ loading: true, message: null, type: '' });
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/contact/submit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(formData),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setFormStatus({ loading: false, message: data.message || "Message sent successfully! We'll get back to you soon.", type: 'success' });
-        setFormData({ name: '', email: '', phone: '', message: '' });
-        setTimeout(() => setFormStatus({ loading: false, message: null, type: '' }), 5000);
-      } else {
-        throw new Error(data.message || 'Submission failed');
-      }
-    } catch (err) {
-      setFormStatus({ loading: false, message: err.message || 'Failed to send message. Please try again.', type: 'error' });
+  e.preventDefault();
+  setFormStatus({ loading: true, message: null, type: '' });
+  try {
+    const token = await window.grecaptcha.execute('6LcowYAtAAAAAHK7jguO8pKRv7waAeIUPwMYpRSw', { action: 'contact_submit' });
+
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/contact/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ ...formData, captchaToken: token }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      setFormStatus({ loading: false, message: data.message || "Message sent successfully!", type: 'success' });
+      setFormData({ name: '', email: '', phone: '', message: '' });
+      setTimeout(() => setFormStatus({ loading: false, message: null, type: '' }), 5000);
+    } else {
+      throw new Error(data.message || 'Submission failed');
     }
-  };
+  } catch (err) {
+    setFormStatus({ loading: false, message: err.message || 'Failed to send message. Please try again.', type: 'error' });
+  }
+};
 
   const hiwSteps = [
     { icon: 'bi-person-plus-fill', num: '01', title: 'Register Account', desc: "Create your free account in minutes. Provide basic information and you're ready to start.", grad: 'linear-gradient(135deg,#667eea,#764ba2)' },
@@ -469,7 +471,7 @@ const Home = () => {
                 <h3 style={{ fontSize: 24, fontWeight: 700, marginBottom: 15, background: 'linear-gradient(135deg,#fff,#a8c0ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Assignment Service</h3>
                 <p style={{ color: 'rgba(255,255,255,0.8)', lineHeight: 1.6, marginBottom: 20, fontSize: 14 }}>Professional IT & Quantity Surveying assignment help. We deliver quality solutions tailored to your academic needs.</p>
                 <div style={{ display: 'flex', gap: 12 }}>
-                  {['bi-facebook','bi-twitter-x','bi-linkedin','bi-instagram'].map((icon, i) => (
+                  {['bi-facebook','bi-linkedin','bi-instagram'].map((icon, i) => (
                       <a key={i} href="#" style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', textDecoration: 'none', transition: 'all 0.3s' }}
                          onMouseEnter={e => { e.currentTarget.style.background = 'linear-gradient(135deg,#667eea,#764ba2)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
                          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.transform = 'none'; }}>

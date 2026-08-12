@@ -1,7 +1,10 @@
 package com.assignmentservice.controller;
 
 import com.assignmentservice.service.EmailService;
+import com.assignmentservice.service.RecaptchaService;
+import com.assignmentservice.service.RateLimiterService;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,27 +20,34 @@ public class ContactFormController {
     @Autowired
     private EmailService emailService;
 
-    /**
-     * Handle contact form submissions
-     *
-     * POST /api/contact/submit
-     *
-     * Request Body:
-     * {
-     *   "name": "John Doe",
-     *   "email": "john@example.com",
-     *   "phone": "+1234567890",
-     *   "message": "I need help with my assignment"
-     * }
-     */
+    @Autowired
+    private RecaptchaService recaptchaService;
+
+    @Autowired
+    private RateLimiterService rateLimiterService;
+
     @PostMapping("/submit")
     public ResponseEntity<Map<String, Object>> submitContactForm(
-            @RequestBody ContactFormRequest request) {
+            @RequestBody ContactFormRequest request,
+            HttpServletRequest httpRequest) {
 
         Map<String, Object> response = new HashMap<>();
 
+        String clientIp = getClientIp(httpRequest);
+
+        if (!rateLimiterService.tryConsume(clientIp)) {
+            response.put("success", false);
+            response.put("message", "Too many requests. Please try again later.");
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(response);
+        }
+
+        if (!recaptchaService.verify(request.getCaptchaToken())) {
+            response.put("success", false);
+            response.put("message", "Captcha verification failed. Please try again.");
+            return ResponseEntity.badRequest().body(response);
+        }
+
         try {
-            // Validate input
             if (request.getName() == null || request.getName().trim().isEmpty()) {
                 response.put("success", false);
                 response.put("message", "Name is required");
@@ -62,7 +72,12 @@ public class ContactFormController {
                 return ResponseEntity.badRequest().body(response);
             }
 
-            // Send email to admin
+            if (request.getMessage().trim().length() > 2000) {
+                response.put("success", false);
+                response.put("message", "Message is too long.");
+                return ResponseEntity.badRequest().body(response);
+            }
+
             emailService.sendContactFormToAdmin(
                     request.getName().trim(),
                     request.getEmail().trim(),
@@ -70,7 +85,6 @@ public class ContactFormController {
                     request.getMessage().trim()
             );
 
-            // Log the submission
             System.out.println("📧 Contact form submitted:");
             System.out.println("   Name: " + request.getName());
             System.out.println("   Email: " + request.getEmail());
@@ -101,57 +115,45 @@ public class ContactFormController {
         }
     }
 
-    /**
-     * DTO for contact form requests
-     */
+    private String getClientIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            return forwarded.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
+    }
+
     public static class ContactFormRequest {
         private String name;
         private String email;
         private String phone;
         private String message;
+        private String captchaToken;
 
-        // Constructors
         public ContactFormRequest() {}
 
-        public ContactFormRequest(String name, String email, String phone, String message) {
+        public ContactFormRequest(String name, String email, String phone, String message, String captchaToken) {
             this.name = name;
             this.email = email;
             this.phone = phone;
             this.message = message;
+            this.captchaToken = captchaToken;
         }
 
-        // Getters and Setters
-        public String getName() {
-            return name;
-        }
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
 
-        public void setName(String name) {
-            this.name = name;
-        }
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
 
-        public String getEmail() {
-            return email;
-        }
+        public String getPhone() { return phone; }
+        public void setPhone(String phone) { this.phone = phone; }
 
-        public void setEmail(String email) {
-            this.email = email;
-        }
+        public String getMessage() { return message; }
+        public void setMessage(String message) { this.message = message; }
 
-        public String getPhone() {
-            return phone;
-        }
-
-        public void setPhone(String phone) {
-            this.phone = phone;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public void setMessage(String message) {
-            this.message = message;
-        }
+        public String getCaptchaToken() { return captchaToken; }
+        public void setCaptchaToken(String captchaToken) { this.captchaToken = captchaToken; }
 
         @Override
         public String toString() {
