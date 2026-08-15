@@ -306,7 +306,7 @@ const Home = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 28 }}>
               <PricingCard icon="bi-lightning-fill" name="Basic Assignment" desc="Perfect for simple tasks & small assignments" price="1,500" currency="Rs" period="one-time"
                            features={['Single subject assignment','Up to 10 pages','Basic documentation','1 revision included','3-5 day delivery']} />
-              <PricingCard icon="bi-stars" name="University Project" desc="For businesses ready to stand out" price="3,500" currency="Rs" period="one-time" perPerson featured badge="Most Popular"
+              <PricingCard icon="bi-stars" name="University Project" desc="For businesses ready to stand out" price="3,000" currency="Rs" period="one-time" perPerson featured badge="Most Popular"
                            features={['Phase-based development with digital agreement','Customized project according to university guidelines','Complete documentation and source code','Regular progress updates and reviews']} />
               <PricingCard icon="bi-trophy-fill" name="Full Project" desc="Complex applications & systems" price="15,000" currency="Rs" period="project-based" plus
                            features={['Fully responsive and modern UI design','Customized features based on requirements','Secure and optimized performance','Cross-browser and device compatibility','Deployment and basic maintenance support','SEO-friendly structure for better visibility']} />
