@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/api/:path*", "destination": "https://api.assignmentservice.net/api/:path*" },
+    { "source": "/feedback/api/:path*", "destination": "https://api.assignmentservice.net/feedback/api/:path*" },
     { "source": "/logout", "destination": "https://api.assignmentservice.net/logout" },
     { "source": "/register", "destination": "https://api.assignmentservice.net/register" },
     { "source": "/forgot-password", "destination": "https://api.assignmentservice.net/forgot-password" },
